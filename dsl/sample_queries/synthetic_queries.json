@@ -1,0 +1,253 @@
+[
+  {
+    "query_id": "q_synth_001",
+    "description": "Pure graph traversal on synthetic power-law graph (2-hop)",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "synthetic_graph",
+        "fields": ["id", "attr1"],
+        "traversal": {
+          "start_vertex_filter": {"column": "id", "value": 0},
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": ["id", "attr1"]
+        },
+        "depends_on": []
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_002",
+    "description": "Graph traversal + SQL aggregation on synthetic data",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "synthetic_graph",
+        "fields": ["id"],
+        "traversal": {
+          "start_vertex_filter": {"column": "id", "value": 1},
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": ["id"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "s1",
+        "fields": ["neighbor_count"],
+        "aggregate": {
+          "group_by": [],
+          "functions": [{"func": "COUNT", "column": "id"}]
+        },
+        "depends_on": ["s1"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_003",
+    "description": "Deep traversal stress test (3-hop on high-degree synthetic graph)",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "synthetic_graph",
+        "fields": ["id", "attr1"],
+        "traversal": {
+          "start_vertex_filter": {"column": "id", "value": 0},
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": ["id", "attr1"]
+        },
+        "depends_on": []
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_004",
+    "description": "Synthetic relational filter + join for routing baseline",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "FILTER",
+        "source": "customer",
+        "fields": ["c_custkey", "c_name"],
+        "predicate": {"column": "c_custkey", "operator": "<", "value": 1000},
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "JOIN",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_custkey", "o_totalprice"],
+        "join": {
+          "right_source": "s1",
+          "left_key": "o_custkey",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_005",
+    "description": "Mixed: graph traversal + relational join + aggregate",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "synthetic_graph",
+        "fields": ["id"],
+        "traversal": {
+          "start_vertex_filter": {"column": "id", "value": 5},
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": ["id"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "FILTER",
+        "source": "customer",
+        "fields": ["c_custkey", "c_name", "c_acctbal"],
+        "predicate": {"column": "c_acctbal", "operator": ">", "value": 3000},
+        "depends_on": []
+      },
+      {
+        "op_id": "s3",
+        "type": "JOIN",
+        "source": "s1",
+        "fields": ["id", "c_name", "c_acctbal"],
+        "join": {
+          "right_source": "s2",
+          "left_key": "id",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1", "s2"]
+      },
+      {
+        "op_id": "s4",
+        "type": "AGGREGATE",
+        "source": "s3",
+        "fields": ["total_balance"],
+        "aggregate": {
+          "group_by": [],
+          "functions": [{"func": "SUM", "column": "c_acctbal"}]
+        },
+        "depends_on": ["s3"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_006",
+    "description": "Pure SQL: multi-filter pipeline",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "FILTER",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_custkey", "o_totalprice", "o_orderstatus"],
+        "predicate": {"column": "o_orderstatus", "operator": "=", "value": "F"},
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "FILTER",
+        "source": "s1",
+        "fields": ["o_orderkey", "o_custkey", "o_totalprice"],
+        "predicate": {"column": "o_totalprice", "operator": ">", "value": 100000},
+        "depends_on": ["s1"]
+      },
+      {
+        "op_id": "s3",
+        "type": "AGGREGATE",
+        "source": "s2",
+        "fields": ["total_orders", "avg_price"],
+        "aggregate": {
+          "group_by": [],
+          "functions": [
+            {"func": "COUNT", "column": "o_orderkey"},
+            {"func": "AVG", "column": "o_totalprice"}
+          ]
+        },
+        "depends_on": ["s2"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_007",
+    "description": "MAP operation: project and transform columns",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "MAP",
+        "source": "customer",
+        "fields": ["c_custkey", "c_name", "c_acctbal"],
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "FILTER",
+        "source": "s1",
+        "fields": ["c_custkey", "c_name", "c_acctbal"],
+        "predicate": {"column": "c_acctbal", "operator": ">=", "value": 0},
+        "depends_on": ["s1"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_synth_008",
+    "description": "Parallel independent subexpressions: graph + SQL executed concurrently",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "synthetic_graph",
+        "fields": ["id"],
+        "traversal": {
+          "start_vertex_filter": {"column": "id", "value": 10},
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": ["id"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "orders",
+        "fields": ["o_custkey", "order_count"],
+        "aggregate": {
+          "group_by": ["o_custkey"],
+          "functions": [{"func": "COUNT", "column": "o_orderkey"}]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s3",
+        "type": "JOIN",
+        "source": "s1",
+        "fields": ["id", "order_count"],
+        "join": {
+          "right_source": "s2",
+          "left_key": "id",
+          "right_key": "o_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1", "s2"]
+      }
+    ]
+  }
+]

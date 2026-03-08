@@ -1,0 +1,93 @@
+{
+  "baseline_f1": 0.9904761904761905,
+  "features": {
+    "op_count_filter": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "op_count_join": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "op_count_traversal": {
+      "f1_without": 0.9953488372093023,
+      "f1_drop": -0.0048726467331118295
+    },
+    "op_count_aggregate": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "op_count_map": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "ast_depth": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "has_traversal": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "max_hops": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "input_cardinality_log": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "output_cardinality_log": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "selectivity": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "avg_degree": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "max_degree": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "degree_skew": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "num_projected_columns": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "has_index": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "join_fanout": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "estimated_shuffle_bytes_log": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "estimated_traversal_ops": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "hist_avg_runtime_ms": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "hist_runtime_variance": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    },
+    "num_tables_joined": {
+      "f1_without": 0.9904761904761905,
+      "f1_drop": 0.0
+    }
+  }
+}

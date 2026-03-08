@@ -1,0 +1,26 @@
+{
+  "features": [
+    {"name": "op_count_filter",             "type": "int",   "description": "# FILTER nodes in subexpression"},
+    {"name": "op_count_join",               "type": "int",   "description": "# JOIN nodes in subexpression"},
+    {"name": "op_count_traversal",          "type": "int",   "description": "# TRAVERSAL nodes in subexpression"},
+    {"name": "op_count_aggregate",          "type": "int",   "description": "# AGGREGATE nodes in subexpression"},
+    {"name": "op_count_map",                "type": "int",   "description": "# MAP nodes in subexpression"},
+    {"name": "ast_depth",                   "type": "int",   "description": "Max depth of AST subtree"},
+    {"name": "has_traversal",               "type": "bool",  "description": "1 if any TRAVERSAL node present"},
+    {"name": "max_hops",                    "type": "int",   "description": "Max traversal hops (0 if none)"},
+    {"name": "input_cardinality_log",       "type": "float", "description": "log10(estimated input rows)"},
+    {"name": "output_cardinality_log",      "type": "float", "description": "log10(estimated output rows)"},
+    {"name": "selectivity",                 "type": "float", "description": "Fraction of rows passing filters [0,1]"},
+    {"name": "avg_degree",                  "type": "float", "description": "Avg out-degree of source graph (0 if relational)"},
+    {"name": "max_degree",                  "type": "float", "description": "Max out-degree of source graph (0 if relational)"},
+    {"name": "degree_skew",                 "type": "float", "description": "stddev/avg of degree distribution (0 if relational)"},
+    {"name": "num_projected_columns",       "type": "int",   "description": "# output columns in subexpression"},
+    {"name": "has_index",                   "type": "bool",  "description": "1 if predicate column has index"},
+    {"name": "join_fanout",                 "type": "float", "description": "Estimated output rows / input rows for join (1.0 if no join)"},
+    {"name": "estimated_shuffle_bytes_log", "type": "float", "description": "log10(rows_out * avg_row_bytes) if SQL"},
+    {"name": "estimated_traversal_ops",     "type": "float", "description": "start_vertices * avg_degree^max_hops (0 if SQL)"},
+    {"name": "hist_avg_runtime_ms",         "type": "float", "description": "Avg runtime of similar past subexpressions (-1 if unknown)"},
+    {"name": "hist_runtime_variance",       "type": "float", "description": "Variance of past runtimes (-1 if unknown)"},
+    {"name": "num_tables_joined",           "type": "int",   "description": "# distinct tables referenced in subexpression"}
+  ]
+}

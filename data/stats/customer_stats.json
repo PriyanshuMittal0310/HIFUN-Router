@@ -1,0 +1,22 @@
+{
+  "table_name": "customer",
+  "row_count": 150000,
+  "column_count": 7,
+  "columns": {
+    "c_custkey": {
+      "distinct_count": 150000,
+      "min": 1,
+      "max": 150000
+    },
+    "c_nationkey": {
+      "distinct_count": 25,
+      "min": 0,
+      "max": 24
+    },
+    "c_acctbal": {
+      "distinct_count": 140187,
+      "min": -999.99,
+      "max": 9999.99
+    }
+  }
+}

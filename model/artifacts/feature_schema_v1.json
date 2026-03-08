@@ -1,0 +1,31 @@
+{
+  "feature_names": [
+    "op_count_filter",
+    "op_count_join",
+    "op_count_traversal",
+    "op_count_aggregate",
+    "op_count_map",
+    "ast_depth",
+    "has_traversal",
+    "max_hops",
+    "input_cardinality_log",
+    "output_cardinality_log",
+    "selectivity",
+    "avg_degree",
+    "max_degree",
+    "degree_skew",
+    "num_projected_columns",
+    "has_index",
+    "join_fanout",
+    "estimated_shuffle_bytes_log",
+    "estimated_traversal_ops",
+    "hist_avg_runtime_ms",
+    "hist_runtime_variance",
+    "num_tables_joined"
+  ],
+  "num_features": 22,
+  "label_map": {
+    "0": "SQL",
+    "1": "GRAPH"
+  }
+}

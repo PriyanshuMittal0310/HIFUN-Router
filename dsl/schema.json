@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HIFUN DSL Query",
+  "description": "JSON-based DSL for HIFUN query decomposition and routing",
+  "type": "object",
+  "required": ["query_id", "operations"],
+  "properties": {
+    "query_id": {
+      "type": "string",
+      "description": "Unique identifier for the query"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable label for the query"
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/operation"
+      }
+    }
+  },
+  "definitions": {
+    "operation": {
+      "type": "object",
+      "required": ["op_id", "type", "source"],
+      "properties": {
+        "op_id": {
+          "type": "string",
+          "description": "Unique identifier within this query"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["FILTER", "MAP", "JOIN", "TRAVERSAL", "AGGREGATE"],
+          "description": "Operation type"
+        },
+        "source": {
+          "type": "string",
+          "description": "Table name, graph name, or reference to another op_id"
+        },
+        "fields": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Output column names"
+        },
+        "predicate": {
+          "$ref": "#/definitions/predicate"
+        },
+        "join": {
+          "$ref": "#/definitions/join_spec"
+        },
+        "traversal": {
+          "$ref": "#/definitions/traversal_spec"
+        },
+        "aggregate": {
+          "$ref": "#/definitions/aggregate_spec"
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of op_ids this operation depends on"
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "JOIN"}}},
+          "then": {"required": ["join"]}
+        },
+        {
+          "if": {"properties": {"type": {"const": "TRAVERSAL"}}},
+          "then": {"required": ["traversal"]}
+        },
+        {
+          "if": {"properties": {"type": {"const": "AGGREGATE"}}},
+          "then": {"required": ["aggregate"]}
+        }
+      ]
+    },
+    "predicate": {
+      "type": "object",
+      "required": ["column", "operator", "value"],
+      "properties": {
+        "column": {"type": "string"},
+        "operator": {
+          "type": "string",
+          "enum": ["=", ">", "<", ">=", "<=", "IN", "LIKE"]
+        },
+        "value": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "number"},
+            {"type": "array", "items": {"oneOf": [{"type": "string"}, {"type": "number"}]}}
+          ]
+        }
+      }
+    },
+    "join_spec": {
+      "type": "object",
+      "required": ["right_source", "left_key", "right_key", "join_type"],
+      "properties": {
+        "right_source": {"type": "string"},
+        "left_key": {"type": "string"},
+        "right_key": {"type": "string"},
+        "join_type": {
+          "type": "string",
+          "enum": ["INNER", "LEFT", "RIGHT"]
+        }
+      }
+    },
+    "traversal_spec": {
+      "type": "object",
+      "required": ["start_vertex_filter", "edge_label", "direction", "max_hops"],
+      "properties": {
+        "start_vertex_filter": {
+          "type": "object",
+          "required": ["column", "value"],
+          "properties": {
+            "column": {"type": "string"},
+            "value": {}
+          }
+        },
+        "edge_label": {"type": "string"},
+        "direction": {
+          "type": "string",
+          "enum": ["IN", "OUT", "BOTH"]
+        },
+        "max_hops": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "return_fields": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "aggregate_spec": {
+      "type": "object",
+      "required": ["group_by", "functions"],
+      "properties": {
+        "group_by": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "functions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["func", "column"],
+            "properties": {
+              "func": {
+                "type": "string",
+                "enum": ["SUM", "COUNT", "AVG", "MAX", "MIN"]
+              },
+              "column": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

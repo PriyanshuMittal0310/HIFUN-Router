@@ -1,0 +1,106 @@
+{
+  "dataset_size": 186,
+  "label_distribution": {
+    "SQL": 126,
+    "GRAPH": 60
+  },
+  "cv_folds": 3,
+  "decision_tree": {
+    "model": "DecisionTree",
+    "cv_f1_mean": 1.0,
+    "cv_f1_std": 0.0,
+    "cv_accuracy_mean": 1.0,
+    "cv_accuracy_std": 0.0,
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "confusion_matrix": [
+      [
+        126,
+        0
+      ],
+      [
+        0,
+        60
+      ]
+    ],
+    "classification_report": {
+      "SQL": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 126.0
+      },
+      "GRAPH": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 60.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 186.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 186.0
+      }
+    }
+  },
+  "xgboost": {
+    "model": "XGBoost",
+    "cv_f1_mean": 0.9914529914529915,
+    "cv_f1_std": 0.012087295404898257,
+    "cv_accuracy_mean": 0.9946236559139785,
+    "cv_accuracy_std": 0.007603298722435988,
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "confusion_matrix": [
+      [
+        126,
+        0
+      ],
+      [
+        0,
+        60
+      ]
+    ],
+    "classification_report": {
+      "SQL": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 126.0
+      },
+      "GRAPH": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 60.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 186.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 186.0
+      }
+    }
+  },
+  "best_model": "DecisionTree",
+  "model_path": "/tmp/pytest-of-priyanshu/pytest-15/test_full_pipeline0/classifier.pkl"
+}

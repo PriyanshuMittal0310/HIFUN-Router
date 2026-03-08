@@ -1,0 +1,12 @@
+pyspark==3.4.2
+graphframes==0.6
+xgboost==2.0.3
+scikit-learn==1.4.0
+shap==0.44.0
+pandas==2.1.4
+numpy==1.26.3
+jsonschema==4.21.1
+matplotlib==3.8.2
+seaborn==0.13.1
+pyarrow==14.0.2
+lightgbm==4.2.0

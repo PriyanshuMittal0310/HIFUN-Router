@@ -1,0 +1,217 @@
+[
+  {
+    "query_id": "q_snb_001",
+    "description": "Friends of a person (graph traversal) joined with post counts (SQL aggregation)",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "social_graph",
+        "fields": ["person_id", "name"],
+        "traversal": {
+          "start_vertex_filter": {"column": "person_id", "value": 123},
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": ["person_id", "name"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "posts",
+        "fields": ["creator_id", "post_count"],
+        "aggregate": {
+          "group_by": ["creator_id"],
+          "functions": [{"func": "COUNT", "column": "post_id"}]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s3",
+        "type": "JOIN",
+        "source": "s1",
+        "fields": ["person_id", "name", "post_count"],
+        "join": {
+          "right_source": "s2",
+          "left_key": "person_id",
+          "right_key": "creator_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": ["s1", "s2"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_002",
+    "description": "2-hop friend network filtered by city, aggregated by workplace",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "social_graph",
+        "fields": ["person_id", "name", "city"],
+        "traversal": {
+          "start_vertex_filter": {"column": "person_id", "value": 456},
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": ["person_id", "name", "city"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "FILTER",
+        "source": "s1",
+        "fields": ["person_id", "name", "city"],
+        "predicate": {"column": "city", "operator": "=", "value": "Berlin"},
+        "depends_on": ["s1"]
+      },
+      {
+        "op_id": "s3",
+        "type": "JOIN",
+        "source": "s2",
+        "fields": ["person_id", "name", "company_name"],
+        "join": {
+          "right_source": "works_at",
+          "left_key": "person_id",
+          "right_key": "person_id",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s2"]
+      },
+      {
+        "op_id": "s4",
+        "type": "AGGREGATE",
+        "source": "s3",
+        "fields": ["company_name", "employee_count"],
+        "aggregate": {
+          "group_by": ["company_name"],
+          "functions": [{"func": "COUNT", "column": "person_id"}]
+        },
+        "depends_on": ["s3"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_003",
+    "description": "Direct friends (1-hop) with their comment activity",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "social_graph",
+        "fields": ["person_id", "name"],
+        "traversal": {
+          "start_vertex_filter": {"column": "person_id", "value": 789},
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": ["person_id", "name"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "comments",
+        "fields": ["author_id", "comment_count"],
+        "aggregate": {
+          "group_by": ["author_id"],
+          "functions": [{"func": "COUNT", "column": "comment_id"}]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s3",
+        "type": "JOIN",
+        "source": "s1",
+        "fields": ["person_id", "name", "comment_count"],
+        "join": {
+          "right_source": "s2",
+          "left_key": "person_id",
+          "right_key": "author_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": ["s1", "s2"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_004",
+    "description": "Deep traversal (3-hop) for influence analysis joined with message stats",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "TRAVERSAL",
+        "source": "social_graph",
+        "fields": ["person_id"],
+        "traversal": {
+          "start_vertex_filter": {"column": "person_id", "value": 100},
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": ["person_id"]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "messages",
+        "fields": ["sender_id", "msg_count", "avg_length"],
+        "aggregate": {
+          "group_by": ["sender_id"],
+          "functions": [
+            {"func": "COUNT", "column": "message_id"},
+            {"func": "AVG", "column": "content_length"}
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s3",
+        "type": "JOIN",
+        "source": "s1",
+        "fields": ["person_id", "msg_count", "avg_length"],
+        "join": {
+          "right_source": "s2",
+          "left_key": "person_id",
+          "right_key": "sender_id",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1", "s2"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_005",
+    "description": "Pure graph: find all 2-hop neighbors from multiple start vertices",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "FILTER",
+        "source": "person",
+        "fields": ["person_id"],
+        "predicate": {"column": "country", "operator": "=", "value": "Germany"},
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "TRAVERSAL",
+        "source": "social_graph",
+        "fields": ["person_id", "name"],
+        "traversal": {
+          "start_vertex_filter": {"column": "country", "value": "Germany"},
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": ["person_id", "name"]
+        },
+        "depends_on": ["s1"]
+      }
+    ]
+  }
+]

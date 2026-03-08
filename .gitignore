@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+source/
+.venv/
+venv/
+env/
+
+# Data (large/generated files)
+data/raw/tpch-kit/
+data/parquet/
+data/graphs/*.parquet/
+data/runtime_history.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Spark
+metastore_db/
+derby.log
+spark-warehouse/

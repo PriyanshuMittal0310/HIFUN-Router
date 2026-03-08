@@ -1,0 +1,176 @@
+[
+  {
+    "query_id": "q_tpch_001",
+    "description": "TPC-H orders joined with customers filtered by nation, aggregated by customer name",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "FILTER",
+        "source": "customer",
+        "fields": ["c_custkey", "c_name", "c_nationkey"],
+        "predicate": {"column": "c_nationkey", "operator": "=", "value": 7},
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "JOIN",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_custkey", "o_totalprice", "c_name"],
+        "join": {
+          "right_source": "s1",
+          "left_key": "o_custkey",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1"]
+      },
+      {
+        "op_id": "s3",
+        "type": "AGGREGATE",
+        "source": "s2",
+        "fields": ["c_name", "total_spent"],
+        "aggregate": {
+          "group_by": ["c_name"],
+          "functions": [{"func": "SUM", "column": "o_totalprice"}]
+        },
+        "depends_on": ["s2"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpch_002",
+    "description": "Count orders per customer for high-value customers",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "FILTER",
+        "source": "customer",
+        "fields": ["c_custkey", "c_name", "c_acctbal"],
+        "predicate": {"column": "c_acctbal", "operator": ">", "value": 5000},
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "JOIN",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_custkey"],
+        "join": {
+          "right_source": "s1",
+          "left_key": "o_custkey",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1"]
+      },
+      {
+        "op_id": "s3",
+        "type": "AGGREGATE",
+        "source": "s2",
+        "fields": ["c_name", "order_count"],
+        "aggregate": {
+          "group_by": ["c_name"],
+          "functions": [{"func": "COUNT", "column": "o_orderkey"}]
+        },
+        "depends_on": ["s2"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpch_003",
+    "description": "Average order total by customer nation",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "JOIN",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_custkey", "o_totalprice", "c_nationkey"],
+        "join": {
+          "right_source": "customer",
+          "left_key": "o_custkey",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "s1",
+        "fields": ["c_nationkey", "avg_total"],
+        "aggregate": {
+          "group_by": ["c_nationkey"],
+          "functions": [{"func": "AVG", "column": "o_totalprice"}]
+        },
+        "depends_on": ["s1"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpch_004",
+    "description": "Max order total per market segment",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "JOIN",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_totalprice", "c_mktsegment"],
+        "join": {
+          "right_source": "customer",
+          "left_key": "o_custkey",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "AGGREGATE",
+        "source": "s1",
+        "fields": ["c_mktsegment", "max_total"],
+        "aggregate": {
+          "group_by": ["c_mktsegment"],
+          "functions": [{"func": "MAX", "column": "o_totalprice"}]
+        },
+        "depends_on": ["s1"]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpch_005",
+    "description": "Customers with urgent orders filtered by priority",
+    "operations": [
+      {
+        "op_id": "s1",
+        "type": "FILTER",
+        "source": "orders",
+        "fields": ["o_orderkey", "o_custkey", "o_orderpriority"],
+        "predicate": {"column": "o_orderpriority", "operator": "=", "value": "1-URGENT"},
+        "depends_on": []
+      },
+      {
+        "op_id": "s2",
+        "type": "JOIN",
+        "source": "s1",
+        "fields": ["o_orderkey", "c_custkey", "c_name"],
+        "join": {
+          "right_source": "customer",
+          "left_key": "o_custkey",
+          "right_key": "c_custkey",
+          "join_type": "INNER"
+        },
+        "depends_on": ["s1"]
+      },
+      {
+        "op_id": "s3",
+        "type": "AGGREGATE",
+        "source": "s2",
+        "fields": ["c_name", "urgent_count"],
+        "aggregate": {
+          "group_by": ["c_name"],
+          "functions": [{"func": "COUNT", "column": "o_orderkey"}]
+        },
+        "depends_on": ["s2"]
+      }
+    ]
+  }
+]
