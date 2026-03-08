@@ -36,3 +36,4 @@ Thumbs.db
 metastore_db/
 derby.log
 spark-warehouse/
+*.tar.gz
