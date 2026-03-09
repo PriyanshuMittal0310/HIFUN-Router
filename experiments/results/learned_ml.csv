@@ -1,0 +1,19 @@
+query_id,description,strategy,median_latency_ms,mean_latency_ms,min_latency_ms,max_latency_ms,num_subexpressions,engines_used,result_rows,num_runs,success
+q_snb_001,Friends of a person (graph traversal) joined with post counts (SQL aggregation),learned_ml,436.84162999988985,466.6086186666689,413.04472799993164,549.9394980001853,3,"GRAPH,SQL,SQL",97,3,True
+q_snb_002,"2-hop friend network filtered by city, aggregated by workplace",learned_ml,467.26154899988614,454.95454199999585,415.349458000037,482.25261900006444,2,"GRAPH,SQL",29,3,True
+q_snb_003,Direct friends (1-hop) with their comment activity,learned_ml,409.2529219997232,408.10159166661225,405.0455149999834,410.0063380001302,3,"GRAPH,SQL,SQL",17,3,True
+q_snb_004,Deep traversal (3-hop) for influence analysis joined with message stats,learned_ml,397.32772500019564,400.84252833321443,393.36659899981896,411.8332609996287,3,"GRAPH,SQL,SQL",179,3,True
+q_snb_005,Pure graph: find all 2-hop neighbors from multiple start vertices,learned_ml,398.74920200009,429.2491073333622,397.0660949999001,491.9320250000965,2,"SQL,GRAPH",688,3,True
+q_synth_001,Pure graph traversal on synthetic power-law graph (2-hop),learned_ml,760.9709410003234,765.0219803334343,759.6752929998729,774.4197070001064,1,GRAPH,5240,3,True
+q_synth_002,Graph traversal + SQL aggregation on synthetic data,learned_ml,777.9150960000152,798.9912356667143,765.5547610002031,853.5038499999246,2,"GRAPH,SQL",149,3,True
+q_synth_003,Deep traversal stress test (3-hop on high-degree synthetic graph),learned_ml,769.3323679995956,765.1325019998391,754.968297999767,771.0968400001548,1,GRAPH,9975,3,True
+q_synth_004,Synthetic relational filter + join for routing baseline,learned_ml,28.167366000161564,46.204473666724276,24.84629099990343,85.59976400010783,1,SQL,9869,3,True
+q_synth_005,Mixed: graph traversal + relational join + aggregate,learned_ml,775.3108560000328,802.6119749999149,769.9336649998259,862.5914039998861,3,"GRAPH,SQL,SQL",95264,3,True
+q_synth_006,Pure SQL: multi-filter pipeline,learned_ml,89.9720319998778,102.68811466661039,78.8785029999417,139.21380900001168,1,SQL,1,3,True
+q_synth_007,MAP operation: project and transform columns,learned_ml,6.601781999961531,11.375982333296028,5.960060999768757,21.566104000157793,1,SQL,136308,3,True
+q_synth_008,Parallel independent subexpressions: graph + SQL executed concurrently,learned_ml,833.2456570001341,859.9301883333889,805.0418080001691,941.5030999998635,3,"GRAPH,SQL,SQL",192,3,True
+q_tpch_001,"TPC-H orders joined with customers filtered by nation, aggregated by customer name",learned_ml,43.24797800018132,70.9154793333558,39.27424099993004,130.22421899995607,1,SQL,3974,3,True
+q_tpch_002,Count orders per customer for high-value customers,learned_ml,183.90180799997324,214.62923566665873,169.21325500015882,290.77264399984415,1,SQL,45250,3,True
+q_tpch_003,Average order total by customer nation,learned_ml,198.26804600006653,213.34389900008924,191.82959499994467,249.93405600025653,1,SQL,25,3,True
+q_tpch_004,Max order total per market segment,learned_ml,209.27591500003473,228.4439829998822,202.8290579996792,273.2269759999326,1,SQL,5,3,True
+q_tpch_005,Customers with urgent orders filtered by priority,learned_ml,118.71901299991805,139.0520950000488,107.91950600014388,190.51776600008452,1,SQL,92333,3,True

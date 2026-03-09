@@ -1,0 +1,27 @@
+{
+  "table_name": "comments",
+  "row_count": 50000,
+  "column_count": 4,
+  "columns": {
+    "comment_id": {
+      "distinct_count": 50000,
+      "min": 0.0,
+      "max": 49999.0
+    },
+    "author_id": {
+      "distinct_count": 4999,
+      "min": 0.0,
+      "max": 4999.0
+    },
+    "post_id": {
+      "distinct_count": 18363,
+      "min": 1.0,
+      "max": 19999.0
+    },
+    "content_length": {
+      "distinct_count": 495,
+      "min": 5.0,
+      "max": 499.0
+    }
+  }
+}

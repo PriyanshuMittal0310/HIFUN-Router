@@ -1,0 +1,19 @@
+query_id,description,strategy,median_latency_ms,mean_latency_ms,min_latency_ms,max_latency_ms,num_subexpressions,engines_used,result_rows,num_runs,success
+q_snb_001,Friends of a person (graph traversal) joined with post counts (SQL aggregation),threshold,397.7812240000276,400.60508466679795,396.9830220003132,407.0510080000531,3,"GRAPH,SQL,SQL",97,3,True
+q_snb_002,"2-hop friend network filtered by city, aggregated by workplace",threshold,399.72930900012216,403.1712203333579,394.06957900018824,415.7147729997632,2,"GRAPH,SQL",29,3,True
+q_snb_003,Direct friends (1-hop) with their comment activity,threshold,398.0965149999065,394.9191990000145,385.6777169999077,400.98336500022924,3,"GRAPH,SQL,SQL",17,3,True
+q_snb_004,Deep traversal (3-hop) for influence analysis joined with message stats,threshold,24.001286999919103,26.668671333482052,23.33367300025202,32.671054000275035,3,"SQL,SQL,SQL",179,3,True
+q_snb_005,Pure graph: find all 2-hop neighbors from multiple start vertices,threshold,393.8143589998617,418.7519486666436,388.5698859999138,473.87160100015535,2,"SQL,GRAPH",688,3,True
+q_synth_001,Pure graph traversal on synthetic power-law graph (2-hop),threshold,748.8463659997251,752.9670506666358,739.3422120003379,770.7125739998446,1,GRAPH,5240,3,True
+q_synth_002,Graph traversal + SQL aggregation on synthetic data,threshold,763.9705500000673,787.4592186667542,761.8333140003415,836.5737919998537,2,"GRAPH,SQL",149,3,True
+q_synth_003,Deep traversal stress test (3-hop on high-degree synthetic graph),threshold,2043.3208379999996,2041.7673496667703,2036.475505999988,2045.5057050003234,1,SQL,9975,3,True
+q_synth_004,Synthetic relational filter + join for routing baseline,threshold,58.20609100010188,71.97451966673422,41.56670100019255,116.15076699990823,1,SQL,9869,3,True
+q_synth_005,Mixed: graph traversal + relational join + aggregate,threshold,811.4171570000508,823.928849999902,799.6892229998593,860.6801699997959,3,"GRAPH,SQL,SQL",95264,3,True
+q_synth_006,Pure SQL: multi-filter pipeline,threshold,80.433169999651,101.78546366660157,74.81637099999716,150.10685000015656,1,SQL,1,3,True
+q_synth_007,MAP operation: project and transform columns,threshold,6.222076999620185,11.079889999867495,6.0091200002716505,21.008472999710648,1,SQL,136308,3,True
+q_synth_008,Parallel independent subexpressions: graph + SQL executed concurrently,threshold,810.7391459998325,817.6764176666135,809.3614949998482,832.9286120001598,3,"GRAPH,SQL,SQL",192,3,True
+q_tpch_001,"TPC-H orders joined with customers filtered by nation, aggregated by customer name",threshold,42.875125000136904,73.26201433337094,37.37130099989372,139.53961700008222,1,SQL,3974,3,True
+q_tpch_002,Count orders per customer for high-value customers,threshold,181.97056700000758,205.30590933321946,160.42702799995823,273.5201329996926,1,SQL,45250,3,True
+q_tpch_003,Average order total by customer nation,threshold,198.4110530001999,211.5657250001277,180.01645999993343,256.2696620002498,1,SQL,25,3,True
+q_tpch_004,Max order total per market segment,threshold,234.45521700023164,226.73565966685297,193.3160170001429,252.4357450001844,1,SQL,5,3,True
+q_tpch_005,Customers with urgent orders filtered by priority,threshold,113.71073800000886,134.75252266668272,112.58937499997046,177.95745500006888,1,SQL,92333,3,True

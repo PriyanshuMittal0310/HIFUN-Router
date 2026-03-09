@@ -1,0 +1,7 @@
+Strategy,Accuracy,F1,Precision,Recall,Acc_unambiguous_sql,F1_unambiguous_sql,N_unambiguous_sql,Acc_unambiguous_graph,F1_unambiguous_graph,N_unambiguous_graph,Acc_ambiguous,F1_ambiguous,N_ambiguous
+Always SQL,0.6774193548387096,0.0,0.0,0.0,1.0,0.0,145,0.0,0.0,110,1.0,0.0,86
+Always Graph,0.3225806451612903,0.4878048780487805,0.3225806451612903,1.0,0.0,0.0,145,1.0,1.0,110,0.0,0.0,86
+Trivial Rule,1.0,1.0,1.0,1.0,1.0,0.0,145,1.0,1.0,110,1.0,0.0,86
+Threshold Rule,0.8357771260997068,0.6585365853658537,1.0,0.4909090909090909,1.0,0.0,145,0.4909090909090909,0.6585365853658537,110,1.0,0.0,86
+Logistic Regression,1.0,1.0,1.0,1.0,1.0,0.0,145,1.0,1.0,110,1.0,0.0,86
+Learned ML (DT),1.0,1.0,1.0,1.0,1.0,0.0,145,1.0,1.0,110,1.0,0.0,86

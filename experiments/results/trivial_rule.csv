@@ -1,0 +1,19 @@
+query_id,description,strategy,median_latency_ms,mean_latency_ms,min_latency_ms,max_latency_ms,num_subexpressions,engines_used,result_rows,num_runs,success
+q_snb_001,Friends of a person (graph traversal) joined with post counts (SQL aggregation),trivial_rule,422.1408930002326,423.68322966694905,389.860764000332,459.04803200028255,3,"GRAPH,SQL,SQL",97,3,True
+q_snb_002,"2-hop friend network filtered by city, aggregated by workplace",trivial_rule,387.35118700014937,395.25544466656964,383.51651999983005,414.89862699972946,2,"GRAPH,SQL",29,3,True
+q_snb_003,Direct friends (1-hop) with their comment activity,trivial_rule,384.46504900002765,397.0262743334085,382.5422630002322,424.07151099996554,3,"GRAPH,SQL,SQL",17,3,True
+q_snb_004,Deep traversal (3-hop) for influence analysis joined with message stats,trivial_rule,400.15523800002484,398.1256313333385,385.8927169999333,408.3289390000573,3,"GRAPH,SQL,SQL",179,3,True
+q_snb_005,Pure graph: find all 2-hop neighbors from multiple start vertices,trivial_rule,390.63558999987436,407.85373699994426,379.2161839996879,453.70943700027055,2,"SQL,GRAPH",688,3,True
+q_synth_001,Pure graph traversal on synthetic power-law graph (2-hop),trivial_rule,745.0269699997989,747.4809699998938,743.1258779997734,754.2900620001092,1,GRAPH,5240,3,True
+q_synth_002,Graph traversal + SQL aggregation on synthetic data,trivial_rule,757.456153000021,773.2210789999954,737.1047699998599,825.1023140001053,2,"GRAPH,SQL",149,3,True
+q_synth_003,Deep traversal stress test (3-hop on high-degree synthetic graph),trivial_rule,750.1492430001235,747.2187906666173,739.9554519997764,751.5516769999522,1,GRAPH,9975,3,True
+q_synth_004,Synthetic relational filter + join for routing baseline,trivial_rule,23.29395000015211,49.27550800008854,22.7941580001243,101.73841599998923,1,SQL,9869,3,True
+q_synth_005,Mixed: graph traversal + relational join + aggregate,trivial_rule,774.5461849999629,803.5614673332626,760.6186729999536,875.5195439998715,3,"GRAPH,SQL,SQL",95264,3,True
+q_synth_006,Pure SQL: multi-filter pipeline,trivial_rule,69.20274100002644,89.53606899998097,64.66147599985561,134.74399000006088,1,SQL,1,3,True
+q_synth_007,MAP operation: project and transform columns,trivial_rule,10.772574999919016,13.445400666569185,8.846493999953964,20.717132999834575,1,SQL,136308,3,True
+q_synth_008,Parallel independent subexpressions: graph + SQL executed concurrently,trivial_rule,778.2130800001141,799.0730786667276,775.4474220000702,843.5587339999984,3,"GRAPH,SQL,SQL",192,3,True
+q_tpch_001,"TPC-H orders joined with customers filtered by nation, aggregated by customer name",trivial_rule,54.4889669999975,75.46964366671698,51.82635100027255,120.09361299988086,1,SQL,3974,3,True
+q_tpch_002,Count orders per customer for high-value customers,trivial_rule,175.01720599966575,198.79132733315905,164.91357599988987,256.4431999999215,1,SQL,45250,3,True
+q_tpch_003,Average order total by customer nation,trivial_rule,227.10502000018096,230.40587733339635,206.46192000003794,257.65069199997015,1,SQL,25,3,True
+q_tpch_004,Max order total per market segment,trivial_rule,236.27505199965526,228.79753399971983,187.46639599976334,262.6511539997409,1,SQL,5,3,True
+q_tpch_005,Customers with urgent orders filtered by priority,trivial_rule,119.70505499994033,132.83869766655698,106.71652200016979,172.09451599956083,1,SQL,92333,3,True

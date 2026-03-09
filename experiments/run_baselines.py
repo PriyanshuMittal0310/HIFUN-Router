@@ -1,9 +1,11 @@
-"""Run baseline routing strategies: Always-SQL, Always-Graph, Rule-Based.
+"""Run baseline routing strategies: Always-SQL, Always-Graph, Rule-Based,
+Threshold, Logistic Regression, and ML (Decision Tree / XGBoost).
 
 Usage:
-    python experiments/run_baselines.py --strategy always_sql --queries dsl/sample_queries/ --output experiments/results/always_sql.csv
-    python experiments/run_baselines.py --strategy always_graph --queries dsl/sample_queries/ --output experiments/results/always_graph.csv
-    python experiments/run_baselines.py --strategy rule_based --queries dsl/sample_queries/ --output experiments/results/rule_based.csv
+    python experiments/run_baselines.py --strategy always_sql
+    python experiments/run_baselines.py --strategy threshold
+    python experiments/run_baselines.py --strategy logreg
+    python experiments/run_baselines.py --strategy all
 """
 
 import argparse
@@ -13,17 +15,34 @@ import os
 import sys
 import time
 
+import numpy as np
 import pandas as pd
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from router.hybrid_router import HybridRouter
-from config.paths import SAMPLE_QUERIES_DIR, RESULTS_DIR
+from router.baselines import (
+    trivial_rule_route,
+    ThresholdBaseline,
+    LogisticRegressionBaseline,
+)
+from config.paths import (
+    SAMPLE_QUERIES_DIR, RESULTS_DIR, LABELED_RUNS_CSV, STATS_DIR,
+    TPCH_PARQUET_DIR, SNB_PARQUET_DIR, GRAPHS_DIR,
+)
+from features.feature_extractor import FEATURE_NAMES
 
 logger = logging.getLogger(__name__)
 
-STRATEGIES = ["always_sql", "always_graph", "rule_based"]
+STRATEGIES = [
+    "always_sql",
+    "always_graph",
+    "trivial_rule",
+    "threshold",
+    "logreg",
+    "learned_ml",
+]
 
 
 def load_all_queries(queries_dir: str) -> list:
@@ -42,23 +61,81 @@ def load_all_queries(queries_dir: str) -> list:
     return all_queries
 
 
+def _make_router(strategy, query, force_engine=None, custom_router=None,
+                 threshold_baseline=None, logreg_baseline=None):
+    """Create a HybridRouter with correct data paths for the query."""
+    query_id = query.get("query_id", "")
+    is_snb = query_id.startswith("q_snb")
+    parquet_dir = SNB_PARQUET_DIR if is_snb else TPCH_PARQUET_DIR
+
+    kwargs = dict(parquet_dir=parquet_dir, graph_dir=GRAPHS_DIR)
+    if force_engine:
+        kwargs["force_engine"] = force_engine
+    if custom_router:
+        kwargs["custom_router"] = custom_router
+    return HybridRouter(**kwargs)
+
+
 def run_baseline(strategy: str, queries: list, num_runs: int = 3) -> pd.DataFrame:
     """Run a baseline strategy on all queries.
 
     Args:
-        strategy: one of 'always_sql', 'always_graph', 'rule_based'
+        strategy: one of the STRATEGIES
         queries: list of query JSON dicts
         num_runs: number of repetitions for timing stability
 
     Returns:
         DataFrame with per-query results
     """
-    if strategy == "always_sql":
-        router = HybridRouter(force_engine="SQL")
+    # Prepare threshold and logreg baselines if needed
+    threshold_baseline = None
+    logreg_baseline = None
+
+    if strategy == "threshold":
+        if os.path.exists(LABELED_RUNS_CSV):
+            threshold_baseline = ThresholdBaseline.tune_thresholds(
+                LABELED_RUNS_CSV, FEATURE_NAMES
+            )
+        else:
+            logger.warning("No labeled data for tuning; using default thresholds")
+            threshold_baseline = ThresholdBaseline()
+
+    if strategy == "logreg":
+        if os.path.exists(LABELED_RUNS_CSV):
+            df_train = pd.read_csv(LABELED_RUNS_CSV)
+            available_cols = [c for c in FEATURE_NAMES if c in df_train.columns]
+            if available_cols:
+                X_train = df_train[available_cols].values
+                y_train = (df_train["label"] == "GRAPH").astype(int).values
+                logreg_baseline = LogisticRegressionBaseline()
+                logreg_baseline.fit(X_train, y_train)
+            else:
+                logger.warning("Feature columns not found in labeled data")
+                return pd.DataFrame()
+        else:
+            logger.warning("No labeled data for logistic regression training")
+            return pd.DataFrame()
+
+    if strategy in ("always_sql",):
+        make_kwargs = lambda q: dict(force_engine="SQL")
     elif strategy == "always_graph":
-        router = HybridRouter(force_engine="GRAPH")
-    elif strategy == "rule_based":
-        router = HybridRouter(force_engine="RULE_BASED")
+        make_kwargs = lambda q: dict(force_engine="GRAPH")
+    elif strategy in ("trivial_rule", "rule_based"):
+        make_kwargs = lambda q: dict(
+            custom_router=lambda sub, fv, fn: (
+                "GRAPH" if sub.primary_op_type == "TRAVERSAL" else "SQL"
+            )
+        )
+    elif strategy == "threshold":
+        make_kwargs = lambda q: dict(
+            custom_router=lambda sub, fv, fn: threshold_baseline.route(fv, fn)
+        )
+    elif strategy == "logreg":
+        make_kwargs = lambda q: dict(
+            custom_router=lambda sub, fv, fn: logreg_baseline.route(fv)
+        )
+    elif strategy == "learned_ml":
+        make_kwargs = lambda q: {}
     else:
         raise ValueError(f"Unknown strategy: {strategy}")
 
@@ -69,15 +146,15 @@ def run_baseline(strategy: str, queries: list, num_runs: int = 3) -> pd.DataFram
         latencies = []
         last_result = None
 
+        # Create per-query router with correct data paths
+        is_snb = query_id.startswith("q_snb")
+        parquet_dir = SNB_PARQUET_DIR if is_snb else TPCH_PARQUET_DIR
+        graph_dir = os.path.join(GRAPHS_DIR, "snb") if is_snb else os.path.join(GRAPHS_DIR, "synthetic")
+        router = HybridRouter(parquet_dir=parquet_dir, graph_dir=graph_dir,
+                              **make_kwargs(query))
+
         for run_idx in range(num_runs):
             try:
-                # For rule_based, we override force_engine handling
-                if strategy == "rule_based":
-                    router.force_engine = None  # Let heuristic route
-                    # Temporarily disable ML predictor to force heuristic fallback
-                    router._model_path = "/nonexistent/model.pkl"
-                    router._predictor = None
-
                 result = router.execute_query(query)
                 latencies.append(result["total_time_ms"])
                 last_result = result
@@ -116,8 +193,8 @@ def run_baseline(strategy: str, queries: list, num_runs: int = 3) -> pd.DataFram
 
 def main():
     parser = argparse.ArgumentParser(description="Run baseline routing strategies")
-    parser.add_argument("--strategy", choices=STRATEGIES, required=True,
-                        help="Baseline strategy to run")
+    parser.add_argument("--strategy", choices=STRATEGIES + ["all"], required=True,
+                        help="Baseline strategy to run (or 'all' to run all)")
     parser.add_argument("--queries", default=SAMPLE_QUERIES_DIR,
                         help="Path to query directory or single JSON file")
     parser.add_argument("--output", default=None,
@@ -137,28 +214,32 @@ def main():
         if not isinstance(queries, list):
             queries = [queries]
 
-    print(f"Strategy: {args.strategy}")
-    print(f"Queries loaded: {len(queries)}")
+    strategies_to_run = STRATEGIES if args.strategy == "all" else [args.strategy]
 
-    # Run
-    results_df = run_baseline(args.strategy, queries, num_runs=args.runs)
+    for strategy in strategies_to_run:
+        print(f"\n{'=' * 60}")
+        print(f"Strategy: {strategy}")
+        print(f"Queries loaded: {len(queries)}")
 
-    # Save
-    output_path = args.output or os.path.join(RESULTS_DIR, f"{args.strategy}.csv")
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    results_df.to_csv(output_path, index=False)
-    print(f"\nResults saved to {output_path}")
+        results_df = run_baseline(strategy, queries, num_runs=args.runs)
 
-    # Summary
-    successful = results_df[results_df["success"]]
-    if len(successful) > 0:
-        print(f"\nSummary ({args.strategy}):")
-        print(f"  Queries succeeded: {len(successful)}/{len(results_df)}")
-        print(f"  Median latency: {successful['median_latency_ms'].median():.1f} ms")
-        print(f"  Mean latency:   {successful['mean_latency_ms'].mean():.1f} ms")
-        print(f"  p95 latency:    {successful['median_latency_ms'].quantile(0.95):.1f} ms")
-    else:
-        print("  No queries succeeded.")
+        if results_df.empty:
+            print(f"  Skipped (no data available)")
+            continue
+
+        output_path = args.output or os.path.join(RESULTS_DIR, f"{strategy}.csv")
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        results_df.to_csv(output_path, index=False)
+        print(f"Results saved to {output_path}")
+
+        successful = results_df[results_df["success"]]
+        if len(successful) > 0:
+            print(f"  Queries succeeded: {len(successful)}/{len(results_df)}")
+            print(f"  Median latency: {successful['median_latency_ms'].median():.1f} ms")
+            print(f"  Mean latency:   {successful['mean_latency_ms'].mean():.1f} ms")
+            print(f"  p95 latency:    {successful['median_latency_ms'].quantile(0.95):.1f} ms")
+        else:
+            print("  No queries succeeded.")
 
 
 if __name__ == "__main__":

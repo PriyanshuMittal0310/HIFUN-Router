@@ -1,0 +1,188 @@
+{
+  "baseline_f1": 1.0,
+  "baseline_f1_std": 0.0,
+  "individual_features": {
+    "op_count_filter": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "op_count_join": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "op_count_traversal": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "op_count_aggregate": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "op_count_map": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "ast_depth": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "has_traversal": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "max_hops": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "input_cardinality_log": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "output_cardinality_log": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "selectivity": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "avg_degree": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "max_degree": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "degree_skew": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "num_projected_columns": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "has_index": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "join_fanout": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "estimated_shuffle_bytes_log": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "estimated_traversal_ops": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "hist_avg_runtime_ms": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "hist_runtime_variance": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "num_tables_joined": {
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    }
+  },
+  "feature_groups": {
+    "operation_counts": {
+      "features_removed": [
+        "op_count_filter",
+        "op_count_join",
+        "op_count_traversal",
+        "op_count_aggregate",
+        "op_count_map"
+      ],
+      "n_features_removed": 5,
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "structure": {
+      "features_removed": [
+        "ast_depth",
+        "num_projected_columns",
+        "num_tables_joined"
+      ],
+      "n_features_removed": 3,
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "graph_features": {
+      "features_removed": [
+        "has_traversal",
+        "max_hops",
+        "avg_degree",
+        "max_degree",
+        "degree_skew"
+      ],
+      "n_features_removed": 5,
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "cardinality": {
+      "features_removed": [
+        "input_cardinality_log",
+        "output_cardinality_log",
+        "selectivity"
+      ],
+      "n_features_removed": 3,
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "data_characteristics": {
+      "features_removed": [
+        "has_index",
+        "join_fanout",
+        "estimated_shuffle_bytes_log",
+        "estimated_traversal_ops"
+      ],
+      "n_features_removed": 4,
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    },
+    "historical": {
+      "features_removed": [
+        "hist_avg_runtime_ms",
+        "hist_runtime_variance"
+      ],
+      "n_features_removed": 2,
+      "f1_without": 1.0,
+      "f1_std": 0.0,
+      "f1_drop": 0.0
+    }
+  }
+}

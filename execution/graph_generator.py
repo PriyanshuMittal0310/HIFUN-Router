@@ -46,27 +46,22 @@ class GraphGenerator:
     def _load_vertices(self) -> pd.DataFrame:
         """Load vertex data from parquet."""
         import os
-        path = os.path.join(self.graph_dir, "synthetic_vertices.parquet")
-        if not os.path.exists(path):
-            # Fallback patterns
-            for alt in ["vertices.parquet", "vertex.parquet"]:
-                alt_path = os.path.join(self.graph_dir, alt)
-                if os.path.exists(alt_path):
-                    return pd.read_parquet(alt_path)
-            raise FileNotFoundError(f"No vertex parquet found in {self.graph_dir}")
-        return pd.read_parquet(path)
+        for name in ["vertices.parquet", "synthetic_vertices.parquet",
+                      "snb_vertices.parquet", "vertex.parquet"]:
+            path = os.path.join(self.graph_dir, name)
+            if os.path.exists(path):
+                return pd.read_parquet(path)
+        raise FileNotFoundError(f"No vertex parquet found in {self.graph_dir}")
 
     def _load_edges(self) -> pd.DataFrame:
         """Load edge data from parquet."""
         import os
-        path = os.path.join(self.graph_dir, "synthetic_edges.parquet")
-        if not os.path.exists(path):
-            for alt in ["edges.parquet", "edge.parquet"]:
-                alt_path = os.path.join(self.graph_dir, alt)
-                if os.path.exists(alt_path):
-                    return pd.read_parquet(alt_path)
-            raise FileNotFoundError(f"No edge parquet found in {self.graph_dir}")
-        return pd.read_parquet(path)
+        for name in ["edges.parquet", "synthetic_edges.parquet",
+                      "snb_edges.parquet", "edge.parquet"]:
+            path = os.path.join(self.graph_dir, name)
+            if os.path.exists(path):
+                return pd.read_parquet(path)
+        raise FileNotFoundError(f"No edge parquet found in {self.graph_dir}")
 
     def generate(self, sub_expr: SubExpression) -> pd.DataFrame:
         """Execute graph-routed subexpression and return result DataFrame."""

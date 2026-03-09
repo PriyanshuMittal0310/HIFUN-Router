@@ -1,0 +1,19 @@
+query_id,description,strategy,median_latency_ms,mean_latency_ms,min_latency_ms,max_latency_ms,num_subexpressions,engines_used,result_rows,num_runs,success
+q_snb_001,Friends of a person (graph traversal) joined with post counts (SQL aggregation),always_graph,,,,,0,,0,0,False
+q_snb_002,"2-hop friend network filtered by city, aggregated by workplace",always_graph,,,,,0,,0,0,False
+q_snb_003,Direct friends (1-hop) with their comment activity,always_graph,,,,,0,,0,0,False
+q_snb_004,Deep traversal (3-hop) for influence analysis joined with message stats,always_graph,,,,,0,,0,0,False
+q_snb_005,Pure graph: find all 2-hop neighbors from multiple start vertices,always_graph,387.3795709996557,405.33359199980623,381.08196899975155,447.53923600001144,2,"GRAPH,GRAPH",688,3,True
+q_synth_001,Pure graph traversal on synthetic power-law graph (2-hop),always_graph,748.9524319998964,755.057354000049,724.0255420001631,792.1940880000875,1,GRAPH,5240,3,True
+q_synth_002,Graph traversal + SQL aggregation on synthetic data,always_graph,745.7133960001556,773.7552539999039,739.7570079997422,835.7953579998139,2,"GRAPH,GRAPH",149,3,True
+q_synth_003,Deep traversal stress test (3-hop on high-degree synthetic graph),always_graph,750.2681460000531,748.0790100000073,734.8744709997845,759.0944130001844,1,GRAPH,9975,3,True
+q_synth_004,Synthetic relational filter + join for routing baseline,always_graph,,,,,0,,0,0,False
+q_synth_005,Mixed: graph traversal + relational join + aggregate,always_graph,,,,,0,,0,0,False
+q_synth_006,Pure SQL: multi-filter pipeline,always_graph,,,,,0,,0,0,False
+q_synth_007,MAP operation: project and transform columns,always_graph,6.025458999829425,6.83735933337933,5.714176000310545,8.77244299999802,1,GRAPH,10000,3,True
+q_synth_008,Parallel independent subexpressions: graph + SQL executed concurrently,always_graph,,,,,0,,0,0,False
+q_tpch_001,"TPC-H orders joined with customers filtered by nation, aggregated by customer name",always_graph,,,,,0,,0,0,False
+q_tpch_002,Count orders per customer for high-value customers,always_graph,,,,,0,,0,0,False
+q_tpch_003,Average order total by customer nation,always_graph,,,,,0,,0,0,False
+q_tpch_004,Max order total per market segment,always_graph,,,,,0,,0,0,False
+q_tpch_005,Customers with urgent orders filtered by priority,always_graph,,,,,0,,0,0,False

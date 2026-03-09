@@ -47,6 +47,7 @@ class HybridRouter:
         stats_dir: str = STATS_DIR,
         model_path: str = CLASSIFIER_PATH,
         force_engine: Optional[str] = None,
+        custom_router: Optional[callable] = None,
     ):
         """
         Args:
@@ -56,11 +57,14 @@ class HybridRouter:
             model_path: path to trained classifier
             force_engine: if set ("SQL" or "GRAPH"), bypass ML and force all
                          sub-expressions to use this engine
+            custom_router: optional callable(sub_expr, feature_vector, feature_names)
+                          -> str that overrides both force_engine and ML routing
         """
         self.parquet_dir = parquet_dir
         self.graph_dir = graph_dir
         self.stats_dir = stats_dir
         self.force_engine = force_engine
+        self.custom_router = custom_router
 
         # Core components
         self.parser = DSLParser()
@@ -102,20 +106,24 @@ class HybridRouter:
                 self._table_cache[source_name] = df
                 return df
 
-        # Handle graph-specific sources
+        # Handle graph-specific sources (vertices/edges)
         if "vertices" in source_name or "vertex" in source_name:
-            path = os.path.join(self.graph_dir, "synthetic_vertices.parquet")
-            if os.path.exists(path):
-                df = pd.read_parquet(path)
-                self._table_cache[source_name] = df
-                return df
+            for name in ["vertices.parquet", "snb_vertices.parquet",
+                         "synthetic_vertices.parquet"]:
+                path = os.path.join(self.graph_dir, name)
+                if os.path.exists(path):
+                    df = pd.read_parquet(path)
+                    self._table_cache[source_name] = df
+                    return df
 
         if "edges" in source_name or "edge" in source_name:
-            path = os.path.join(self.graph_dir, "synthetic_edges.parquet")
-            if os.path.exists(path):
-                df = pd.read_parquet(path)
-                self._table_cache[source_name] = df
-                return df
+            for name in ["edges.parquet", "snb_edges.parquet",
+                         "synthetic_edges.parquet"]:
+                path = os.path.join(self.graph_dir, name)
+                if os.path.exists(path):
+                    df = pd.read_parquet(path)
+                    self._table_cache[source_name] = df
+                    return df
 
         raise FileNotFoundError(
             f"Could not find table '{source_name}' in {self.parquet_dir} or {self.graph_dir}"
@@ -215,6 +223,19 @@ class HybridRouter:
         """
         if self.force_engine:
             return self.force_engine, 1.0, 0.0
+
+        # Custom router callback (used by baselines)
+        if self.custom_router is not None:
+            try:
+                from features.feature_extractor import FEATURE_NAMES
+                fv = self.feature_extractor.extract(sub_expr)
+                t0 = time.perf_counter()
+                engine = self.custom_router(sub_expr, fv, FEATURE_NAMES)
+                inference_ms = (time.perf_counter() - t0) * 1000
+                return engine, 0.8, inference_ms
+            except Exception as e:
+                logger.warning(f"Custom router failed, using heuristic: {e}")
+                return self._heuristic_route(sub_expr), 0.5, 0.0
 
         try:
             fv = self.feature_extractor.extract(sub_expr)

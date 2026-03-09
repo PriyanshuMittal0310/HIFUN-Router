@@ -1,0 +1,19 @@
+query_id,row_count_match,col_count_match,columns_match,sha256_match,ref_row_count,test_row_count,ref_sha256,test_sha256,col_mismatches,pass,source_file
+q_snb_001,True,False,False,False,97,97,fa09da6b4750...,918282e55af1...,[],False,snb_queries.json
+q_snb_002,False,False,False,False,4,29,4ea6bd62ff2f...,65b3b9a92b3d...,[],False,snb_queries.json
+q_snb_003,True,False,False,False,17,17,8983cd6b5222...,9d409430885f...,[],False,snb_queries.json
+q_snb_004,True,False,False,False,179,179,953c668eb92b...,fbedd01e70f1...,[],False,snb_queries.json
+q_snb_005,False,True,True,False,4998,688,6b7cec1cfbd7...,f9c17d1c91ef...,"['person_id', 'name']",False,snb_queries.json
+q_synth_001,True,True,True,True,5240,5240,2fa653af0b0d...,2fa653af0b0d...,[],True,synthetic_queries.json
+q_synth_002,False,False,False,False,1,149,bdcc597999b0...,57fee209cedb...,[],False,synthetic_queries.json
+q_synth_003,True,True,True,True,9975,9975,e8748775b0a3...,e8748775b0a3...,[],True,synthetic_queries.json
+q_synth_004,True,True,True,True,9869,9869,639e83f9cbfa...,639e83f9cbfa...,[],True,synthetic_queries.json
+q_synth_005,False,False,False,False,1,95264,d7d5a241f1ea...,24575802811f...,[],False,synthetic_queries.json
+q_synth_006,True,True,True,True,1,1,57a16b32a5ad...,57a16b32a5ad...,[],True,synthetic_queries.json
+q_synth_007,True,True,True,True,136308,136308,f7d3bacf5a92...,f7d3bacf5a92...,[],True,synthetic_queries.json
+q_synth_008,True,False,False,False,192,192,028eff24c06a...,1b3e7c75e349...,[],False,synthetic_queries.json
+q_tpch_001,True,True,True,True,3974,3974,35be32998792...,35be32998792...,[],True,tpch_queries.json
+q_tpch_002,True,True,True,True,45250,45250,f57606271b45...,f57606271b45...,[],True,tpch_queries.json
+q_tpch_003,True,True,True,True,25,25,0c38a598f4d5...,0c38a598f4d5...,[],True,tpch_queries.json
+q_tpch_004,True,True,True,True,5,5,9dcaf63326a0...,9dcaf63326a0...,[],True,tpch_queries.json
+q_tpch_005,True,True,True,True,92333,92333,cae169b4fe67...,cae169b4fe67...,[],True,tpch_queries.json

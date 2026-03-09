@@ -28,10 +28,15 @@ class ResultComposer:
                 merge_strategy: str = "auto") -> pd.DataFrame:
         """Compose final result from all partial DataFrames.
 
+        Strategy: find the leaf sub-expression (nothing else depends on it).
+        That sub-expression's result already incorporates all cross-engine
+        dependencies via the SQL/Graph generators' shared cache, so it IS
+        the final result.  Only fall back to merging when all sub-expressions
+        are independent leaves (no cross-dependencies at all).
+
         Args:
             sub_expressions: ordered list of SubExpressions (topological order)
-            merge_strategy: "auto" | "concat" | "join"
-                auto: join if cross-engine dependencies exist, else concat last result
+            merge_strategy: ignored — kept for API compatibility
 
         Returns:
             Final composed DataFrame.
@@ -42,20 +47,26 @@ class ResultComposer:
         if not self.result_map:
             return pd.DataFrame()
 
-        # Build dependency graph
-        dep_graph = {se.sub_id: se.depends_on_subs for se in sub_expressions}
-
-        # Find sub-expressions that have cross-engine dependencies
-        cross_deps = []
+        # Collect all sub_ids that appear as a dependency of some other sub.
+        all_dep_ids: set = set()
         for se in sub_expressions:
-            for dep_id in se.depends_on_subs:
-                if dep_id in self.result_map and se.sub_id in self.result_map:
-                    cross_deps.append((dep_id, se.sub_id))
+            all_dep_ids.update(se.depends_on_subs)
 
-        if merge_strategy == "concat" or (merge_strategy == "auto" and not cross_deps):
+        # Leaves = sub-expressions that nothing else depends on.
+        leaves = [se for se in sub_expressions
+                  if se.sub_id not in all_dep_ids and se.sub_id in self.result_map]
+
+        if len(leaves) == 1:
+            # Single leaf — return it directly; it already has the full result.
+            return self.result_map[leaves[0].sub_id]
+
+        if len(leaves) == 0:
+            # Circular or all consumed — fall back to last registered result.
             return self._compose_concat(sub_expressions)
-        else:
-            return self._compose_join(sub_expressions, cross_deps)
+
+        # Multiple independent leaves (no cross-dependencies): concatenate the
+        # last registered result in topological order.
+        return self._compose_concat(sub_expressions)
 
     def _compose_concat(self, sub_expressions: List[SubExpression]) -> pd.DataFrame:
         """Return the last sub-expression's result (most common for linear pipelines)."""

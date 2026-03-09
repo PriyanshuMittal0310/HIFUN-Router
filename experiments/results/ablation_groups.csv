@@ -1,0 +1,7 @@
+group,features_removed,n_features_removed,f1_without,f1_std,f1_drop,baseline_f1
+operation_counts,"op_count_filter, op_count_join, op_count_traversal, op_count_aggregate, op_count_map",5,1.0,0.0,0.0,1.0
+structure,"ast_depth, num_projected_columns, num_tables_joined",3,1.0,0.0,0.0,1.0
+graph_features,"has_traversal, max_hops, avg_degree, max_degree, degree_skew",5,1.0,0.0,0.0,1.0
+cardinality,"input_cardinality_log, output_cardinality_log, selectivity",3,1.0,0.0,0.0,1.0
+data_characteristics,"has_index, join_fanout, estimated_shuffle_bytes_log, estimated_traversal_ops",4,1.0,0.0,0.0,1.0
+historical,"hist_avg_runtime_ms, hist_runtime_variance",2,1.0,0.0,0.0,1.0

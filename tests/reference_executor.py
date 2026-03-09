@@ -55,18 +55,22 @@ class ReferenceExecutor:
 
         # Handle graph-specific patterns
         if "vertices" in source_name or "vertex" in source_name:
-            path = os.path.join(self.graph_dir, "synthetic_vertices.parquet")
-            if os.path.exists(path):
-                df = pd.read_parquet(path)
-                self._table_cache[source_name] = df
-                return df
+            for name in ["vertices.parquet", "synthetic_vertices.parquet",
+                         "snb_vertices.parquet"]:
+                path = os.path.join(self.graph_dir, name)
+                if os.path.exists(path):
+                    df = pd.read_parquet(path)
+                    self._table_cache[source_name] = df
+                    return df
 
         if "edges" in source_name or "edge" in source_name:
-            path = os.path.join(self.graph_dir, "synthetic_edges.parquet")
-            if os.path.exists(path):
-                df = pd.read_parquet(path)
-                self._table_cache[source_name] = df
-                return df
+            for name in ["edges.parquet", "synthetic_edges.parquet",
+                         "snb_edges.parquet"]:
+                path = os.path.join(self.graph_dir, name)
+                if os.path.exists(path):
+                    df = pd.read_parquet(path)
+                    self._table_cache[source_name] = df
+                    return df
 
         raise FileNotFoundError(f"Table '{source_name}' not found")
 
@@ -280,3 +284,66 @@ class ReferenceExecutor:
         if available:
             result = result[available]
         return result.reset_index(drop=True)
+
+
+# ── Checksum-based correctness comparison ───────────────────────────
+
+def compute_result_checksum(df: pd.DataFrame) -> dict:
+    """Compute a deterministic checksum over a DataFrame result.
+
+    Handles non-deterministic ordering by sorting before hashing.
+    Returns dict with multiple verification signals.
+    """
+    import hashlib
+
+    # Sort by all columns to make order-independent
+    df_sorted = df.sort_values(by=list(df.columns)).reset_index(drop=True)
+
+    # Convert to canonical string representation
+    canonical = df_sorted.to_csv(index=False, float_format="%.6f")
+
+    return {
+        "row_count": len(df_sorted),
+        "col_count": len(df_sorted.columns),
+        "columns": sorted(df_sorted.columns.tolist()),
+        "sha256": hashlib.sha256(canonical.encode()).hexdigest(),
+        "col_checksums": {
+            col: hashlib.md5(
+                df_sorted[col].astype(str).str.cat(sep="|").encode()
+            ).hexdigest()
+            for col in df_sorted.columns
+        },
+    }
+
+
+def compare_results(ref_df: pd.DataFrame, test_df: pd.DataFrame,
+                    query_id: str) -> dict:
+    """Full comparison between reference and routed result.
+
+    Returns a structured comparison report with row count, column,
+    and SHA256 checksum matching.
+    """
+    ref_check = compute_result_checksum(ref_df)
+    test_check = compute_result_checksum(test_df)
+
+    report = {
+        "query_id": query_id,
+        "row_count_match": ref_check["row_count"] == test_check["row_count"],
+        "col_count_match": ref_check["col_count"] == test_check["col_count"],
+        "columns_match": ref_check["columns"] == test_check["columns"],
+        "sha256_match": ref_check["sha256"] == test_check["sha256"],
+        "ref_row_count": ref_check["row_count"],
+        "test_row_count": test_check["row_count"],
+        "ref_sha256": ref_check["sha256"][:12] + "...",
+        "test_sha256": test_check["sha256"][:12] + "...",
+        "col_mismatches": [],
+        "pass": ref_check["sha256"] == test_check["sha256"],
+    }
+
+    # Per-column mismatch detail
+    if not report["sha256_match"] and report["columns_match"]:
+        for col in ref_check["col_checksums"]:
+            if ref_check["col_checksums"][col] != test_check["col_checksums"].get(col):
+                report["col_mismatches"].append(col)
+
+    return report
