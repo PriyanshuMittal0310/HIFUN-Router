@@ -1,8 +1,8 @@
 {
   "dataset_size": 186,
   "label_distribution": {
-    "SQL": 126,
-    "GRAPH": 60
+    "SQL": 144,
+    "GRAPH": 42
   },
   "cv_folds": 3,
   "decision_tree": {
@@ -17,12 +17,12 @@
     "recall": 1.0,
     "confusion_matrix": [
       [
-        126,
+        144,
         0
       ],
       [
         0,
-        60
+        42
       ]
     ],
     "classification_report": {
@@ -30,13 +30,13 @@
         "precision": 1.0,
         "recall": 1.0,
         "f1-score": 1.0,
-        "support": 126.0
+        "support": 144.0
       },
       "GRAPH": {
         "precision": 1.0,
         "recall": 1.0,
         "f1-score": 1.0,
-        "support": 60.0
+        "support": 42.0
       },
       "accuracy": 1.0,
       "macro avg": {
@@ -55,22 +55,22 @@
   },
   "xgboost": {
     "model": "XGBoost",
-    "cv_f1_mean": 0.9914529914529915,
-    "cv_f1_std": 0.012087295404898257,
-    "cv_accuracy_mean": 0.9946236559139785,
-    "cv_accuracy_std": 0.007603298722435988,
+    "cv_f1_mean": 0.96,
+    "cv_f1_std": 0.0565685424949238,
+    "cv_accuracy_mean": 0.9838709677419355,
+    "cv_accuracy_std": 0.022809896167307966,
     "accuracy": 1.0,
     "f1": 1.0,
     "precision": 1.0,
     "recall": 1.0,
     "confusion_matrix": [
       [
-        126,
+        144,
         0
       ],
       [
         0,
-        60
+        42
       ]
     ],
     "classification_report": {
@@ -78,13 +78,13 @@
         "precision": 1.0,
         "recall": 1.0,
         "f1-score": 1.0,
-        "support": 126.0
+        "support": 144.0
       },
       "GRAPH": {
         "precision": 1.0,
         "recall": 1.0,
         "f1-score": 1.0,
-        "support": 60.0
+        "support": 42.0
       },
       "accuracy": 1.0,
       "macro avg": {
@@ -102,5 +102,5 @@
     }
   },
   "best_model": "DecisionTree",
-  "model_path": "/tmp/pytest-of-priyanshu/pytest-4/test_full_pipeline0/classifier.pkl"
+  "model_path": "/tmp/pytest-of-priyanshu/pytest-0/test_full_pipeline0/classifier.pkl"
 }

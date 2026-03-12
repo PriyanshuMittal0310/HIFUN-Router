@@ -138,11 +138,22 @@ class GraphGenerator:
             visited.update(next_frontier)
             frontier = next_frontier
 
+        # Apply end/destination vertex filter if specified
+        end_filter = t.get("end_vertex_filter")
+        if end_filter:
+            ecol = end_filter["column"]
+            eval_ = end_filter["value"]
+            if ecol in vertices.columns:
+                end_ids = set(vertices[vertices[ecol] == eval_]["id"].tolist())
+                visited &= end_ids
+
         # Build result from visited vertices
         result = vertices[vertices["id"].isin(visited)]
+        # Filter to requested return_fields; fall back to ["id"] if none match
         available = [c for c in return_fields if c in result.columns]
-        if available:
-            result = result[available]
+        if not available:
+            available = ["id"] if "id" in result.columns else list(result.columns[:1])
+        result = result[available]
         return result.reset_index(drop=True)
 
     def _apply_filter(self, node: QueryNode, df: Optional[pd.DataFrame]) -> pd.DataFrame:

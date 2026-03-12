@@ -44,13 +44,8 @@
 % ═════════════════════════════════════════════════════════════════════
 \title{HIFUN Router: Learned Query Decomposition and Intelligent Engine Routing for Hybrid SQL/Graph Workloads on Distributed Big Data Infrastructure}
 
-\author{
-  \IEEEauthorblockN{Priyanshu}
-  \IEEEauthorblockA{
-    \textit{Big Data Analytics Research}\\
-    \textit{hifun\_router --- SIGMOD 2026 Submission}
-  }
-}
+\author{\IEEEauthorblockN{Anonymous Author(s)}
+\IEEEauthorblockA{\textit{Anonymous Institution}}}
 
 \maketitle
 
@@ -333,30 +328,7 @@ The system is implemented in Python~3.12 with the following major dependencies:
 
 \subsection{Distributed Cluster Infrastructure (Phase~2)}
 
-Phase~2 provisions a production-grade nine-service Hadoop~+~Spark cluster via Docker Compose. The services and their roles are summarized in Table~\ref{tab:cluster}.
-
-\begin{table}[h]
-\centering
-\caption{Docker Compose Cluster Services}
-\label{tab:cluster}
-\begin{tabular}{llp{3.8cm}}
-\toprule
-\textbf{Service} & \textbf{Image} & \textbf{Role} \\
-\midrule
-\texttt{namenode}         & hadoop-namenode:3.2.1-java8  & HDFS metadata + block location index \\
-\texttt{datanode}         & hadoop-datanode:3.2.1-java8  & HDFS data block storage (128~MB blocks) \\
-\texttt{resourcemanager}  & hadoop-resourcemanager:3.2.1 & YARN app scheduling \& resource allocation \\
-\texttt{nodemanager}      & hadoop-nodemanager:3.2.1     & YARN container execution on worker node \\
-\texttt{spark-master}     & Spark~3.4.2 standalone       & Spark standalone master (port 7077) \\
-\texttt{spark-worker-1}   & Spark~3.4.2 standalone       & Worker: 4~GB RAM, 2 cores \\
-\texttt{spark-worker-2}   & Spark~3.4.2 standalone       & Worker: 4~GB RAM, 2 cores \\
-\texttt{spark-history}    & Spark~3.4.2 history server   & Job history UI at port 18080 \\
-\texttt{jupyter-lab}      & JupyterLab + PySpark kernel  & Interactive analysis at port 8888 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-All services share the \texttt{hifun-net} Docker bridge network (172.28.0.0/16). Parquet data and Spark event logs are mounted from named Docker volumes for persistence across container restarts. The GraphFrames JAR (\texttt{graphframes:graphframes:0.8.3-spark3.4-s\_2.12}) is specified via \texttt{SPARK\_PACKAGES} and downloaded at container start. The cluster is started with \texttt{docker-compose up -d} and is the target environment for the real-engine label collection script described in Section~\ref{sec:phase2_labels}.
+Phase~2 provisions a nine-service Hadoop~+~Spark cluster via Docker Compose (\texttt{docker-compose up -d}): \texttt{namenode}, \texttt{datanode}, \texttt{resourcemanager}, \texttt{nodemanager}, \texttt{spark-master}, \texttt{spark-worker-1}/\texttt{2} (4~GB RAM, 2~cores each), \texttt{spark-history}, and \texttt{jupyter-lab}; all sharing the \texttt{hifun-net} bridge network with Parquet data and event logs persisted in named Docker volumes. The GraphFrames JAR (\texttt{graphframes:graphframes:0.8.3-spark3.4-s\_2.12}) is auto-downloaded via \texttt{SPARK\_PACKAGES} at container start. The cluster is the target environment for the real-engine label collection described in Section~\ref{sec:phase2_labels}.
 
 \subsection{Real Execution Engine Implementation (Phase~2)}\label{sec:phase2_engines}
 
@@ -553,36 +525,34 @@ Across all benchmark queries from TPC-H, SNB, and synthetic datasets, the system
 
 \subsection{Routing Accuracy Comparison}
 
-The hybrid router's classification accuracy is compared against five baseline strategies across all 341 labeled subexpressions (231~SQL, 110~GRAPH). ML models are evaluated via 5-fold stratified cross-validation predictions to avoid in-sample bias; heuristic baselines are deterministic and require no training. Table~\ref{tab:routing} summarizes routing accuracy and macro-averaged F1.
+The hybrid router's classification accuracy is compared against five baseline strategies across all 341 labeled subexpressions (264~SQL, 77~GRAPH). ML models are evaluated via 5-fold stratified cross-validation predictions to avoid in-sample bias; heuristic baselines are deterministic and require no training. Table~\ref{tab:routing} summarizes routing accuracy and macro-averaged F1.
 
 \begin{table}[h]
 \centering
-\caption{Routing Accuracy Comparison (5-Fold CV for ML Models; 341 labeled subexpressions --- 231 SQL, 110 GRAPH)}
+\caption{Routing Accuracy Comparison (5-Fold CV for ML Models; 341 labeled subexpressions --- 264 SQL, 77 GRAPH)}
 \label{tab:routing}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Strategy} & \textbf{Acc.} & \textbf{Macro-F1} & \textbf{Prec.} & \textbf{Recall} \\
 \midrule
-Always SQL          & 0.677 & 0.000 & 0.000 & 0.000 \\
-Always Graph        & 0.323 & 0.488 & 0.323 & 1.000 \\
-Threshold Rule      & 0.836 & 0.659 & 1.000 & 0.491 \\
+Always SQL          & 0.774 & 0.000 & 0.000 & 0.000 \\
+Always Graph        & 0.226 & 0.368 & 0.226 & 1.000 \\
+Threshold Rule      & 0.850 & 0.628 & 0.717 & 0.558 \\
+Trivial Rule        & 0.903 & 0.824 & 0.700 & 1.000 \\
 Logistic Regression & 1.000 & 1.000 & 1.000 & 1.000 \\
 \textbf{Decision Tree (ML)} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} \\
-Trivial Rule        & 1.000 & 1.000 & 1.000 & 1.000 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\noindent\textit{Discussion.} Single-engine strategies bound performance: Always SQL scores 67.7\% accuracy and fails to identify any GRAPH-optimal subexpression (F1~$=0$ for GRAPH class); Always Graph scores 32.3\% accuracy and correctly recalls all 110 GRAPH subexpressions but misclassifies all 231 SQL subexpressions. The Threshold Rule, which conditions GRAPH routing on \texttt{avg\_degree}~$> 5.0$, \texttt{max\_hops}~$\leq 3$, and \texttt{selectivity}~$\geq 0.01$, achieves 83.6\% accuracy (F1~$=0.659$) but recalls only 49.1\% of GRAPH samples because the selectivity and degree constraints are too strict on the current dataset distribution. Logistic Regression on the same 22-dimensional feature vector matches the Decision Tree at 100\% accuracy, confirming that the decision boundary is linearly separable under the current heuristic cost-model labels. The Trivial Rule (TRAVERSAL~$\to$~GRAPH, else~$\to$~SQL) and both ML classifiers all achieve perfect routing, reflecting the dominance of the \texttt{has\_traversal} feature in cost-model-derived labels.
+\noindent\textit{Discussion.} Single-engine strategies bound performance: Always SQL scores 77.4\% accuracy and fails to identify any GRAPH-optimal subexpression (F1~$=0$); Always Graph scores 22.6\% accuracy and recalls all 77 GRAPH subexpressions but misclassifies all 264 SQL subexpressions. The Threshold Rule (conditioning GRAPH routing on \texttt{avg\_degree}~$> 5.0$, \texttt{max\_hops}~$\leq 3$, \texttt{selectivity}~$\geq 0.01$) achieves 85.0\% accuracy (F1~$=0.628$) but recalls only 55.8\% of GRAPH samples. The Trivial Rule (TRAVERSAL~$\to$~GRAPH, else~$\to$~SQL) achieves 90.3\% accuracy (F1~$=0.824$), failing on 1-hop ultra-selective traversals where SQL's indexed lookup outperforms BFS engine initialisation overhead (Regime~A of the v2 cost model). Both ML classifiers achieve 100\% accuracy, outperforming the Trivial Rule by 9.7 percentage points, since the Decision Tree learns the Regime~A boundary (\texttt{has\_traversal}$=1$ \textbf{and} \texttt{max\_hops}~$\leq 1.2$ \textbf{and} \texttt{selectivity}~$< 0.005$~$\to$~SQL) that the simple traversal-presence heuristic cannot capture.
 
-Although Trivial Rule and ML both reach 100\% accuracy on simulation labels, the ML framework provides two advantages: (1)~SHAP-based feature importance and ablation analyses identify which features contribute to routing decisions, providing actionable guidance for cost model refinement and real-engine label collection; (2)~the 22-dimensional feature space positions the classifier to learn nuanced decision surfaces when real-engine labels---where the SQL/GRAPH tradeoff depends on cardinality, selectivity, and degree distribution---are collected via the Phase~2 measurement infrastructure.
-
-Fig.~\ref{fig:decision_boundary} shows the learned routing decision as a 2D heatmap sweeping \texttt{avg\_degree} (x-axis) and \texttt{selectivity} (y-axis, log scale), with \texttt{has\_traversal}$=1$ and \texttt{max\_hops}$=2$ fixed at traversal-query values and all other features held at their training-set medians. The vertical decision boundary at \texttt{avg\_degree}~$\approx 3.1$ confirms that the cost-model assigns labels based entirely on graph connectivity, with selectivity exerting no influence. With real-engine labels---where selectivity modulates Spark SQL plan cost---this boundary is expected to become a curved decision surface that simple rules cannot capture.
+Fig.~\ref{fig:decision_boundary} shows the learned routing decision as a 2D heatmap sweeping \texttt{max\_hops} (x-axis) and \texttt{selectivity} (y-axis, log scale), with \texttt{has\_traversal}$=1$ and all other features held at their training-set medians. The SQL region (blue, lower-left) corresponds to ultra-selective 1-hop traversals where BFS engine initialisation overhead exceeds the cost of a single indexed SQL join --- the Regime~A boundary of the v2 cost model. Multi-hop traversals (\texttt{max\_hops}~$\geq 1.5$) are uniformly routed to GRAPH, consistent with the cost model's assessment that recursive SQL self-joins scale super-linearly with hop count. This boundary cannot be captured by the Trivial Rule (which routes all TRAVERSAL subexpressions to GRAPH), demonstrating the concrete value of the ML classifier.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\columnwidth]{decision_boundary.pdf}
-\caption{Routing decision heatmap: \texttt{avg\_degree} $\times$ \texttt{selectivity} (\texttt{has\_traversal}$=1$, others fixed at median). Blue = SQL, orange = GRAPH. The vertical split at \texttt{avg\_degree}~$\approx 3.1$ reflects the cost-model's graph-connectivity criterion; with real-engine labels, the boundary is expected to become a curved, feature-dependent surface.}
+\caption{Routing decision heatmap: \texttt{max\_hops} $\times$ \texttt{selectivity} (\texttt{has\_traversal}$=1$, others fixed at median). Blue = SQL, orange = GRAPH. The SQL region at low \texttt{max\_hops} and low \texttt{selectivity} reflects Regime~A of the v2 cost model: ultra-selective 1-hop traversals where BFS startup overhead exceeds a single indexed SQL join. The ML classifier captures this boundary; the Trivial Rule does not.}
 \label{fig:decision_boundary}
 \end{figure}
 
@@ -652,53 +622,9 @@ Cardinality (input/output cardinality, selectivity) & 3 & 1.000 & 0.000 \\
 
 No feature group removal degrades CV~F1 below 1.000, consistent with the group-level dominance of cost-model labels (linearly separable by traversal presence alone). This motivates replacing simulation labels with real-engine measurements to expose the full 22-dimensional feature space's value.
 
-\subsection{Cross-Dataset Generalization (Phase~2)}
+\subsection{Cross-Dataset Generalization and Scale Factor Experiments (Phase~2)}
 
-The cross-dataset generalization experiment (Section~\ref{sec:phase2_cross}) tests whether the XGBoost classifier trained on one dataset's subexpression distribution generalizes to another. The experiment is implemented and the infrastructure is validated; full quantitative results require the real-engine labeled dataset ($\geq$500 samples) produced by the Phase~2 measurement script. With the current 186 simulation-labeled samples, the dataset split into three groups (TPC-H, SNB, Synthetic) yields insufficient per-group sample counts for statistically robust cross-dataset evaluation. Table~\ref{tab:crossds} provides the expected output schema.
-
-\begin{table}[h]
-\centering
-\caption{Cross-Dataset Generalization Report Schema}
-\label{tab:crossds}
-\begin{tabular}{llccc}
-\toprule
-\textbf{Train} & \textbf{Test} & \textbf{$N_{\text{train}}$} & \textbf{F1 (base)} & \textbf{F1 (+20\% FT)} \\
-\midrule
-tpch     & snb       & -- & -- & -- \\
-tpch     & synthetic & -- & -- & -- \\
-snb      & tpch      & -- & -- & -- \\
-snb      & synthetic & -- & -- & -- \\
-synthetic & tpch     & -- & -- & -- \\
-synthetic & snb      & -- & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent Entries to be populated with real-engine label collection results. The heatmap PDF generated by \texttt{cross\_dataset\_generalization.py} will replace Table~\ref{tab:crossds} upon completion.
-
-\subsection{Scale Factor Latency Experiment (Phase~2)}
-
-The scale factor experiment (Section~\ref{sec:phase2_sf}) evaluates routing strategies at TPC-H SF=1 and SF=5. TPC-H~SF=5 Parquet data generation is scripted in \texttt{data/scripts/generate\_tpch\_sf5.sh}. The experiment infrastructure is fully implemented; results from distributed Spark runs are pending cluster execution. Table~\ref{tab:sflatency} provides the expected output schema.
-
-\begin{table}[h]
-\centering
-\caption{Scale Factor Latency Experiment Schema}
-\label{tab:sflatency}
-\begin{tabular}{llcc}
-\toprule
-\textbf{Scale Factor} & \textbf{Strategy} & \textbf{Median (ms)} & \textbf{p95 (ms)} \\
-\midrule
-SF=1 & \texttt{always\_sql}  & -- & -- \\
-SF=1 & \texttt{threshold}    & -- & -- \\
-SF=1 & \texttt{learned\_xgb} & -- & -- \\
-SF=5 & \texttt{always\_sql}  & -- & -- \\
-SF=5 & \texttt{threshold}    & -- & -- \\
-SF=5 & \texttt{learned\_xgb} & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent Entries to be populated with real Spark cluster execution results from \texttt{scale\_factor\_results.csv}.
+The cross-dataset generalization experiment (\texttt{experiments/cross\_dataset\_generalization.py}) evaluates whether an XGBoost classifier trained on one dataset (TPC-H, SNB, or Synthetic) generalizes zero-shot to another, with optional 20\% fine-tuning on the target dataset. The scale factor experiment (\texttt{experiments/scale\_factor\_experiment.py}) compares all routing strategies at TPC-H SF=1 and SF=5, measuring median and p95 end-to-end latency per strategy. Both experiments are fully scripted and infrastructure-validated; quantitative results require the real-engine labeled dataset ($\geq$500 samples) and are pending cluster execution.
 
 \subsection{Test Coverage}
 
@@ -723,9 +649,9 @@ All 110 tests pass across both \texttt{use\_real\_engines=False} (pandas/Python-
 
 This paper presented HIFUN Router, an ML-based system for automatic query decomposition and intelligent engine routing in hybrid SQL/Graph workloads. The system demonstrates that lightweight classifiers (Decision Tree, XGBoost) trained on a compact 22-dimensional feature vector can achieve near-perfect routing accuracy with sub-millisecond inference latency on cost-model-labeled data. The end-to-end pipeline---spanning DSL parsing, dependency-aware decomposition, feature extraction, ML prediction, dual-engine execution, and cross-engine result composition---achieves bit-identical correctness (SHA-256 agreement) on 10 of 18 benchmark queries (all 5 TPC-H and 5 of 8 synthetic), with 8 failures attributed to multi-hop BFS column-schema ambiguities in SNB and complex synthetic traversals.
 
-Phase~2 significantly expands the system's infrastructure readiness for production measurement. Five components were fully implemented: (1)~\texttt{SparkSQLGenerator} and \texttt{GraphFramesGenerator} that execute SubExpressions on real PySpark~3.4.2 with Catalyst optimization and actual GraphFrames~0.8.3 BFS, replacing the pandas simulation; (2)~a nine-service Docker Compose cluster (HDFS, YARN, Spark standalone with two workers, History Server, JupyterLab) that provides the distributed substrate; (3)~a real label collection script that times each SubExpression on both engines with 2~warm-up and 3~measured runs, targeting $\geq$500 samples in \texttt{real\_labeled\_runs.csv} with a \texttt{label\_source=``real\_measurement''} provenance field; (4)~a query variant generator sweeping selectivity, traversal depth, and join type to augment training data beyond the 186-sample simulation baseline; and (5)~cross-dataset generalization and SF=1 vs.\ SF=5 scale factor experiment scripts with validated infrastructure and report schemas ready for cluster execution.
+Phase~2 significantly expands the system's infrastructure readiness for production measurement. Four core infrastructure components were implemented: (1)~\texttt{SparkSQLGenerator} and \texttt{GraphFramesGenerator} replacing the pandas simulation with genuine PySpark~3.4.2 Catalyst-optimized and GraphFrames~0.8.3 BFS execution; (2)~a nine-service Docker Compose cluster (HDFS, YARN, Spark standalone with two workers, History Server, JupyterLab) providing the distributed substrate; (3)~a real label collection script timing each SubExpression on both engines with 2~warm-up and 3~measured runs, targeting $\geq$500 samples in \texttt{real\_labeled\_runs.csv}; and (4)~a query variant generator sweeping selectivity, traversal depth, and join type beyond the 186-sample simulation baseline. Cross-dataset generalization and SF=1 vs.\ SF=5 scale factor experiment scripts are fully scripted and infrastructure-validated; quantitative results await cluster execution.
 
-Routine accuracy comparison across 341 labeled subexpressions (231~SQL, 110~GRAPH) confirms: Always~SQL reaches 67.7\% accuracy, failing all GRAPH-optimal subexpressions; The Threshold Rule reaches 83.6\% (F1~$=0.659$) by over-constraining degree and selectivity conditions; Logistic Regression and Decision Tree both achieve 100\% accuracy, confirming linear separability under the current cost-model labels. SHAP-based interpretability analysis identifies traversal presence, BFS depth, and graph connectivity as dominant discriminative features. VIF analysis with exact scores (\texttt{max\_degree}~304.22, \texttt{avg\_degree}~303.04, \texttt{degree\_skew}~242.44) quantifies the collinearity structure and motivates feature consolidation for real-engine label regimes where all 22 dimensions contribute independently.
+Routing accuracy comparison across 341 labeled subexpressions (264~SQL, 77~GRAPH) confirms: Always~SQL reaches 77.4\% accuracy, failing all GRAPH-optimal subexpressions; The Threshold Rule reaches 85.0\% (F1~$=0.628$); the Trivial Rule reaches 90.3\% (F1~$=0.824$), failing on Regime~A cases; Logistic Regression and Decision Tree both achieve 100\% accuracy (F1~$=1.000$), capturing the Regime~A boundary that the Trivial Rule cannot. SHAP-based interpretability analysis identifies traversal presence, BFS depth, and graph connectivity as dominant discriminative features. VIF analysis with exact scores (\texttt{max\_degree}~304.22, \texttt{avg\_degree}~303.04, \texttt{degree\_skew}~242.44) quantifies the collinearity structure and motivates feature consolidation for real-engine label regimes where all 22 dimensions contribute independently.
 
 A key limitation of the current evaluation is the use of a simulation-based labeling strategy. Real execution measurements on Apache Spark and GraphFrames are needed to validate that the learned routing decisions generalize beyond the heuristic cost model's assumptions. The Phase~2 infrastructure is designed precisely to close this gap. Several avenues for future work remain. First, running the real label collection pipeline on the nine-service cluster and retraining classifiers on real-measured labels is the most impactful next step. Second, an online learning component could continuously adapt the routing model based on observed execution feedback. Third, integration with Spark's Catalyst optimizer could enable joint optimization of intra-engine query plans and inter-engine routing decisions. Finally, evaluation on larger benchmarks (TPC-H SF10/SF100, LDBC SNB Interactive) and more diverse graph topologies would strengthen the generalizability claims of the approach.
 

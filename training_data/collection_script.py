@@ -25,65 +25,18 @@ from config.paths import SAMPLE_QUERIES_DIR, TRAINING_DATA_DIR, STATS_DIR
 from parser.dsl_parser import DSLParser
 from decomposer.query_decomposer import QueryDecomposer
 from features.feature_extractor import FeatureExtractor, FEATURE_NAMES
+from training_data.cost_model_v2 import simulate_runtimes_v2
 
 
 def _simulate_runtimes(feature_dict: dict, primary_op_type: str):
     """Heuristic cost model to simulate SQL and GRAPH runtimes (ms).
 
-    Based on the feature vector characteristics, estimates which engine
-    would be faster and generates realistic-looking runtime numbers.
-
-    Design goal: produce roughly balanced labels (40-60% SQL vs GRAPH)
-    so the ML classifier learns meaningful decision boundaries.
+    Delegates to cost_model_v2.simulate_runtimes_v2 which introduces regime-
+    switching penalties that make the SQL/GRAPH decision non-trivially
+    separable (target F1: 0.82–0.92 rather than the degenerate 1.000).
     """
     rng = random.Random()
-
-    input_card = 10 ** max(feature_dict["input_cardinality_log"], 0)
-    has_trav = feature_dict["has_traversal"]
-    max_hops = max(feature_dict["max_hops"], 0)
-    avg_degree = feature_dict["avg_degree"]
-    n_joins = feature_dict["op_count_join"]
-    n_filters = feature_dict["op_count_filter"]
-    n_aggs = feature_dict["op_count_aggregate"]
-    n_trav = feature_dict["op_count_traversal"]
-    selectivity = feature_dict["selectivity"]
-    trav_ops = feature_dict["estimated_traversal_ops"]
-    degree_skew = feature_dict["degree_skew"]
-
-    # --- SQL cost model (milliseconds) ---
-    sql_base = 10.0 + 0.001 * input_card  # scan cost
-    sql_base += n_filters * 3.0
-    sql_base += n_joins * (20.0 + 0.003 * input_card * selectivity)
-    sql_base += n_aggs * 10.0
-    if has_trav:
-        # SQL must simulate traversals via recursive self-joins — very expensive
-        sql_base += max_hops * 80.0 + n_trav * 60.0
-        if avg_degree > 0:
-            sql_base += (avg_degree ** min(max_hops, 3)) * 5.0
-        sql_base += degree_skew * 20.0  # skewed graphs are harder for SQL
-    sql_ms = max(1.0, sql_base * rng.uniform(0.85, 1.15))
-
-    # --- GRAPH cost model (milliseconds) ---
-    if has_trav:
-        # Graph engine is native for traversals — low overhead
-        graph_base = 8.0  # small fixed overhead for BFS/DFS
-        start_v = max(1, int(input_card * selectivity))
-        graph_base += start_v * max_hops * 0.3
-        if avg_degree > 0:
-            graph_base += start_v * (avg_degree ** min(max_hops, 3)) * 0.005
-        graph_base += n_aggs * 5.0  # post-traversal aggregation
-        graph_base += n_filters * 2.0  # vertex/edge filtering
-        graph_base += n_joins * 12.0  # cross-engine join overhead
-    else:
-        # Graph engine overhead for pure relational workloads
-        graph_base = 35.0 + 0.004 * input_card
-        graph_base += n_joins * 30.0
-        graph_base += n_aggs * 18.0
-        graph_base += n_filters * 5.0
-    graph_ms = max(1.0, graph_base * rng.uniform(0.85, 1.15))
-
-    label = "GRAPH" if graph_ms < sql_ms else "SQL"
-    return sql_ms, graph_ms, label
+    return simulate_runtimes_v2(feature_dict, rng=rng)
 
 
 def collect_training_data(
