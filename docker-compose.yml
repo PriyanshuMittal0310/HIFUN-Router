@@ -1,0 +1,326 @@
+# HIFUN Router — Big Data Analytics Infrastructure
+# ══════════════════════════════════════════════════════════════════════════════
+# Services:
+#   Hadoop cluster  : namenode, datanode
+#   YARN            : resourcemanager, nodemanager
+#   Spark cluster   : spark-master, spark-worker-1, spark-worker-2
+#   Spark History   : spark-history (web UI on :18080)
+#   Jupyter         : jupyter-lab   (notebooks on :8888)
+#
+# Quick start:
+#   docker compose up -d
+#   docker compose logs -f spark-master     # watch Spark master start
+#
+# Environment variables (create a .env file to override):
+#   SPARK_WORKER_MEMORY=4g   (default: 4g per worker)
+#   SPARK_WORKER_CORES=2     (default: 2 cores per worker)
+#   HADOOP_VERSION=3.3.6
+#   SPARK_VERSION=3.4.2
+# ══════════════════════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+# ─── Shared network ───────────────────────────────────────────────────────────
+networks:
+  hifun-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ─── Named volumes for persistence ────────────────────────────────────────────
+volumes:
+  namenode-data:
+  datanode-data:
+  spark-events:
+  hifun-data:
+
+# ─── Common environment variables ─────────────────────────────────────────────
+x-hadoop-env: &hadoop-env
+  HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+  CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+  CORE_CONF_hadoop_http_staticuser_user: root
+  HDFS_CONF_dfs_replication: "1"
+  HDFS_CONF_dfs_permissions_enabled: "false"
+  HDFS_CONF_dfs_blocksize: "134217728"           # 128 MB blocks
+  HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check: "false"
+  YARN_CONF_yarn_log___aggregation___enable: "true"
+  YARN_CONF_yarn_resourcemanager_hostname: resourcemanager
+  YARN_CONF_yarn_nodemanager_resource_memory___mb: "4096"
+  YARN_CONF_yarn_scheduler_minimum___allocation___mb: "512"
+  YARN_CONF_yarn_scheduler_maximum___allocation___mb: "4096"
+
+x-spark-env: &spark-env
+  SPARK_MASTER_URL: spark://spark-master:7077
+  SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-4g}
+  SPARK_WORKER_CORES: ${SPARK_WORKER_CORES:-2}
+  SPARK_DRIVER_MEMORY: 2g
+  SPARK_EXECUTOR_MEMORY: 2g
+  # GraphFrames package (downloaded at container start by spark-submit)
+  SPARK_PACKAGES: "graphframes:graphframes:0.8.3-spark3.4-s_2.12"
+  # History Server log directory (on the shared volume)
+  SPARK_HISTORY_FS_LOG_DIRECTORY: /spark-events
+  SPARK_EVENTLOG_ENABLED: "true"
+  SPARK_EVENTLOG_DIR: /spark-events
+  # Python executable inside the Spark image
+  PYSPARK_PYTHON: python3
+  PYSPARK_DRIVER_PYTHON: python3
+  # Hadoop integration
+  HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HADOOP
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ─── HDFS NameNode ──────────────────────────────────────────────────────────
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: hifun-namenode
+    hostname: namenode
+    networks:
+      - hifun-net
+    ports:
+      - "9870:9870"    # NameNode web UI
+      - "9000:9000"    # HDFS RPC port
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+      - hifun-data:/hifun-data:ro   # project data read-only mount
+    environment:
+      <<: *hadoop-env
+      CLUSTER_NAME: hifun-cluster
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9870/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── HDFS DataNode ──────────────────────────────────────────────────────────
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: hifun-datanode
+    hostname: datanode
+    networks:
+      - hifun-net
+    ports:
+      - "9864:9864"    # DataNode web UI
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    environment:
+      <<: *hadoop-env
+      SERVICE_PRECONDITION: "namenode:9870"
+    depends_on:
+      namenode:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9864/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── YARN Resource Manager ────────────────────────────────────────────────
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: hifun-resourcemanager
+    hostname: resourcemanager
+    networks:
+      - hifun-net
+    ports:
+      - "8088:8088"    # YARN Resource Manager web UI
+      - "8032:8032"    # YARN RPC
+    environment:
+      <<: *hadoop-env
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+    depends_on:
+      - namenode
+      - datanode
+    restart: unless-stopped
+
+  # ─── YARN Node Manager ───────────────────────────────────────────────────
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: hifun-nodemanager
+    hostname: nodemanager
+    networks:
+      - hifun-net
+    ports:
+      - "8042:8042"    # Node Manager web UI
+    environment:
+      <<: *hadoop-env
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    depends_on:
+      - resourcemanager
+    restart: unless-stopped
+
+  # ─── HDFS Web UI Proxy (optional convenience proxy) ────────────────────────
+  historyserver-hadoop:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: hifun-hadoop-history
+    hostname: historyserver
+    networks:
+      - hifun-net
+    ports:
+      - "8188:8188"    # Hadoop JobHistory Server
+    environment:
+      <<: *hadoop-env
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    depends_on:
+      - resourcemanager
+    restart: unless-stopped
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SPARK STANDALONE CLUSTER
+# ══════════════════════════════════════════════════════════════════════════════
+
+  # ─── Spark Master ────────────────────────────────────────────────────────────
+  spark-master:
+    image: bitnami/spark:3.4.2
+    container_name: hifun-spark-master
+    hostname: spark-master
+    networks:
+      - hifun-net
+    ports:
+      - "8080:8080"    # Spark Master web UI
+      - "7077:7077"    # Spark Master RPC (driver connect here)
+    environment:
+      <<: *spark-env
+      SPARK_MODE: master
+      SPARK_MASTER_HOST: spark-master
+    volumes:
+      - spark-events:/spark-events
+      - ./:/hifun:ro                       # mount project read-only
+      - hifun-data:/hifun-data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+  # ─── Spark Worker 1 ──────────────────────────────────────────────────────────
+  spark-worker-1:
+    image: bitnami/spark:3.4.2
+    container_name: hifun-spark-worker-1
+    hostname: spark-worker-1
+    networks:
+      - hifun-net
+    ports:
+      - "8081:8081"    # Worker 1 web UI
+    environment:
+      <<: *spark-env
+      SPARK_MODE: worker
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_WORKER_WEBUI_PORT: 8081
+    volumes:
+      - spark-events:/spark-events
+      - ./:/hifun:ro
+      - hifun-data:/hifun-data
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Spark Worker 2 ──────────────────────────────────────────────────────────
+  spark-worker-2:
+    image: bitnami/spark:3.4.2
+    container_name: hifun-spark-worker-2
+    hostname: spark-worker-2
+    networks:
+      - hifun-net
+    ports:
+      - "8082:8082"    # Worker 2 web UI
+    environment:
+      <<: *spark-env
+      SPARK_MODE: worker
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_WORKER_WEBUI_PORT: 8082
+    volumes:
+      - spark-events:/spark-events
+      - ./:/hifun:ro
+      - hifun-data:/hifun-data
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SPARK HISTORY SERVER
+# ══════════════════════════════════════════════════════════════════════════════
+
+  spark-history:
+    image: bitnami/spark:3.4.2
+    container_name: hifun-spark-history
+    hostname: spark-history
+    networks:
+      - hifun-net
+    ports:
+      - "18080:18080"   # Spark History Server web UI
+    command: >
+      /opt/bitnami/spark/bin/spark-class
+      org.apache.spark.deploy.history.HistoryServer
+    environment:
+      <<: *spark-env
+      SPARK_HISTORY_FS_LOG_DIRECTORY: /spark-events
+      SPARK_HISTORY_UI_PORT: 18080
+    volumes:
+      - spark-events:/spark-events
+    depends_on:
+      - spark-master
+    restart: unless-stopped
+
+# ══════════════════════════════════════════════════════════════════════════════
+# JUPYTER LAB (for notebooks and interactive PySpark development)
+# ══════════════════════════════════════════════════════════════════════════════
+
+  jupyter-lab:
+    image: jupyter/pyspark-notebook:spark-3.4.1
+    container_name: hifun-jupyter
+    hostname: jupyter
+    networks:
+      - hifun-net
+    ports:
+      - "8888:8888"     # Jupyter Lab web UI
+      - "4040:4040"     # Spark driver UI (when a notebook runs Spark)
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      SPARK_MASTER: spark://spark-master:7077
+      PYSPARK_SUBMIT_ARGS: >
+        --master spark://spark-master:7077
+        --packages graphframes:graphframes:0.8.3-spark3.4-s_2.12
+        --conf spark.sql.adaptive.enabled=true
+        --conf spark.sql.shuffle.partitions=8
+        pyspark-shell
+      # Disable token auth for development convenience (change in production!)
+      JUPYTER_TOKEN: ""
+      JUPYTER_PASSWORD: ""
+    volumes:
+      - ./notebooks:/home/jovyan/work/notebooks
+      - ./:/home/jovyan/work/hifun:ro
+      - spark-events:/spark-events
+    depends_on:
+      - spark-master
+    restart: unless-stopped
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NOTES
+# ══════════════════════════════════════════════════════════════════════════════
+# To upload project data to HDFS after the cluster starts:
+#
+#   docker exec -it hifun-namenode bash
+#   hdfs dfs -mkdir -p /hifun/data/parquet/tpch
+#   hdfs dfs -put /hifun-data/parquet/tpch/* /hifun/data/parquet/tpch/
+#   hdfs dfs -ls /hifun/data/parquet/tpch     # verify
+#
+# Then set in your environment or .env:
+#   HIFUN_HDFS_ROOT=hdfs://namenode:9000/hifun/data
+#   HIFUN_SPARK_MASTER=spark://spark-master:7077
+#
+# To submit a Spark job to the cluster:
+#   docker exec -it hifun-spark-master \
+#     spark-submit \
+#       --master spark://spark-master:7077 \
+#       --packages graphframes:graphframes:0.8.3-spark3.4-s_2.12 \
+#       /hifun/training_data/real_collection_script.py

@@ -1,12 +1,41 @@
+# ─── Core Big-Data / Spark ecosystem ─────────────────────────────────────────
 pyspark==3.4.2
+# GraphFrames Python bindings (JAR auto-downloaded by Spark via --packages)
 graphframes==0.6
+# Delta Lake (ACID writes, time-travel, MERGE) — optional but recommended
+delta-spark==2.4.0
+
+# ─── ML / feature engineering ────────────────────────────────────────────────
 xgboost==2.0.3
 scikit-learn==1.4.0
+lightgbm==4.2.0
 shap==0.44.0
+
+# ─── Data handling ────────────────────────────────────────────────────────────
 pandas==2.1.4
 numpy==1.26.3
-jsonschema==4.21.1
+pyarrow==14.0.2           # Parquet I/O + Arrow ↔ pandas bridge
+
+# ─── Statistics / collinearity analysis ──────────────────────────────────────
+statsmodels==0.14.1       # VIF computation (model/feature_analysis.py)
+
+# ─── Visualisation ────────────────────────────────────────────────────────────
 matplotlib==3.8.2
 seaborn==0.13.1
-pyarrow==14.0.2
-lightgbm==4.2.0
+
+# ─── Experiment tracking & reporting ─────────────────────────="───────────────
+jsonschema==4.21.1        # DSL query validation
+
+# ─── Interactive development ──────────────────────────────────────────────────
+jupyter==1.0.0            # Jupyter Lab / Classic notebook
+jupyterlab==4.1.2
+ipywidgets==8.1.2         # ipywidgets for interactive plots in notebooks
+nbformat==5.9.2
+
+# ─── Streaming / Kafka integration (optional — for online retraining loop) ───
+# kafka-python==2.0.2     # uncomment when implementing Task 3.2
+
+# ─── Testing ─────────────────────────────────────────────────────────────────
+pytest==7.4.4
+pytest-cov==4.1.0
+
