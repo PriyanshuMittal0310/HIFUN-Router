@@ -11,7 +11,9 @@ Output:
 import argparse
 import os
 import re
+import sys
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from config.spark_config import get_spark_session
 
 

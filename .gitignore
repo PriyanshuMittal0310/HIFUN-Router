@@ -15,9 +15,22 @@ env/
 
 # Data (large/generated files)
 data/raw/tpch-kit/
+data/raw/
+!data/raw/.gitkeep
 data/parquet/
+data/parquet/**
 data/graphs/*.parquet/
+data/graphs/**/*.parquet/
+data/graphs/**/part-*.parquet
+data/graphs/**/.part-*.crc
+data/graphs/**/_SUCCESS
+data/graphs/**/._SUCCESS.crc
 data/runtime_history.db
+
+# Training/model outputs
+training_data/real_labeled_runs.csv
+model/artifacts/*.pkl
+model/artifacts/training_results.json
 
 # IDE
 .vscode/

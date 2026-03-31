@@ -33,6 +33,13 @@ def _find_csv(input_dir, pattern):
 
 def convert_official_ldbc(spark, input_dir, parquet_dir, graph_dir):
     """Convert official LDBC datagen CSV to Parquet + edge list."""
+    standalone_parquet_root = os.path.join(
+        input_dir, "graphs", "parquet", "raw", "composite-merged-fk"
+    )
+    if os.path.isdir(standalone_parquet_root):
+        _convert_standalone_layout(spark, standalone_parquet_root, parquet_dir, graph_dir)
+        return
+
     tables = {
         "person": "person_0_0.csv",
         "posts": "post_0_0.csv",
@@ -145,6 +152,111 @@ def convert_official_ldbc(spark, input_dir, parquet_dir, graph_dir):
         print(f"  SNB vertices: {vertices.count()} -> {out_v}")
     else:
         print("  WARNING: person_knows_person CSV not found; skipping graph edges")
+
+
+def _convert_standalone_layout(spark, standalone_root, parquet_dir, graph_dir):
+    """Convert Spark standalone datagen parquet layout to project schema."""
+    from pyspark.sql import functions as F
+
+    dynamic_root = os.path.join(standalone_root, "dynamic")
+
+    def _read(name):
+        p = os.path.join(dynamic_root, name)
+        return spark.read.parquet(p) if os.path.isdir(p) else None
+
+    person_df = _read("Person")
+    post_df = _read("Post")
+    comment_df = _read("Comment")
+    works_df = _read("Person_workAt_Company")
+    knows_df = _read("Person_knows_Person")
+
+    if person_df is not None:
+        person_out = os.path.join(parquet_dir, "snb", "person")
+        person_df.write.mode("overwrite").parquet(person_out)
+        print(f"  person: {person_df.count()} rows -> {person_out}")
+
+    if post_df is not None:
+        posts = post_df
+        if "id" in posts.columns:
+            posts = posts.withColumnRenamed("id", "post_id")
+        if "CreatorPersonId" in posts.columns:
+            posts = posts.withColumnRenamed("CreatorPersonId", "creator_id")
+        if "PersonId" in posts.columns:
+            posts = posts.withColumnRenamed("PersonId", "creator_id")
+        if "length" in posts.columns:
+            posts = posts.withColumnRenamed("length", "content_length")
+        post_out = os.path.join(parquet_dir, "snb", "posts")
+        posts.write.mode("overwrite").parquet(post_out)
+        print(f"  posts: {posts.count()} rows -> {post_out}")
+
+    if comment_df is not None:
+        comments = comment_df
+        if "id" in comments.columns:
+            comments = comments.withColumnRenamed("id", "comment_id")
+        if "CreatorPersonId" in comments.columns:
+            comments = comments.withColumnRenamed("CreatorPersonId", "author_id")
+        if "PersonId" in comments.columns:
+            comments = comments.withColumnRenamed("PersonId", "author_id")
+        if "length" in comments.columns:
+            comments = comments.withColumnRenamed("length", "content_length")
+        comment_out = os.path.join(parquet_dir, "snb", "comments")
+        comments.write.mode("overwrite").parquet(comment_out)
+        print(f"  comments: {comments.count()} rows -> {comment_out}")
+
+    if works_df is not None:
+        works = works_df
+        if "PersonId" in works.columns:
+            works = works.withColumnRenamed("PersonId", "person_id")
+        if "CompanyId" in works.columns:
+            works = works.withColumnRenamed("CompanyId", "organisation_id")
+        works_out = os.path.join(parquet_dir, "snb", "works_at")
+        works.write.mode("overwrite").parquet(works_out)
+        print(f"  works_at: {works.count()} rows -> {works_out}")
+
+    posts_path = os.path.join(parquet_dir, "snb", "posts")
+    comments_path = os.path.join(parquet_dir, "snb", "comments")
+    if os.path.exists(posts_path) and os.path.exists(comments_path):
+        posts_df = spark.read.parquet(posts_path)
+        comments_df = spark.read.parquet(comments_path)
+        messages = posts_df.select(
+            F.col("post_id").alias("message_id"),
+            F.col("creator_id").alias("sender_id"),
+            F.col("content_length"),
+        ).unionByName(
+            comments_df.select(
+                F.col("comment_id").alias("message_id"),
+                F.col("author_id").alias("sender_id"),
+                F.col("content_length"),
+            )
+        )
+        msg_out = os.path.join(parquet_dir, "snb", "messages")
+        messages.write.mode("overwrite").parquet(msg_out)
+        print(f"  messages: {messages.count()} rows -> {msg_out}")
+
+    if knows_df is not None:
+        if "Person1Id" in knows_df.columns and "Person2Id" in knows_df.columns:
+            knows_df = knows_df.withColumnRenamed("Person1Id", "src").withColumnRenamed("Person2Id", "dst")
+        else:
+            cols = knows_df.columns
+            if len(cols) >= 2:
+                knows_df = knows_df.withColumnRenamed(cols[0], "src").withColumnRenamed(cols[1], "dst")
+        knows_df = knows_df.select("src", "dst").withColumn("relationship", F.lit("KNOWS"))
+        reverse = knows_df.select(F.col("dst").alias("src"), F.col("src").alias("dst"), F.col("relationship"))
+        edges = knows_df.unionByName(reverse).distinct()
+
+        if person_df is not None and "id" in person_df.columns:
+            vertices = person_df.select(F.col("id"))
+        else:
+            vertices = edges.select(F.col("src").alias("id")).unionByName(edges.select(F.col("dst").alias("id"))).distinct()
+
+        snb_graph_dir = os.path.join(graph_dir, "snb")
+        os.makedirs(snb_graph_dir, exist_ok=True)
+        e_out = os.path.join(snb_graph_dir, "snb_edges.parquet")
+        v_out = os.path.join(snb_graph_dir, "snb_vertices.parquet")
+        edges.write.mode("overwrite").parquet(e_out)
+        vertices.write.mode("overwrite").parquet(v_out)
+        print(f"  SNB graph: {edges.count()} edges -> {e_out}")
+        print(f"  SNB vertices: {vertices.count()} -> {v_out}")
 
 
 # ── Main ────────────────────────────────────────────────────────────
