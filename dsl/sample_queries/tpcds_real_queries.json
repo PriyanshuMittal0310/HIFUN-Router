@@ -1,0 +1,1394 @@
+[
+  {
+    "query_id": "q_tpcds_real_1_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 1
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_1_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 1
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_5_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 5
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_5_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 5
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_10_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 10
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_10_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 10
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_25_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 25
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_25_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 25
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_50_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 50
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_50_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 50
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_75_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 75
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_75_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 75
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_100_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 100
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_100_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 100
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_250_inner",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 250
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_real_250_left",
+    "description": "TPC-DS style sales-store-date aggregation",
+    "operations": [
+      {
+        "op_id": "t1",
+        "type": "FILTER",
+        "source": "store_sales",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "predicate": {
+          "column": "c0",
+          "operator": ">",
+          "value": 250
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "t2",
+        "type": "JOIN",
+        "source": "t1",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "date_dim",
+          "left_key": "c0",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t1"
+        ]
+      },
+      {
+        "op_id": "t3",
+        "type": "JOIN",
+        "source": "t2",
+        "fields": [
+          "c0",
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "join": {
+          "right_source": "store",
+          "left_key": "c1",
+          "right_key": "c0",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "t2"
+        ]
+      },
+      {
+        "op_id": "t4",
+        "type": "AGGREGATE",
+        "source": "t3",
+        "fields": [
+          "c1",
+          "revenue"
+        ],
+        "aggregate": {
+          "group_by": [
+            "c1"
+          ],
+          "functions": [
+            {
+              "func": "SUM",
+              "column": "c3",
+              "alias": "revenue"
+            }
+          ]
+        },
+        "depends_on": [
+          "t3"
+        ]
+      }
+    ]
+  }
+]

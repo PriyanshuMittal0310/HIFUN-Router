@@ -59,10 +59,19 @@ class StatsCollector:
         if source_name in self._graph_stats:
             return self._graph_stats[source_name]
 
+        # Common file naming: <name>_graph_stats.json
+        graph_key = f"{source_name}_graph"
+        if graph_key in self._graph_stats:
+            return self._graph_stats[graph_key]
+
         # Try normalized name
         normalized = source_name.replace("_graph", "").replace("graph", "synthetic")
         if normalized in self._graph_stats:
             return self._graph_stats[normalized]
+
+        normalized_graph_key = f"{normalized}_graph"
+        if normalized_graph_key in self._graph_stats:
+            return self._graph_stats[normalized_graph_key]
 
         # Default: return the first available graph stats (often synthetic_graph)
         for key, stats in self._graph_stats.items():
@@ -80,6 +89,8 @@ class StatsCollector:
         if source_name in _GRAPH_SOURCES:
             return True
         if source_name in self._graph_stats:
+            return True
+        if f"{source_name}_graph" in self._graph_stats:
             return True
         if "graph" in source_name.lower():
             return True

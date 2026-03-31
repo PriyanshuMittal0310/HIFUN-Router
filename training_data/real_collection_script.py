@@ -1,4 +1,4 @@
-"""real_collection_script.py — Task 2.2: collect real execution labels.
+"""real_collection_script.py — collect real execution labels at scale.
 
 Replaces the simulated heuristic labels in `training_data/labeled_runs.csv`
 with real measured runtimes from PySpark + GraphFrames.
@@ -42,18 +42,55 @@ DEFAULT_QUERY_DIRS   = ["dsl/sample_queries/"]
 DEFAULT_OUTPUT_CSV   = "training_data/real_labeled_runs.csv"
 DEFAULT_N_WARMUP     = 2    # JVM warm-up runs before measurement
 DEFAULT_N_MEASURE    = 3    # runs whose median becomes the label
+DEFAULT_REPEAT       = 1    # repeat each subexpression this many times
 
 # Parquet directories by dataset key
 DATASET_PARQUET_DIRS = {
     "tpch_queries":      TPCH_PARQUET_DIR,
     "snb_queries":       os.path.join(PARQUET_DIR, "snb"),
-    "synthetic_queries": TPCH_PARQUET_DIR,   # synthetic uses same relational engine
+    "snb_real_queries":  os.path.join(PARQUET_DIR, "snb"),
+    "snb_bi_real_queries": os.path.join(PARQUET_DIR, "snb"),
+    "job_real_queries":  os.path.join(PARQUET_DIR, "job"),
+    "tpcds_real_queries": os.path.join(PARQUET_DIR, "tpcds"),
 }
 DATASET_GRAPH_DIRS = {
     "tpch_queries":      os.path.join(GRAPHS_DIR, "synthetic"),
     "snb_queries":       os.path.join(GRAPHS_DIR, "snb"),
-    "synthetic_queries": os.path.join(GRAPHS_DIR, "synthetic"),
+    "snb_real_queries":  os.path.join(GRAPHS_DIR, "snb"),
+    "snb_bi_real_queries": os.path.join(GRAPHS_DIR, "snb"),
+    "ogb_real_queries":  os.path.join(GRAPHS_DIR, "ogbn_arxiv"),
 }
+
+
+def _available_sources(parquet_dir: str, graph_dir: str) -> set:
+    sources = set()
+    if os.path.isdir(parquet_dir):
+        for name in os.listdir(parquet_dir):
+            p = os.path.join(parquet_dir, name)
+            if os.path.isdir(p) or p.endswith(".parquet"):
+                sources.add(name.replace(".parquet", ""))
+    if os.path.isdir(graph_dir):
+        for name in os.listdir(graph_dir):
+            base = name.replace(".parquet", "")
+            if base.endswith("_vertices"):
+                sources.add(base[:-9])
+            elif base.endswith("_edges"):
+                sources.add(base[:-6])
+    return sources
+
+
+def _query_references_missing_sources(query: dict, available: set) -> tuple[bool, str]:
+    op_ids = {op.get("op_id") for op in query.get("operations", [])}
+    for op in query.get("operations", []):
+        source = op.get("source", "")
+        if source and source not in op_ids and source not in available:
+            return True, source
+        join = op.get("join")
+        if isinstance(join, dict):
+            right_source = join.get("right_source", "")
+            if right_source and right_source not in op_ids and right_source not in available:
+                return True, right_source
+    return False, ""
 
 # ─── Measurement helper ───────────────────────────────────────────────────────
 
@@ -103,6 +140,8 @@ def collect_labels(
     output_csv: str,
     n_warmup: int,
     n_measure: int,
+    repeat: int,
+    include_synthetic: bool,
 ) -> pd.DataFrame:
     """Iterate over all DSL queries, decompose, extract features, and measure.
 
@@ -126,6 +165,9 @@ def collect_labels(
         for fname in sorted(os.listdir(query_dir)):
             if not fname.endswith(".json"):
                 continue
+            if not include_synthetic and "synthetic" in fname:
+                logger.info("Skipping synthetic query file: %s", fname)
+                continue
 
             fpath   = os.path.join(query_dir, fname)
             dataset = fname.replace(".json", "")
@@ -135,6 +177,16 @@ def collect_labels(
             # Instantiate generators for this dataset
             sql_gen   = SparkSQLGenerator(spark, parquet_dir)
             graph_gen = GraphFramesGenerator(spark, graph_dir)
+            available = _available_sources(parquet_dir, graph_dir)
+
+            if not available:
+                logger.warning(
+                    "No sources found for dataset=%s (parquet=%s, graph=%s); skipping file",
+                    dataset,
+                    parquet_dir,
+                    graph_dir,
+                )
+                continue
 
             with open(fpath) as f:
                 data = json.load(f)
@@ -142,6 +194,16 @@ def collect_labels(
 
             for query in queries:
                 qid = query.get("query_id", "unknown")
+                missing, source = _query_references_missing_sources(query, available)
+                if missing:
+                    logger.info(
+                        "Skipping query %s (dataset=%s): missing source '%s'",
+                        qid,
+                        dataset,
+                        source,
+                    )
+                    continue
+
                 logger.info("Processing query: %s  (dataset=%s)", qid, dataset)
                 try:
                     nodes     = parser.parse(query)
@@ -151,58 +213,59 @@ def collect_labels(
                     continue
 
                 for sub in sub_exprs:
-                    sid = sub.sub_id
-                    logger.info("  Sub: %s  (%s)", sid, sub.primary_op_type)
-                    try:
-                        fv = extractor.extract(sub)
-                    except Exception as exc:
-                        logger.warning("  Feature extraction error: %s", exc)
-                        continue
+                    for rep in range(repeat):
+                        sid = f"{sub.sub_id}_r{rep}"
+                        logger.info("  Sub: %s  (%s)", sid, sub.primary_op_type)
+                        try:
+                            fv = extractor.extract(sub)
+                        except Exception as exc:
+                            logger.warning("  Feature extraction error: %s", exc)
+                            continue
 
-                    has_traversal = bool(fv[FEATURE_NAMES.index("has_traversal")])
+                        has_traversal = bool(fv[FEATURE_NAMES.index("has_traversal")])
 
-                    # ── SQL path ────────────────────────────────────────────
-                    shared = {}
-                    def run_sql(s=sub, gen=sql_gen, cache=shared):
-                        gen.cache = cache
-                        return gen.generate(s)
-
-                    sql_med, sql_std = _measure(run_sql, n_warmup, n_measure)
-
-                    # ── GRAPH path ──────────────────────────────────────────
-                    if has_traversal:
-                        shared2 = {}
-                        def run_graph(s=sub, gen=graph_gen, cache=shared2):
+                        # ── SQL path ────────────────────────────────────────
+                        shared = {}
+                        def run_sql(s=sub, gen=sql_gen, cache=shared):
                             gen.cache = cache
                             return gen.generate(s)
-                        graph_med, graph_std = _measure(run_graph, n_warmup, n_measure)
-                    else:
-                        # Pure relational: graph can't run — assign 3× SQL cost
-                        graph_med = sql_med * 3.0 if sql_med != float("inf") else float("inf")
-                        graph_std = 0.0
 
-                    label   = "GRAPH" if graph_med < sql_med else "SQL"
-                    speedup = sql_med / max(graph_med, 1e-6)
+                        sql_med, sql_std = _measure(run_sql, n_warmup, n_measure)
 
-                    logger.info(
-                        "  SQL=%.1fms  Graph=%.1fms  Label=%s  Speedup=%.2fx",
-                        sql_med, graph_med, label, speedup,
-                    )
+                        # ── GRAPH path ──────────────────────────────────────
+                        if has_traversal:
+                            shared2 = {}
+                            def run_graph(s=sub, gen=graph_gen, cache=shared2):
+                                gen.cache = cache
+                                return gen.generate(s)
+                            graph_med, graph_std = _measure(run_graph, n_warmup, n_measure)
+                        else:
+                            # Pure relational: graph can't run — assign 3× SQL cost
+                            graph_med = sql_med * 3.0 if sql_med != float("inf") else float("inf")
+                            graph_std = 0.0
 
-                    row = {
-                        "sub_id":          sid,
-                        "query_id":        qid,
-                        "dataset":         dataset,
-                        **dict(zip(FEATURE_NAMES, fv.tolist())),
-                        "sql_median_ms":   sql_med,
-                        "sql_std_ms":      sql_std,
-                        "graph_median_ms": round(graph_med, 2),
-                        "graph_std_ms":    round(graph_std, 2),
-                        "speedup":         round(speedup, 3),
-                        "label":           label,
-                        "label_source":    "real_measurement",
-                    }
-                    rows.append(row)
+                        label   = "GRAPH" if graph_med < sql_med else "SQL"
+                        speedup = sql_med / max(graph_med, 1e-6)
+
+                        logger.info(
+                            "  SQL=%.1fms  Graph=%.1fms  Label=%s  Speedup=%.2fx",
+                            sql_med, graph_med, label, speedup,
+                        )
+
+                        row = {
+                            "sub_id":          sid,
+                            "query_id":        qid,
+                            "dataset":         dataset,
+                            **dict(zip(FEATURE_NAMES, fv.tolist())),
+                            "sql_median_ms":   sql_med,
+                            "sql_std_ms":      sql_std,
+                            "graph_median_ms": round(graph_med, 2),
+                            "graph_std_ms":    round(graph_std, 2),
+                            "speedup":         round(speedup, 3),
+                            "label":           label,
+                            "label_source":    "real_measurement",
+                        }
+                        rows.append(row)
 
     df = pd.DataFrame(rows)
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
@@ -229,6 +292,10 @@ def _parse_args() -> argparse.Namespace:
                    help="Number of JVM warm-up runs (discarded)")
     p.add_argument("--n_measure",   type=int, default=DEFAULT_N_MEASURE,
                    help="Number of timed runs (median taken)")
+    p.add_argument("--repeat",      type=int, default=DEFAULT_REPEAT,
+                   help="Repeat each sub-expression N times to increase sample count")
+    p.add_argument("--include_synthetic", action="store_true",
+                   help="Include synthetic query files (disabled by default)")
     p.add_argument("--master",      default=None,
                    help="Spark master URL override (e.g. spark://host:7077)")
     return p.parse_args()
@@ -253,6 +320,8 @@ if __name__ == "__main__":
             output_csv=args.output,
             n_warmup=args.n_warmup,
             n_measure=args.n_measure,
+            repeat=max(1, args.repeat),
+            include_synthetic=args.include_synthetic,
         )
     finally:
         spark.stop()

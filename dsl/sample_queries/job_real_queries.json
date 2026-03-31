@@ -1,0 +1,3062 @@
+[
+  {
+    "query_id": "q_job_real_y1950_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1950
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1950_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1950
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1950_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1950
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1950_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1950
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1970_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1970
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1970_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1970
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1970_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1970
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1970_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1970
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1990_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1990
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1990_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1990
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1990_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1990
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1990_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1990
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y2005_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2005
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y2005_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2005
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y2005_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2005
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y2005_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2005
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y2015_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2015
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y2015_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2015
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y2015_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2015
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y2015_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2015
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1920_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1920
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1920_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1920
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1920_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1920
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1920_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1920
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1930_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1930
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1930_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1930
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1930_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1930
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1930_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1930
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1940_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1940
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1940_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1940
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y1940_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1940
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y1940_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 1940
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y2020_inner",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2020
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y2020_inner",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2020
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "INNER"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_real_y2020_left",
+    "description": "JOB: title-cast-info join pipeline",
+    "operations": [
+      {
+        "op_id": "j1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "title",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2020
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "j2",
+        "type": "JOIN",
+        "source": "j1",
+        "fields": [
+          "id",
+          "person_id",
+          "role_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "cast_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j1"
+        ]
+      },
+      {
+        "op_id": "j3",
+        "type": "JOIN",
+        "source": "j2",
+        "fields": [
+          "id",
+          "person_id",
+          "info_type_id",
+          "production_year"
+        ],
+        "join": {
+          "right_source": "movie_info",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "j2"
+        ]
+      },
+      {
+        "op_id": "j4",
+        "type": "AGGREGATE",
+        "source": "j3",
+        "fields": [
+          "info_type_id",
+          "n_people"
+        ],
+        "aggregate": {
+          "group_by": [
+            "info_type_id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "person_id",
+              "alias": "n_people"
+            }
+          ]
+        },
+        "depends_on": [
+          "j3"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_kw_y2020_left",
+    "description": "JOB: title-keyword fanout",
+    "operations": [
+      {
+        "op_id": "k1",
+        "type": "FILTER",
+        "source": "title",
+        "fields": [
+          "id",
+          "kind_id",
+          "production_year"
+        ],
+        "predicate": {
+          "column": "production_year",
+          "operator": ">=",
+          "value": 2020
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "k2",
+        "type": "JOIN",
+        "source": "k1",
+        "fields": [
+          "id",
+          "keyword_id",
+          "kind_id"
+        ],
+        "join": {
+          "right_source": "movie_keyword",
+          "left_key": "id",
+          "right_key": "movie_id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k1"
+        ]
+      },
+      {
+        "op_id": "k3",
+        "type": "JOIN",
+        "source": "k2",
+        "fields": [
+          "id",
+          "keyword_id",
+          "keyword"
+        ],
+        "join": {
+          "right_source": "keyword",
+          "left_key": "keyword_id",
+          "right_key": "id",
+          "join_type": "LEFT"
+        },
+        "depends_on": [
+          "k2"
+        ]
+      },
+      {
+        "op_id": "k4",
+        "type": "AGGREGATE",
+        "source": "k3",
+        "fields": [
+          "keyword",
+          "cnt"
+        ],
+        "aggregate": {
+          "group_by": [
+            "keyword"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "cnt"
+            }
+          ]
+        },
+        "depends_on": [
+          "k3"
+        ]
+      }
+    ]
+  }
+]

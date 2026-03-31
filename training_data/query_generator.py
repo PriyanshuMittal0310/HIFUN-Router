@@ -185,7 +185,7 @@ def generate_all_variants(queries_dir: str = SAMPLE_QUERIES_DIR) -> dict:
             # Join strategy sweep
             if any(op.get("type") == "JOIN" for op in q.get("operations", [])):
                 tpch_variants.extend(
-                    generate_join_variants(q, ["inner", "left"])
+                    generate_join_variants(q, ["INNER", "LEFT"])
                 )
         out = os.path.join(queries_dir, "tpch_join_variants.json")
         _save_variants(tpch_variants, out)

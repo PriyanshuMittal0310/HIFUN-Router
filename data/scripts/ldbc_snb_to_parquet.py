@@ -1,28 +1,20 @@
-"""Convert LDBC SNB data (CSV or synthetic fallback) to Parquet tables + graph edge list.
+"""Convert official LDBC SNB CSV output to Parquet tables + graph edge list.
 
-Supports two modes:
-  1. Official LDBC data: reads pipe-delimited CSV files from the LDBC datagen output.
-  2. Synthetic fallback: generates an SNB-like dataset when official data is unavailable.
+Reads pipe-delimited CSV files from the official LDBC datagen output.
 
 Usage:
     # From official LDBC CSV:
     python data/scripts/ldbc_snb_to_parquet.py --input data/raw/ldbc_snb
 
-    # Synthetic fallback:
-    python data/scripts/ldbc_snb_to_parquet.py --synthetic
-
 Output:
-    data/parquet/snb/{person,post,comment}/   (Parquet tables for Spark SQL)
-    data/graphs/snb_vertices.parquet          (Vertex list for GraphFrames)
-    data/graphs/snb_edges.parquet             (Edge list for GraphFrames)
+    data/parquet/snb/{person,posts,comments,messages,works_at}/ (Parquet tables)
+    data/graphs/snb/snb_vertices.parquet                        (Vertex list)
+    data/graphs/snb/snb_edges.parquet                           (Edge list)
 """
 
 import argparse
 import os
 import sys
-
-import numpy as np
-import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from config.spark_config import get_spark_session
@@ -43,8 +35,9 @@ def convert_official_ldbc(spark, input_dir, parquet_dir, graph_dir):
     """Convert official LDBC datagen CSV to Parquet + edge list."""
     tables = {
         "person": "person_0_0.csv",
-        "post": "post_0_0.csv",
-        "comment": "comment_0_0.csv",
+        "posts": "post_0_0.csv",
+        "comments": "comment_0_0.csv",
+        "works_at": "person_workAt_organisation_0_0.csv",
     }
 
     for name, filename in tables.items():
@@ -57,15 +50,58 @@ def convert_official_ldbc(spark, input_dir, parquet_dir, graph_dir):
             continue
 
         df = spark.read.option("header", "true").option("sep", "|").csv(path)
+        # Normalize common SNB key column names expected by DSL queries.
+        if name == "posts":
+            if "id" in df.columns:
+                df = df.withColumnRenamed("id", "post_id")
+            if "Person.id" in df.columns:
+                df = df.withColumnRenamed("Person.id", "creator_id")
+            if "length" in df.columns:
+                df = df.withColumnRenamed("length", "content_length")
+        elif name == "comments":
+            if "id" in df.columns:
+                df = df.withColumnRenamed("id", "comment_id")
+            if "Person.id" in df.columns:
+                df = df.withColumnRenamed("Person.id", "author_id")
+            if "length" in df.columns:
+                df = df.withColumnRenamed("length", "content_length")
+        elif name == "works_at":
+            cols = set(df.columns)
+            if "Person.id" in cols:
+                df = df.withColumnRenamed("Person.id", "person_id")
+            if "Organisation.id" in cols:
+                df = df.withColumnRenamed("Organisation.id", "organisation_id")
+
         out = os.path.join(parquet_dir, "snb", name)
         df.write.mode("overwrite").parquet(out)
         print(f"  {name}: {df.count()} rows -> {out}")
 
+    # Build a convenience "messages" table from posts + comments.
+    from pyspark.sql import functions as F
+    posts_path = os.path.join(parquet_dir, "snb", "posts")
+    comments_path = os.path.join(parquet_dir, "snb", "comments")
+    if os.path.exists(posts_path) and os.path.exists(comments_path):
+        posts_df = spark.read.parquet(posts_path)
+        comments_df = spark.read.parquet(comments_path)
+
+        posts_msg = posts_df.select(
+            F.col("post_id").alias("message_id"),
+            F.col("creator_id").alias("sender_id"),
+            F.col("content_length"),
+        )
+        comments_msg = comments_df.select(
+            F.col("comment_id").alias("message_id"),
+            F.col("author_id").alias("sender_id"),
+            F.col("content_length"),
+        )
+        messages = posts_msg.unionByName(comments_msg)
+        out_messages = os.path.join(parquet_dir, "snb", "messages")
+        messages.write.mode("overwrite").parquet(out_messages)
+        print(f"  messages: {messages.count()} rows -> {out_messages}")
+
     # Graph edges: person_knows_person
     knows_path = _find_csv(input_dir, "person_knows_person")
     if knows_path:
-        from pyspark.sql import functions as F
-
         edges = (
             spark.read.option("header", "true").option("sep", "|").csv(knows_path)
         )
@@ -99,97 +135,16 @@ def convert_official_ldbc(spark, input_dir, parquet_dir, graph_dir):
             dst_ids = all_edges.select(F.col("dst").alias("id"))
             vertices = src_ids.union(dst_ids).distinct()
 
-        out_e = os.path.join(graph_dir, "snb_edges.parquet")
-        out_v = os.path.join(graph_dir, "snb_vertices.parquet")
+        snb_graph_dir = os.path.join(graph_dir, "snb")
+        os.makedirs(snb_graph_dir, exist_ok=True)
+        out_e = os.path.join(snb_graph_dir, "snb_edges.parquet")
+        out_v = os.path.join(snb_graph_dir, "snb_vertices.parquet")
         all_edges.write.mode("overwrite").parquet(out_e)
         vertices.write.mode("overwrite").parquet(out_v)
         print(f"  SNB graph: {all_edges.count()} edges -> {out_e}")
         print(f"  SNB vertices: {vertices.count()} -> {out_v}")
     else:
         print("  WARNING: person_knows_person CSV not found; skipping graph edges")
-
-
-# ── Synthetic fallback ──────────────────────────────────────────────
-
-def generate_synthetic_snb(spark, parquet_dir, graph_dir, n_persons=5000,
-                           n_posts=20000, n_comments=50000, n_edges=25000,
-                           seed=42):
-    """Generate a synthetic SNB-like dataset for prototyping."""
-    rng = np.random.RandomState(seed)
-
-    cities = ["Berlin", "London", "Paris", "New York", "Tokyo", "Mumbai", "Sydney"]
-    countries = ["Germany", "UK", "France", "USA", "Japan", "India", "Australia"]
-
-    # Person table
-    persons = pd.DataFrame({
-        "id": range(n_persons),
-        "firstName": [f"Person_{i}" for i in range(n_persons)],
-        "lastName": [f"Last_{i}" for i in range(n_persons)],
-        "gender": rng.choice(["male", "female"], n_persons),
-        "city": rng.choice(cities, n_persons),
-        "country": rng.choice(countries, n_persons),
-        "age": rng.randint(18, 70, n_persons),
-    })
-    person_sdf = spark.createDataFrame(persons)
-    person_out = os.path.join(parquet_dir, "snb", "person")
-    person_sdf.write.mode("overwrite").parquet(person_out)
-    print(f"  person: {len(persons)} rows -> {person_out}")
-
-    # Post table
-    posts = pd.DataFrame({
-        "id": range(n_posts),
-        "creator_id": rng.randint(0, n_persons, n_posts),
-        "content": [f"Post content {i}" for i in range(n_posts)],
-        "length": rng.randint(10, 2000, n_posts),
-        "language": rng.choice(["en", "de", "fr", "ja", "hi"], n_posts),
-    })
-    post_sdf = spark.createDataFrame(posts)
-    post_out = os.path.join(parquet_dir, "snb", "post")
-    post_sdf.write.mode("overwrite").parquet(post_out)
-    print(f"  post: {len(posts)} rows -> {post_out}")
-
-    # Comment table
-    comments = pd.DataFrame({
-        "id": range(n_comments),
-        "creator_id": rng.randint(0, n_persons, n_comments),
-        "content": [f"Comment {i}" for i in range(n_comments)],
-        "length": rng.randint(5, 500, n_comments),
-        "reply_of_post": rng.randint(0, n_posts, n_comments),
-    })
-    comment_sdf = spark.createDataFrame(comments)
-    comment_out = os.path.join(parquet_dir, "snb", "comment")
-    comment_sdf.write.mode("overwrite").parquet(comment_out)
-    print(f"  comment: {len(comments)} rows -> {comment_out}")
-
-    # KNOWS edges
-    src = rng.randint(0, n_persons, n_edges)
-    dst = rng.randint(0, n_persons, n_edges)
-    mask = src != dst
-    edges_pd = pd.DataFrame({
-        "src": src[mask],
-        "dst": dst[mask],
-        "relationship": "KNOWS",
-    }).drop_duplicates(subset=["src", "dst"])
-
-    # Make bidirectional
-    reverse = edges_pd.rename(columns={"src": "dst", "dst": "src"})[
-        ["src", "dst", "relationship"]
-    ]
-    all_edges = pd.concat([edges_pd, reverse]).drop_duplicates(
-        subset=["src", "dst"]
-    )
-
-    edges_sdf = spark.createDataFrame(all_edges)
-    edges_out = os.path.join(graph_dir, "snb_edges.parquet")
-    edges_sdf.write.mode("overwrite").parquet(edges_out)
-    print(f"  SNB edges: {len(all_edges)} -> {edges_out}")
-
-    vertices_sdf = spark.createDataFrame(
-        pd.DataFrame({"id": range(n_persons)})
-    )
-    vertices_out = os.path.join(graph_dir, "snb_vertices.parquet")
-    vertices_sdf.write.mode("overwrite").parquet(vertices_out)
-    print(f"  SNB vertices: {n_persons} -> {vertices_out}")
 
 
 # ── Main ────────────────────────────────────────────────────────────
@@ -210,10 +165,6 @@ def main():
         "--graph-dir", default="data/graphs",
         help="Graph data output directory",
     )
-    parser.add_argument(
-        "--synthetic", action="store_true",
-        help="Generate synthetic SNB-like data instead of reading official LDBC CSVs",
-    )
     args = parser.parse_args()
 
     os.makedirs(os.path.join(args.parquet_dir, "snb"), exist_ok=True)
@@ -221,15 +172,14 @@ def main():
 
     spark = get_spark_session("LDBC_SNB_Convert")
 
-    if args.synthetic or not os.path.isdir(args.input):
-        if not args.synthetic:
-            print(f"Official LDBC data not found at {args.input}, "
-                  "falling back to synthetic generation.")
-        print("Generating synthetic SNB-like dataset...")
-        generate_synthetic_snb(spark, args.parquet_dir, args.graph_dir)
-    else:
-        print(f"Converting official LDBC SNB data from {args.input}...")
-        convert_official_ldbc(spark, args.input, args.parquet_dir, args.graph_dir)
+    if not os.path.isdir(args.input):
+        raise FileNotFoundError(
+            f"Official LDBC data not found at '{args.input}'. "
+            "Run data/scripts/download_ldbc_snb.sh first."
+        )
+
+    print(f"Converting official LDBC SNB data from {args.input}...")
+    convert_official_ldbc(spark, args.input, args.parquet_dir, args.graph_dir)
 
     spark.stop()
     print("\nDone. Run compute_stats.py to update statistics:")

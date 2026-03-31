@@ -1,0 +1,4578 @@
+[
+  {
+    "query_id": "q_ogb_real_0001",
+    "description": "OGB traversal sid=0, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0002",
+    "description": "OGB traversal sid=0, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0003",
+    "description": "OGB traversal sid=0, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0004",
+    "description": "OGB traversal sid=0, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0005",
+    "description": "OGB traversal sid=0, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0006",
+    "description": "OGB traversal sid=0, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0007",
+    "description": "OGB traversal sid=0, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0008",
+    "description": "OGB traversal sid=0, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 0
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0009",
+    "description": "OGB traversal sid=1, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0010",
+    "description": "OGB traversal sid=1, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0011",
+    "description": "OGB traversal sid=1, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0012",
+    "description": "OGB traversal sid=1, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0013",
+    "description": "OGB traversal sid=1, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0014",
+    "description": "OGB traversal sid=1, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0015",
+    "description": "OGB traversal sid=1, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0016",
+    "description": "OGB traversal sid=1, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0017",
+    "description": "OGB traversal sid=2, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0018",
+    "description": "OGB traversal sid=2, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0019",
+    "description": "OGB traversal sid=2, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0020",
+    "description": "OGB traversal sid=2, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0021",
+    "description": "OGB traversal sid=2, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0022",
+    "description": "OGB traversal sid=2, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0023",
+    "description": "OGB traversal sid=2, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0024",
+    "description": "OGB traversal sid=2, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 2
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0025",
+    "description": "OGB traversal sid=10, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0026",
+    "description": "OGB traversal sid=10, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0027",
+    "description": "OGB traversal sid=10, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0028",
+    "description": "OGB traversal sid=10, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0029",
+    "description": "OGB traversal sid=10, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0030",
+    "description": "OGB traversal sid=10, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0031",
+    "description": "OGB traversal sid=10, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0032",
+    "description": "OGB traversal sid=10, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0033",
+    "description": "OGB traversal sid=100, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0034",
+    "description": "OGB traversal sid=100, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0035",
+    "description": "OGB traversal sid=100, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0036",
+    "description": "OGB traversal sid=100, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0037",
+    "description": "OGB traversal sid=100, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0038",
+    "description": "OGB traversal sid=100, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0039",
+    "description": "OGB traversal sid=100, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0040",
+    "description": "OGB traversal sid=100, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0041",
+    "description": "OGB traversal sid=1000, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0042",
+    "description": "OGB traversal sid=1000, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0043",
+    "description": "OGB traversal sid=1000, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0044",
+    "description": "OGB traversal sid=1000, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0045",
+    "description": "OGB traversal sid=1000, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0046",
+    "description": "OGB traversal sid=1000, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0047",
+    "description": "OGB traversal sid=1000, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0048",
+    "description": "OGB traversal sid=1000, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0049",
+    "description": "OGB traversal sid=10000, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0050",
+    "description": "OGB traversal sid=10000, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0051",
+    "description": "OGB traversal sid=10000, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0052",
+    "description": "OGB traversal sid=10000, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0053",
+    "description": "OGB traversal sid=10000, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0054",
+    "description": "OGB traversal sid=10000, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0055",
+    "description": "OGB traversal sid=10000, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0056",
+    "description": "OGB traversal sid=10000, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0057",
+    "description": "OGB traversal sid=20000, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0058",
+    "description": "OGB traversal sid=20000, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0059",
+    "description": "OGB traversal sid=20000, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0060",
+    "description": "OGB traversal sid=20000, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0061",
+    "description": "OGB traversal sid=20000, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0062",
+    "description": "OGB traversal sid=20000, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0063",
+    "description": "OGB traversal sid=20000, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0064",
+    "description": "OGB traversal sid=20000, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 20000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0065",
+    "description": "OGB traversal sid=50000, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0066",
+    "description": "OGB traversal sid=50000, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0067",
+    "description": "OGB traversal sid=50000, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0068",
+    "description": "OGB traversal sid=50000, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0069",
+    "description": "OGB traversal sid=50000, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0070",
+    "description": "OGB traversal sid=50000, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0071",
+    "description": "OGB traversal sid=50000, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0072",
+    "description": "OGB traversal sid=50000, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 50000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0073",
+    "description": "OGB traversal sid=90000, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0074",
+    "description": "OGB traversal sid=90000, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0075",
+    "description": "OGB traversal sid=90000, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0076",
+    "description": "OGB traversal sid=90000, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0077",
+    "description": "OGB traversal sid=90000, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0078",
+    "description": "OGB traversal sid=90000, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0079",
+    "description": "OGB traversal sid=90000, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0080",
+    "description": "OGB traversal sid=90000, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 90000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0081",
+    "description": "OGB traversal sid=120000, hops=1, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0082",
+    "description": "OGB traversal sid=120000, hops=1, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 1,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0083",
+    "description": "OGB traversal sid=120000, hops=2, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0084",
+    "description": "OGB traversal sid=120000, hops=2, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0085",
+    "description": "OGB traversal sid=120000, hops=3, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0086",
+    "description": "OGB traversal sid=120000, hops=3, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0087",
+    "description": "OGB traversal sid=120000, hops=4, dir=OUT",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_ogb_real_0088",
+    "description": "OGB traversal sid=120000, hops=4, dir=BOTH",
+    "operations": [
+      {
+        "op_id": "g1",
+        "type": "TRAVERSAL",
+        "source": "ogbn_arxiv",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 120000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "g2",
+        "type": "AGGREGATE",
+        "source": "g1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "g1"
+        ]
+      }
+    ]
+  }
+]

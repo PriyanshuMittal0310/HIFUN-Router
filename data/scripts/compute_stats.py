@@ -49,44 +49,51 @@ def main():
 
     os.makedirs("data/stats", exist_ok=True)
 
-    # 1. Compute TPC-H Customer Stats
-    if os.path.exists("data/parquet/tpch/customer"):
-        print("Computing stats for customer table...")
-        cust_stats = compute_table_stats(spark, "customer", "data/parquet/tpch/customer")
-        with open("data/stats/customer_stats.json", "w") as f:
-            json.dump(cust_stats, f, indent=2)
-
-    # 2. Compute TPC-H Orders Stats
-    if os.path.exists("data/parquet/tpch/orders"):
-        print("Computing stats for orders table...")
-        orders_stats = compute_table_stats(spark, "orders", "data/parquet/tpch/orders")
-        with open("data/stats/orders_stats.json", "w") as f:
-            json.dump(orders_stats, f, indent=2)
-
-    # 3. Compute Synthetic Graph Stats
-    if os.path.exists("data/graphs/synthetic_edges.parquet"):
-        print("Computing stats for synthetic graph...")
-        graph_stats = compute_graph_stats(spark, "data/graphs/synthetic_edges.parquet")
-        with open("data/stats/synthetic_graph_stats.json", "w") as f:
-            json.dump(graph_stats, f, indent=2)
-
-    # 4. Compute SNB Table Stats (if available)
-    snb_tables_dir = "data/parquet/snb"
-    if os.path.isdir(snb_tables_dir):
-        for table_name in os.listdir(snb_tables_dir):
-            table_path = os.path.join(snb_tables_dir, table_name)
-            if os.path.isdir(table_path):
-                print(f"Computing stats for SNB table: {table_name}...")
+    # 1. Compute table stats for all datasets under data/parquet/*
+    parquet_root = "data/parquet"
+    if os.path.isdir(parquet_root):
+        for dataset in sorted(os.listdir(parquet_root)):
+            dataset_dir = os.path.join(parquet_root, dataset)
+            if not os.path.isdir(dataset_dir):
+                continue
+            for table_name in sorted(os.listdir(dataset_dir)):
+                table_path = os.path.join(dataset_dir, table_name)
+                if not os.path.isdir(table_path):
+                    continue
+                print(f"Computing stats for table: {dataset}/{table_name}...")
                 stats = compute_table_stats(spark, table_name, table_path)
                 with open(f"data/stats/{table_name}_stats.json", "w") as f:
                     json.dump(stats, f, indent=2)
 
-    # 5. Compute SNB Graph Stats (if available)
-    if os.path.exists("data/graphs/snb_edges.parquet"):
-        print("Computing stats for SNB graph...")
-        snb_graph_stats = compute_graph_stats(spark, "data/graphs/snb_edges.parquet")
-        with open("data/stats/snb_graph_stats.json", "w") as f:
-            json.dump(snb_graph_stats, f, indent=2)
+    # 2. Compute graph stats for *all* discovered edge parquet files
+    graph_edge_candidates = []
+
+    # Legacy flat layout: data/graphs/<name>_edges.parquet
+    graphs_root = "data/graphs"
+    if os.path.isdir(graphs_root):
+        for fname in sorted(os.listdir(graphs_root)):
+            if fname.endswith("_edges.parquet"):
+                graph_edge_candidates.append((fname.replace("_edges.parquet", ""), os.path.join(graphs_root, fname)))
+
+        # Nested layout: data/graphs/<graph>/<graph>_edges.parquet
+        for dname in sorted(os.listdir(graphs_root)):
+            subdir = os.path.join(graphs_root, dname)
+            if not os.path.isdir(subdir):
+                continue
+            expected = os.path.join(subdir, f"{dname}_edges.parquet")
+            if os.path.exists(expected):
+                graph_edge_candidates.append((dname, expected))
+
+    seen = set()
+    for graph_name, edge_path in graph_edge_candidates:
+        key = (graph_name, edge_path)
+        if key in seen:
+            continue
+        seen.add(key)
+        print(f"Computing stats for graph: {graph_name}...")
+        gstats = compute_graph_stats(spark, edge_path)
+        with open(f"data/stats/{graph_name}_graph_stats.json", "w") as f:
+            json.dump(gstats, f, indent=2)
 
     print("Statistics precomputation complete.")
     spark.stop()
