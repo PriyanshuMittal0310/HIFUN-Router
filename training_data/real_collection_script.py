@@ -22,7 +22,7 @@ import os
 import sys
 import traceback
 import time
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -100,7 +100,7 @@ def _query_references_missing_sources(query: dict, available: set) -> tuple[bool
 
 # ─── Measurement helper ───────────────────────────────────────────────────────
 
-def _measure(fn, n_warmup: int, n_measure: int) -> Tuple[float, float]:
+def _measure(fn, n_warmup: int, n_measure: int) -> Tuple[float, float, Dict[str, object]]:
     """Execute fn() n_warmup+n_measure times; return (median_ms, std_ms).
 
     Warmup runs are discarded.  Spark DataFrames are force-materialised
@@ -115,6 +115,8 @@ def _measure(fn, n_warmup: int, n_measure: int) -> Tuple[float, float]:
             pass
 
     times_ms: List[float] = []
+    failures = 0
+    failure_examples: List[str] = []
     for _ in range(n_measure):
         t0 = time.perf_counter()
         try:
@@ -126,16 +128,30 @@ def _measure(fn, n_warmup: int, n_measure: int) -> Tuple[float, float]:
         except Exception as exc:
             logger.warning("Execution attempt failed: %s", exc)
             times_ms.append(float("inf"))
+            failures += 1
+            if len(failure_examples) < 3:
+                failure_examples.append(str(exc))
             continue
         times_ms.append((time.perf_counter() - t0) * 1000.0)
 
     finite = [t for t in times_ms if t != float("inf")]
     if not finite:
-        return float("inf"), float("inf")
+        return float("inf"), float("inf"), {
+            "attempts": n_measure,
+            "failures": failures,
+            "status": "all_failed",
+            "failure_examples": failure_examples,
+        }
     arr = sorted(finite)
     median = arr[len(arr) // 2]
     std    = float(np.std(finite)) if len(finite) > 1 else 0.0
-    return round(median, 2), round(std, 2)
+    status = "ok" if failures == 0 else "partial_failed"
+    return round(median, 2), round(std, 2), {
+        "attempts": n_measure,
+        "failures": failures,
+        "status": status,
+        "failure_examples": failure_examples,
+    }
 
 
 # ─── Main collection loop ─────────────────────────────────────────────────────
@@ -148,6 +164,9 @@ def collect_labels(
     n_measure: int,
     repeat: int,
     include_synthetic: bool,
+    strict_real_only: bool,
+    penalize_sql_traversal_approx: bool,
+    failure_report_path: Optional[str],
 ) -> pd.DataFrame:
     """Iterate over all DSL queries, decompose, extract features, and measure.
 
@@ -162,6 +181,10 @@ def collect_labels(
     extractor  = FeatureExtractor(stats_dir=STATS_DIR)
 
     rows: List[dict] = []
+    failure_taxonomy: Dict[str, int] = {}
+
+    def bump(reason: str) -> None:
+        failure_taxonomy[reason] = failure_taxonomy.get(reason, 0) + 1
 
     for query_dir in query_dirs:
         if not os.path.isdir(query_dir):
@@ -267,7 +290,7 @@ def collect_labels(
                             gen.cache = cache
                             return gen.generate(s)
 
-                        sql_med, sql_std = _measure(run_sql, n_warmup, n_measure)
+                        sql_med, sql_std, sql_meta = _measure(run_sql, n_warmup, n_measure)
 
                         # ── GRAPH path ──────────────────────────────────────
                         if has_traversal:
@@ -276,22 +299,51 @@ def collect_labels(
                                 _prepare_graph_deps(s, cache, set())
                                 gen.cache = cache
                                 return gen.generate(s)
-                            graph_med, graph_std = _measure(run_graph, n_warmup, n_measure)
+                            graph_med, graph_std, graph_meta = _measure(run_graph, n_warmup, n_measure)
                         else:
                             # Pure relational: graph can't run — assign 3× SQL cost
                             graph_med = sql_med * 3.0 if sql_med != float("inf") else float("inf")
                             graph_std = 0.0
+                            graph_meta = {
+                                "attempts": 0,
+                                "failures": 0,
+                                "status": "not_applicable_penalized",
+                                "failure_examples": [],
+                            }
+                            bump("graph_not_applicable_relational")
+
+                        semantic_penalty = False
+                        if penalize_sql_traversal_approx and sub.primary_op_type == "TRAVERSAL":
+                            # SQL path cannot execute traversal semantics equivalently in current generator.
+                            sql_med = float("inf")
+                            sql_std = float("inf")
+                            sql_meta["status"] = "penalized_traversal_approx"
+                            semantic_penalty = True
+                            bump("sql_penalized_traversal_approx")
 
                         # Stabilize labels when only one engine path is feasible.
+                        fallback_applied = False
+                        fallback_reason = "none"
                         if sql_med == float("inf") and graph_med != float("inf"):
                             sql_med = graph_med * 3.0
                             sql_std = 0.0
+                            fallback_applied = True
+                            fallback_reason = "sql_failed_or_penalized"
+                            bump("fallback_sql_failed_or_penalized")
                         elif graph_med == float("inf") and sql_med != float("inf"):
                             graph_med = sql_med * 3.0
                             graph_std = 0.0
+                            fallback_applied = True
+                            fallback_reason = "graph_failed"
+                            bump("fallback_graph_failed")
 
                         if sql_med == float("inf") and graph_med == float("inf"):
                             logger.info("  Skipping sub %s: both engines failed", sid)
+                            bump("both_engines_failed")
+                            continue
+
+                        if strict_real_only and (fallback_applied or semantic_penalty):
+                            bump("strict_real_only_excluded")
                             continue
 
                         label   = "GRAPH" if graph_med < sql_med else "SQL"
@@ -313,7 +365,18 @@ def collect_labels(
                             "graph_std_ms":    round(graph_std, 2),
                             "speedup":         round(speedup, 3),
                             "label":           label,
-                            "label_source":    "real_measurement",
+                            "label_source":    (
+                                "real_measurement"
+                                if not fallback_applied and not semantic_penalty
+                                else "real_measurement_with_fallback"
+                            ),
+                            "sql_status":      str(sql_meta.get("status", "unknown")),
+                            "graph_status":    str(graph_meta.get("status", "unknown")),
+                            "sql_failures":    int(sql_meta.get("failures", 0)),
+                            "graph_failures":  int(graph_meta.get("failures", 0)),
+                            "fallback_applied": int(fallback_applied),
+                            "fallback_reason": fallback_reason,
+                            "semantic_penalty": int(semantic_penalty),
                         }
                         rows.append(row)
 
@@ -327,6 +390,21 @@ def collect_labels(
         "\n✓  Saved %d labeled rows → %s\n   SQL=%d  GRAPH=%d",
         len(df), output_csv, n_sql, n_graph,
     )
+
+    if failure_report_path:
+        os.makedirs(os.path.dirname(failure_report_path), exist_ok=True)
+        report = {
+            "rows": int(len(df)),
+            "label_distribution": {
+                "SQL": int(n_sql),
+                "GRAPH": int(n_graph),
+            },
+            "failure_taxonomy": failure_taxonomy,
+        }
+        with open(failure_report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+        logger.info("Saved failure taxonomy report → %s", failure_report_path)
+
     return df
 
 
@@ -346,6 +424,12 @@ def _parse_args() -> argparse.Namespace:
                    help="Repeat each sub-expression N times to increase sample count")
     p.add_argument("--include_synthetic", action="store_true",
                    help="Include synthetic query files (disabled by default)")
+    p.add_argument("--strict_real_only", action="store_true",
+                   help="Exclude rows that require fallback penalties")
+    p.add_argument("--no_penalize_sql_traversal_approx", action="store_true",
+                   help="Disable semantic penalty for TRAVERSAL routed to SQL")
+    p.add_argument("--failure_report", default="training_data/real_collection_failures.json",
+                   help="Path to JSON failure taxonomy report")
     p.add_argument("--master",      default=None,
                    help="Spark master URL override (e.g. spark://host:7077)")
     return p.parse_args()
@@ -372,6 +456,9 @@ if __name__ == "__main__":
             n_measure=args.n_measure,
             repeat=max(1, args.repeat),
             include_synthetic=args.include_synthetic,
+            strict_real_only=args.strict_real_only,
+            penalize_sql_traversal_approx=not args.no_penalize_sql_traversal_approx,
+            failure_report_path=args.failure_report,
         )
     finally:
         spark.stop()

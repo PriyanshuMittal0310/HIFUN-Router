@@ -22,7 +22,15 @@ from dataclasses import asdict, dataclass
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    brier_score_loss,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from sklearn.tree import DecisionTreeClassifier
 import xgboost as xgb
 
@@ -48,6 +56,8 @@ class EvalMetrics:
     fp: int
     fn: int
     tp: int
+    pr_auc: float | None = None
+    brier: float | None = None
 
 
 def _default_train_path() -> str:
@@ -82,8 +92,19 @@ def _load_xy(path: str, feature_names: list[str]) -> tuple[np.ndarray, np.ndarra
     return X, y, df
 
 
-def _metrics(name: str, y_true: np.ndarray, y_pred: np.ndarray) -> EvalMetrics:
+def _metrics(
+    name: str,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_score: np.ndarray | None = None,
+) -> EvalMetrics:
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    pr_auc = None
+    brier = None
+    if y_score is not None:
+        pr_auc = float(average_precision_score(y_true, y_score))
+        brier = float(brier_score_loss(y_true, y_score))
+
     return EvalMetrics(
         model=name,
         accuracy=float(accuracy_score(y_true, y_pred)),
@@ -94,7 +115,53 @@ def _metrics(name: str, y_true: np.ndarray, y_pred: np.ndarray) -> EvalMetrics:
         fp=int(fp),
         fn=int(fn),
         tp=int(tp),
+        pr_auc=pr_auc,
+        brier=brier,
     )
+
+
+def _per_dataset_confusion(eval_df: pd.DataFrame, y_pred: np.ndarray) -> dict:
+    out: dict = {}
+    for dataset, g in eval_df.groupby("dataset", sort=True):
+        y_true_ds = (g["label"] == "GRAPH").astype(int).values
+        y_pred_ds = y_pred[g.index.values]
+        tn, fp, fn, tp = confusion_matrix(y_true_ds, y_pred_ds, labels=[0, 1]).ravel()
+        out[str(dataset)] = {
+            "rows": int(len(g)),
+            "tn": int(tn),
+            "fp": int(fp),
+            "fn": int(fn),
+            "tp": int(tp),
+        }
+    return out
+
+
+def _confidence_thresholds(y_true: np.ndarray, y_score: np.ndarray) -> list[dict]:
+    rows = []
+    conf = np.maximum(y_score, 1.0 - y_score)
+    for t in [0.5, 0.6, 0.7, 0.8, 0.9]:
+        mask = conf >= t
+        covered = int(mask.sum())
+        coverage = float(covered / max(len(y_true), 1))
+        if covered == 0:
+            rows.append({
+                "threshold": t,
+                "coverage": coverage,
+                "f1": 0.0,
+                "precision": 0.0,
+                "recall": 0.0,
+            })
+            continue
+        yt = y_true[mask]
+        yp = (y_score[mask] >= 0.5).astype(int)
+        rows.append({
+            "threshold": t,
+            "coverage": coverage,
+            "f1": float(f1_score(yt, yp, zero_division=0)),
+            "precision": float(precision_score(yt, yp, zero_division=0)),
+            "recall": float(recall_score(yt, yp, zero_division=0)),
+        })
+    return rows
 
 
 def _render_markdown(summary: dict) -> str:
@@ -110,12 +177,34 @@ def _render_markdown(summary: dict) -> str:
     lines.append("")
     lines.append("## Model Comparison")
     lines.append("")
-    lines.append("| Model | Accuracy | F1 | Precision | Recall | TN | FP | FN | TP |")
-    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+    lines.append("| Model | Accuracy | F1 | Precision | Recall | PR-AUC | Brier | TN | FP | FN | TP |")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for m in summary["metrics"]:
+        pr_auc = "-" if m.get("pr_auc") is None else f"{m['pr_auc']:.4f}"
+        brier = "-" if m.get("brier") is None else f"{m['brier']:.4f}"
         lines.append(
-            f"| {m['model']} | {m['accuracy']:.4f} | {m['f1']:.4f} | {m['precision']:.4f} | {m['recall']:.4f} | {m['tn']} | {m['fp']} | {m['fn']} | {m['tp']} |"
+            f"| {m['model']} | {m['accuracy']:.4f} | {m['f1']:.4f} | {m['precision']:.4f} | {m['recall']:.4f} | {pr_auc} | {brier} | {m['tn']} | {m['fp']} | {m['fn']} | {m['tp']} |"
         )
+
+    if summary.get("xgboost_confidence_thresholds"):
+        lines.append("")
+        lines.append("## XGBoost Confidence Thresholds")
+        lines.append("")
+        lines.append("| Threshold | Coverage | F1 | Precision | Recall |")
+        lines.append("|---:|---:|---:|---:|---:|")
+        for r in summary["xgboost_confidence_thresholds"]:
+            lines.append(
+                f"| {r['threshold']:.1f} | {r['coverage']:.4f} | {r['f1']:.4f} | {r['precision']:.4f} | {r['recall']:.4f} |"
+            )
+
+    if summary.get("xgboost_per_dataset_confusion"):
+        lines.append("")
+        lines.append("## XGBoost Per-Dataset Confusion")
+        lines.append("")
+        lines.append("| Dataset | Rows | TN | FP | FN | TP |")
+        lines.append("|---|---:|---:|---:|---:|---:|")
+        for ds, c in summary["xgboost_per_dataset_confusion"].items():
+            lines.append(f"| {ds} | {c['rows']} | {c['tn']} | {c['fp']} | {c['fn']} | {c['tp']} |")
     lines.append("")
     lines.append("## Notes")
     lines.append("")
@@ -150,33 +239,35 @@ def main() -> None:
 
     # Baseline floors
     y_pred = np.zeros_like(y_eval)
-    metrics.append(asdict(_metrics("AlwaysSQL", y_eval, y_pred)))
+    metrics.append(asdict(_metrics("AlwaysSQL", y_eval, y_pred, y_score=np.zeros_like(y_eval, dtype=float))))
 
     y_pred = np.ones_like(y_eval)
-    metrics.append(asdict(_metrics("AlwaysGRAPH", y_eval, y_pred)))
+    metrics.append(asdict(_metrics("AlwaysGRAPH", y_eval, y_pred, y_score=np.ones_like(y_eval, dtype=float))))
 
     # Trivial traversal baseline
     has_traversal_idx = feature_names.index("has_traversal") if "has_traversal" in feature_names else None
     if has_traversal_idx is not None:
         y_pred = (X_eval[:, has_traversal_idx] >= 0.5).astype(int)
-        metrics.append(asdict(_metrics("TraversalRule", y_eval, y_pred)))
+        metrics.append(asdict(_metrics("TraversalRule", y_eval, y_pred, y_score=y_pred.astype(float))))
 
     # Threshold baseline tuned on train set
     threshold = ThresholdBaseline.tune_thresholds(train_path, feature_names)
     y_pred = np.array([1 if threshold.route(row, feature_names) == "GRAPH" else 0 for row in X_eval])
-    metrics.append(asdict(_metrics("ThresholdBaseline", y_eval, y_pred)))
+    metrics.append(asdict(_metrics("ThresholdBaseline", y_eval, y_pred, y_score=y_pred.astype(float))))
 
     # Logistic regression baseline
     lr = LogisticRegression(max_iter=2000, class_weight="balanced", random_state=42)
     lr.fit(X_train, y_train)
-    y_pred = lr.predict(X_eval)
-    metrics.append(asdict(_metrics("LogRegBalanced", y_eval, y_pred)))
+    y_score = lr.predict_proba(X_eval)[:, 1]
+    y_pred = (y_score >= 0.5).astype(int)
+    metrics.append(asdict(_metrics("LogRegBalanced", y_eval, y_pred, y_score=y_score)))
 
     # Decision tree
     dt = DecisionTreeClassifier(max_depth=6, min_samples_leaf=10, class_weight="balanced", random_state=42)
     dt.fit(X_train, y_train)
-    y_pred = dt.predict(X_eval)
-    metrics.append(asdict(_metrics("DecisionTreeBalanced", y_eval, y_pred)))
+    y_score = dt.predict_proba(X_eval)[:, 1]
+    y_pred = (y_score >= 0.5).astype(int)
+    metrics.append(asdict(_metrics("DecisionTreeBalanced", y_eval, y_pred, y_score=y_score)))
 
     # XGBoost full features
     sql_count = int((y_train == 0).sum())
@@ -193,8 +284,9 @@ def main() -> None:
         scale_pos_weight=spw,
     )
     xgb_full.fit(X_train, y_train)
-    y_pred = xgb_full.predict(X_eval)
-    metrics.append(asdict(_metrics("XGBoostBalanced", y_eval, y_pred)))
+    y_score_xgb = xgb_full.predict_proba(X_eval)[:, 1]
+    y_pred = (y_score_xgb >= 0.5).astype(int)
+    metrics.append(asdict(_metrics("XGBoostBalanced", y_eval, y_pred, y_score=y_score_xgb)))
 
     # XGBoost no-history ablation
     xgb_no_hist = xgb.XGBClassifier(
@@ -208,8 +300,9 @@ def main() -> None:
         scale_pos_weight=spw,
     )
     xgb_no_hist.fit(X_train_no_hist, y_train)
-    y_pred = xgb_no_hist.predict(X_eval_no_hist)
-    metrics.append(asdict(_metrics("XGBoostNoHistory", y_eval, y_pred)))
+    y_score_no_hist = xgb_no_hist.predict_proba(X_eval_no_hist)[:, 1]
+    y_pred = (y_score_no_hist >= 0.5).astype(int)
+    metrics.append(asdict(_metrics("XGBoostNoHistory", y_eval, y_pred, y_score=y_score_no_hist)))
 
     summary = {
         "train_path": train_path,
@@ -227,6 +320,8 @@ def main() -> None:
         "feature_count": len(feature_names),
         "feature_count_no_history": len(feature_no_hist),
         "metrics": metrics,
+        "xgboost_confidence_thresholds": _confidence_thresholds(y_eval, y_score_xgb),
+        "xgboost_per_dataset_confusion": _per_dataset_confusion(eval_df, (y_score_xgb >= 0.5).astype(int)),
     }
 
     with open(args.out_json, "w", encoding="utf-8") as f:

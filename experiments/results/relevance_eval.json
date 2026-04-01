@@ -23,7 +23,9 @@
       "tn": 147,
       "fp": 0,
       "fn": 1,
-      "tp": 0
+      "tp": 0,
+      "pr_auc": 0.006756756756756757,
+      "brier": 0.006756756756756757
     },
     {
       "model": "AlwaysGRAPH",
@@ -34,7 +36,9 @@
       "tn": 0,
       "fp": 147,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.006756756756756757,
+      "brier": 0.9932432432432432
     },
     {
       "model": "TraversalRule",
@@ -45,7 +49,9 @@
       "tn": 91,
       "fp": 56,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.017543859649122806,
+      "brier": 0.3783783783783784
     },
     {
       "model": "ThresholdBaseline",
@@ -56,7 +62,9 @@
       "tn": 109,
       "fp": 38,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.02564102564102564,
+      "brier": 0.25675675675675674
     },
     {
       "model": "LogRegBalanced",
@@ -67,7 +75,9 @@
       "tn": 120,
       "fp": 27,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.03571428571428571,
+      "brier": 0.12488854247118797
     },
     {
       "model": "DecisionTreeBalanced",
@@ -78,7 +88,9 @@
       "tn": 120,
       "fp": 27,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.041666666666666664,
+      "brier": 0.12315249766870186
     },
     {
       "model": "XGBoostBalanced",
@@ -89,7 +101,9 @@
       "tn": 120,
       "fp": 27,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.041666666666666664,
+      "brier": 0.12302054919941888
     },
     {
       "model": "XGBoostNoHistory",
@@ -100,7 +114,83 @@
       "tn": 120,
       "fp": 27,
       "fn": 0,
-      "tp": 1
+      "tp": 1,
+      "pr_auc": 0.041666666666666664,
+      "brier": 0.12301345376501045
     }
-  ]
+  ],
+  "xgboost_confidence_thresholds": [
+    {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 1.0,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 1.0,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 1.0,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.8108108108108109,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    }
+  ],
+  "xgboost_per_dataset_confusion": {
+    "job_real_queries": {
+      "rows": 2,
+      "tn": 2,
+      "fp": 0,
+      "fn": 0,
+      "tp": 0
+    },
+    "ogb_real_queries": {
+      "rows": 38,
+      "tn": 38,
+      "fp": 0,
+      "fn": 0,
+      "tp": 0
+    },
+    "snb_bi_real_queries": {
+      "rows": 21,
+      "tn": 21,
+      "fp": 0,
+      "fn": 0,
+      "tp": 0
+    },
+    "snb_real_queries": {
+      "rows": 82,
+      "tn": 54,
+      "fp": 27,
+      "fn": 0,
+      "tp": 1
+    },
+    "tpcds_real_queries": {
+      "rows": 5,
+      "tn": 5,
+      "fp": 0,
+      "fn": 0,
+      "tp": 0
+    }
+  }
 }

@@ -183,10 +183,21 @@ python3 data/scripts/compute_stats.py
 ```bash
 python3 training_data/real_query_generator.py --scale aggressive
 
+# Optional: targeted workload mining for class diversity
+python3 training_data/real_query_generator.py --scale balanced --focus-mode graph_win
+python3 training_data/real_query_generator.py --scale balanced --focus-mode sql_win
+
 python3 training_data/real_collection_script.py \
 	--queries_dir dsl/sample_queries \
 	--output training_data/real_labeled_runs.csv \
 	--n_warmup 2 --n_measure 3 --repeat 3
+
+# Quality controls for strict real-only labels and failure taxonomy
+python3 training_data/real_collection_script.py \
+	--queries_dir dsl/sample_queries \
+	--output training_data/real_labeled_runs_strict.csv \
+	--strict_real_only \
+	--failure_report training_data/real_collection_failures.json
 
 # Create deterministic train/eval artifacts (leakage-safe balancing)
 python3 training_data/fix_dataset_splits.py \
@@ -238,6 +249,9 @@ This report includes:
 - Decision Tree (class-balanced)
 - XGBoost (class-balanced)
 - `XGBoostNoHistory` ablation to detect leakage from historical runtime features
+- PR-AUC and Brier calibration metrics for probabilistic models
+- confidence-threshold sweep (coverage vs. quality)
+- per-dataset confusion matrices for XGBoost
 
 ### Phase 7: Dataset-Shift Generalization (new)
 
@@ -247,6 +261,12 @@ Measure cross-dataset transfer quality (train on one dataset family, evaluate on
 python3 experiments/dataset_shift_evaluation.py \
 	--source training_data/real_labeled_runs.csv
 ```
+
+Modes included in the report:
+
+- `one_to_one`: train on one dataset family, evaluate on another
+- `leave_one_out`: train on all datasets except one held-out dataset
+- `grouped_domains`: train/evaluate across graph/mixed/sql domain groups
 
 Outputs:
 

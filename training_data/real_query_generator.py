@@ -7,7 +7,7 @@ This generator emits high-cardinality variants across real datasets:
 - TPC-DS (analytic SQL templates)
 
 Usage:
-  python training_data/real_query_generator.py --scale aggressive
+    python training_data/real_query_generator.py --scale aggressive --focus-mode all
 """
 
 import argparse
@@ -66,7 +66,7 @@ def _mk_agg(op_id: str, source: str, group_by: List[str], funcs: List[Dict[str, 
     }
 
 
-def generate_snb_queries(graph_source: str, intensity: str) -> List[dict]:
+def generate_snb_queries(graph_source: str, intensity: str, focus_mode: str) -> List[dict]:
     start_ids = [1, 10, 100, 1000, 10000]
     hops = [1, 2, 3, 4] if intensity != "balanced" else [1, 2, 3]
     directions = ["OUT", "BOTH"]
@@ -74,6 +74,15 @@ def generate_snb_queries(graph_source: str, intensity: str) -> List[dict]:
 
     if intensity == "aggressive":
         start_ids.extend([20000, 30000, 40000, 50000])
+
+    if focus_mode == "graph_win":
+        # Deep traversal-heavy patterns with minimal relational joins.
+        hops = [2, 3, 4, 5]
+        directions = ["OUT", "BOTH"]
+        join_types = []
+    elif focus_mode == "sql_win":
+        # Keep traversal shallow and emphasize mixed relational follow-ups.
+        hops = [1, 2]
 
     queries: List[dict] = []
     qn = 0
@@ -157,6 +166,32 @@ def generate_snb_queries(graph_source: str, intensity: str) -> List[dict]:
                         ],
                     })
 
+    # Add extra traversal-only stress queries in graph focus mode.
+    if focus_mode == "graph_win":
+        for sid in start_ids:
+            for h in [4, 5, 6]:
+                qn += 1
+                queries.append({
+                    "query_id": f"q_snb_real_{qn:04d}",
+                    "description": f"SNB graph-focus deep traversal sid={sid}, hops={h}",
+                    "operations": [
+                        {
+                            "op_id": "s1",
+                            "type": "TRAVERSAL",
+                            "source": graph_source,
+                            "fields": ["id"],
+                            "traversal": {
+                                "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                                "edge_label": "KNOWS",
+                                "direction": "BOTH",
+                                "max_hops": h,
+                                "return_fields": ["id"],
+                            },
+                            "depends_on": [],
+                        }
+                    ],
+                })
+
     return queries
 
 
@@ -233,13 +268,19 @@ def generate_snb_bi_queries(intensity: str) -> List[dict]:
     return queries
 
 
-def generate_ogb_queries(graph_source: str, intensity: str) -> List[dict]:
+def generate_ogb_queries(graph_source: str, intensity: str, focus_mode: str) -> List[dict]:
     seeds = [0, 1, 2, 10, 100, 1000, 10000]
     hops = [1, 2, 3, 4] if intensity != "balanced" else [1, 2, 3]
     directions = ["OUT", "BOTH"]
 
     if intensity == "aggressive":
         seeds.extend([20000, 50000, 90000, 120000])
+
+    if focus_mode == "graph_win":
+        hops = [3, 4, 5]
+        directions = ["OUT", "BOTH"]
+    elif focus_mode == "sql_win":
+        hops = [1, 2]
 
     queries: List[dict] = []
     qn = 0
@@ -275,10 +316,35 @@ def generate_ogb_queries(graph_source: str, intensity: str) -> List[dict]:
                         ),
                     ],
                 })
+    if focus_mode == "graph_win":
+        for sid in seeds[: min(12, len(seeds))]:
+            for h in [5, 6]:
+                qn += 1
+                queries.append({
+                    "query_id": f"q_ogb_real_{qn:04d}",
+                    "description": f"OGB graph-focus deep traversal sid={sid}, hops={h}",
+                    "operations": [
+                        {
+                            "op_id": "g1",
+                            "type": "TRAVERSAL",
+                            "source": graph_source,
+                            "fields": ["id"],
+                            "traversal": {
+                                "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                                "edge_label": "KNOWS",
+                                "direction": "BOTH",
+                                "max_hops": h,
+                                "return_fields": ["id"],
+                            },
+                            "depends_on": [],
+                        }
+                    ],
+                })
+
     return queries
 
 
-def generate_job_queries(intensity: str) -> List[dict]:
+def generate_job_queries(intensity: str, focus_mode: str) -> List[dict]:
     # JOB CSV exports are converted to generic c0..cN columns.
     selectivities = [1000, 5000, 10000, 20000, 50000]
 
@@ -286,6 +352,9 @@ def generate_job_queries(intensity: str) -> List[dict]:
         selectivities.extend([75000, 100000, 150000, 200000])
 
     templates = []
+    if focus_mode == "graph_win":
+        # Keep SQL-heavy packs smaller in graph focus mode.
+        selectivities = selectivities[:3]
     for year in selectivities:
         templates.append({
             "query_id": f"q_job_real_y{year}_base",
@@ -308,12 +377,15 @@ def generate_job_queries(intensity: str) -> List[dict]:
     return templates
 
 
-def generate_tpcds_queries(intensity: str) -> List[dict]:
+def generate_tpcds_queries(intensity: str, focus_mode: str) -> List[dict]:
     # Uses generic c0..cN names from data/scripts/tpcds_to_parquet.py conversion.
     filters = [1, 5, 10, 25, 50]
 
     if intensity == "aggressive":
         filters.extend([75, 100, 250])
+
+    if focus_mode == "graph_win":
+        filters = filters[:3]
 
     queries: List[dict] = []
     for f in filters:
@@ -337,15 +409,17 @@ def generate_tpcds_queries(intensity: str) -> List[dict]:
     return queries
 
 
-def generate_all(scale: str, ogb_graph_source: str) -> Dict[str, int]:
+def generate_all(scale: str, ogb_graph_source: str, focus_mode: str) -> Dict[str, int]:
     if scale not in {"balanced", "aggressive"}:
         raise ValueError("scale must be one of: balanced, aggressive")
+    if focus_mode not in {"all", "graph_win", "sql_win"}:
+        raise ValueError("focus_mode must be one of: all, graph_win, sql_win")
 
-    snb = generate_snb_queries("snb", intensity=scale)
+    snb = generate_snb_queries("snb", intensity=scale, focus_mode=focus_mode)
     snb_bi = generate_snb_bi_queries(intensity=scale)
-    ogb = generate_ogb_queries(ogb_graph_source, intensity=scale)
-    job = generate_job_queries(intensity=scale)
-    tpcds = generate_tpcds_queries(intensity=scale)
+    ogb = generate_ogb_queries(ogb_graph_source, intensity=scale, focus_mode=focus_mode)
+    job = generate_job_queries(intensity=scale, focus_mode=focus_mode)
+    tpcds = generate_tpcds_queries(intensity=scale, focus_mode=focus_mode)
 
     _write("snb_real_queries.json", snb)
     _write("snb_bi_real_queries.json", snb_bi)
@@ -370,9 +444,19 @@ def main() -> None:
         default="ogbn_arxiv",
         help="Graph source name used in OGB traversal queries",
     )
+    parser.add_argument(
+        "--focus-mode",
+        default="all",
+        choices=["all", "graph_win", "sql_win"],
+        help="Bias generated workload families toward graph-win or sql-win patterns",
+    )
     args = parser.parse_args()
 
-    counts = generate_all(scale=args.scale, ogb_graph_source=args.ogb_graph_source)
+    counts = generate_all(
+        scale=args.scale,
+        ogb_graph_source=args.ogb_graph_source,
+        focus_mode=args.focus_mode,
+    )
     total = sum(counts.values())
     print("Generated query packs:")
     for name, n in counts.items():
