@@ -187,19 +187,82 @@ python3 training_data/real_collection_script.py \
 	--queries_dir dsl/sample_queries \
 	--output training_data/real_labeled_runs.csv \
 	--n_warmup 2 --n_measure 3 --repeat 3
+
+# Create deterministic train/eval artifacts (leakage-safe balancing)
+python3 training_data/fix_dataset_splits.py \
+  --source training_data/real_labeled_runs.csv
 ```
 
 ### Phase 4: Retrain model
 
 ```bash
-python3 model/trainer.py --labeled_data_path training_data/real_labeled_runs_balanced.csv
+python3 model/trainer.py
 ```
+
+Trainer defaults now prefer fixed split artifacts:
+
+1. `training_data/fixed_train_balanced.csv`
+2. `training_data/fixed_train_base.csv`
+3. `training_data/real_labeled_runs_balanced.csv`
+4. `training_data/real_labeled_runs.csv`
+5. `training_data/labeled_runs.csv`
 
 ### Phase 5: Verification
 
 ```bash
 python3 -m pytest -q
 ```
+
+### Phase 6: Relevance and Robustness Evaluation (new)
+
+Use this step to benchmark learned routing against stronger baselines and a no-history ablation.
+
+```bash
+python3 experiments/relevance_evaluation.py
+```
+
+By default this uses:
+
+- Train: `training_data/fixed_train_balanced.csv`
+- Eval: `training_data/fixed_eval_set.csv`
+
+Outputs:
+
+- `experiments/results/relevance_eval.json`
+- `experiments/results/relevance_eval.md`
+
+This report includes:
+
+- `AlwaysSQL`, `AlwaysGRAPH`, traversal rule, threshold baseline
+- Logistic Regression (class-balanced)
+- Decision Tree (class-balanced)
+- XGBoost (class-balanced)
+- `XGBoostNoHistory` ablation to detect leakage from historical runtime features
+
+### Phase 7: Dataset-Shift Generalization (new)
+
+Measure cross-dataset transfer quality (train on one dataset family, evaluate on another).
+
+```bash
+python3 experiments/dataset_shift_evaluation.py \
+	--source training_data/real_labeled_runs.csv
+```
+
+Outputs:
+
+- `experiments/results/dataset_shift_eval.json`
+- `experiments/results/dataset_shift_eval.md`
+
+### Training Improvements (new)
+
+- Trainer now prefers real datasets by default in this order:
+	1. `training_data/real_labeled_runs_balanced.csv`
+	2. `training_data/real_labeled_runs.csv`
+	3. `training_data/labeled_runs.csv`
+- Trainer now applies imbalance-aware learning by default:
+	- Decision Tree uses `class_weight=balanced`
+	- XGBoost uses `scale_pos_weight`
+- Trainer now reports a stratified holdout evaluation split in addition to CV metrics.
 
 ## Notes on Git and Large Files
 

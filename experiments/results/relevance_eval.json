@@ -1,0 +1,106 @@
+{
+  "train_path": "/home/mitta/HIFUN-Router-clone/training_data/fixed_train_balanced.csv",
+  "eval_path": "/home/mitta/HIFUN-Router-clone/training_data/fixed_eval_set.csv",
+  "train_rows": 1174,
+  "eval_rows": 148,
+  "train_label_distribution": {
+    "SQL": 587,
+    "GRAPH": 587
+  },
+  "eval_label_distribution": {
+    "SQL": 147,
+    "GRAPH": 1
+  },
+  "feature_count": 22,
+  "feature_count_no_history": 20,
+  "metrics": [
+    {
+      "model": "AlwaysSQL",
+      "accuracy": 0.9932432432432432,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tn": 147,
+      "fp": 0,
+      "fn": 1,
+      "tp": 0
+    },
+    {
+      "model": "AlwaysGRAPH",
+      "accuracy": 0.006756756756756757,
+      "f1": 0.013422818791946308,
+      "precision": 0.006756756756756757,
+      "recall": 1.0,
+      "tn": 0,
+      "fp": 147,
+      "fn": 0,
+      "tp": 1
+    },
+    {
+      "model": "TraversalRule",
+      "accuracy": 0.6216216216216216,
+      "f1": 0.034482758620689655,
+      "precision": 0.017543859649122806,
+      "recall": 1.0,
+      "tn": 91,
+      "fp": 56,
+      "fn": 0,
+      "tp": 1
+    },
+    {
+      "model": "ThresholdBaseline",
+      "accuracy": 0.7432432432432432,
+      "f1": 0.05,
+      "precision": 0.02564102564102564,
+      "recall": 1.0,
+      "tn": 109,
+      "fp": 38,
+      "fn": 0,
+      "tp": 1
+    },
+    {
+      "model": "LogRegBalanced",
+      "accuracy": 0.8175675675675675,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0,
+      "tn": 120,
+      "fp": 27,
+      "fn": 0,
+      "tp": 1
+    },
+    {
+      "model": "DecisionTreeBalanced",
+      "accuracy": 0.8175675675675675,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0,
+      "tn": 120,
+      "fp": 27,
+      "fn": 0,
+      "tp": 1
+    },
+    {
+      "model": "XGBoostBalanced",
+      "accuracy": 0.8175675675675675,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0,
+      "tn": 120,
+      "fp": 27,
+      "fn": 0,
+      "tp": 1
+    },
+    {
+      "model": "XGBoostNoHistory",
+      "accuracy": 0.8175675675675675,
+      "f1": 0.06896551724137931,
+      "precision": 0.03571428571428571,
+      "recall": 1.0,
+      "tn": 120,
+      "fp": 27,
+      "fn": 0,
+      "tp": 1
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "source": "training_data/real_labeled_runs.csv",
+  "seed": 42,
+  "eval_fraction": 0.2,
+  "min_eval_per_class": 1,
+  "rows": {
+    "source_deduped": 738,
+    "train_base": 590,
+    "eval": 148,
+    "train_balanced": 1174
+  },
+  "labels": {
+    "source_deduped": {
+      "SQL": 734,
+      "GRAPH": 4
+    },
+    "train_base": {
+      "SQL": 587,
+      "GRAPH": 3
+    },
+    "eval": {
+      "SQL": 147,
+      "GRAPH": 1
+    },
+    "train_balanced": {
+      "SQL": 587,
+      "GRAPH": 587
+    }
+  },
+  "outputs": {
+    "train_base": "/home/mitta/HIFUN-Router-clone/training_data/fixed_train_base.csv",
+    "eval": "/home/mitta/HIFUN-Router-clone/training_data/fixed_eval_set.csv",
+    "train_balanced": "/home/mitta/HIFUN-Router-clone/training_data/fixed_train_balanced.csv"
+  }
+}
