@@ -4,7 +4,7 @@ Hybrid query router for selecting SQL vs GRAPH execution paths from DSL sub-expr
 
 This repository now supports a real-data-first training workflow with scalable query generation and measured runtime labels.
 
-## Current Status (Phase 2)
+## Current Status (April 2026)
 
 - Real dataset ingestion scripts added for:
 	- LDBC SNB (interactive raw data, parquet conversion, graph extraction)
@@ -19,6 +19,31 @@ This repository now supports a real-data-first training workflow with scalable q
 	- TPC-DS analytical SQL templates
 - Real label collection supports repeat runs and source availability checks.
 - Large generated files are excluded from git (raw/parquet/graph outputs and runtime artifacts).
+
+### Progress Summary
+
+- Phase 1 complete: real data pipeline available for SNB, OGB, JOB, and TPC-DS.
+- Phase 2 complete: statistics generation generalized for all discovered parquet/graph datasets.
+- Phase 3 complete: real labeled runtime dataset generated from all configured real query packs.
+- Class balancing utility applied and a balanced training CSV generated.
+- Repository pushed with code/query/stat updates required for the above workflow.
+
+### Latest Dataset Snapshot
+
+- Primary measured labels:
+	- `training_data/real_labeled_runs.csv`
+	- Current composition: 738 rows
+	- Datasets: `snb_real_queries` (432), `ogb_real_queries` (176), `snb_bi_real_queries` (96), `job_real_queries` (18), `tpcds_real_queries` (16)
+	- Labels: `SQL` 734, `GRAPH` 4
+
+- Balanced training labels (recommended for model fitting):
+	- `training_data/real_labeled_runs_balanced.csv`
+	- Current composition: 1468 rows
+	- Labels: `SQL` 734, `GRAPH` 734
+	- Includes `resampled` column (`0` original row, `1` upsampled row)
+
+- Balanced dataset summary:
+	- `training_data/real_labeled_runs_balanced_summary.txt`
 
 ## Repository Structure
 
@@ -84,6 +109,16 @@ This repository now supports a real-data-first training workflow with scalable q
 
 ```bash
 python3 -m pip install --user --break-system-packages -r requirements.txt
+```
+
+If `python3 -m venv` is unavailable, use:
+
+```bash
+python3 -m pip install --user --break-system-packages virtualenv
+~/.local/bin/virtualenv .venv
+. .venv/bin/activate
+pip install --upgrade pip wheel setuptools
+pip install -r requirements.txt
 ```
 
 If Java is unavailable system-wide, a user-space Java can be installed with:
@@ -157,7 +192,7 @@ python3 training_data/real_collection_script.py \
 ### Phase 4: Retrain model
 
 ```bash
-python3 model/trainer.py --labeled_data_path training_data/real_labeled_runs.csv
+python3 model/trainer.py --labeled_data_path training_data/real_labeled_runs_balanced.csv
 ```
 
 ### Phase 5: Verification
