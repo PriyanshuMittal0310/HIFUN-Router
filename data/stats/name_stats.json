@@ -1,0 +1,12 @@
+{
+  "table_name": "name",
+  "row_count": 4167491,
+  "column_count": 9,
+  "columns": {
+    "c0": {
+      "distinct_count": 4167491,
+      "min": 1,
+      "max": 4167491
+    }
+  }
+}

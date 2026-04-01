@@ -1,0 +1,12 @@
+{
+  "table_name": "link_type",
+  "row_count": 18,
+  "column_count": 2,
+  "columns": {
+    "c0": {
+      "distinct_count": 18,
+      "min": 1,
+      "max": 18
+    }
+  }
+}

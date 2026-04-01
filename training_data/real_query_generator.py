@@ -161,17 +161,18 @@ def generate_snb_queries(graph_source: str, intensity: str) -> List[dict]:
 
 
 def generate_snb_bi_queries(intensity: str) -> List[dict]:
-    countries = ["Germany", "India", "USA", "UK", "France"]
+    # Person table exposes LocationCityId in current SNB conversion.
+    city_ids = [1, 10, 50, 100, 500]
     min_lengths = [20, 50, 100, 200]
     join_types = ["INNER", "LEFT"] if intensity != "balanced" else ["INNER"]
 
     if intensity == "aggressive":
-        countries.extend(["Japan", "Brazil", "Canada"])
+        city_ids.extend([1000, 5000, 10000])
         min_lengths.extend([300, 400])
 
     queries: List[dict] = []
     qn = 0
-    for c in countries:
+    for city_id in city_ids:
         for l in min_lengths:
             for jt in join_types:
                 qn += 1
@@ -182,10 +183,10 @@ def generate_snb_bi_queries(intensity: str) -> List[dict]:
                         _mk_filter(
                             "b1",
                             "person",
-                            "country",
+                            "LocationCityId",
                             "=",
-                            c,
-                            ["id", "country"],
+                            city_id,
+                            ["id", "LocationCityId"],
                         ),
                         _mk_join(
                             "b2",
@@ -193,7 +194,7 @@ def generate_snb_bi_queries(intensity: str) -> List[dict]:
                             "works_at",
                             "id",
                             "person_id",
-                            ["id", "organisation_id", "country"],
+                                ["id", "organisation_id", "LocationCityId"],
                             join_type=jt,
                             deps=["b1"],
                         ),
@@ -278,36 +279,31 @@ def generate_ogb_queries(graph_source: str, intensity: str) -> List[dict]:
 
 
 def generate_job_queries(intensity: str) -> List[dict]:
-    selectivities = [1950, 1970, 1990, 2005, 2015]
-    join_types = ["INNER", "LEFT"] if intensity != "balanced" else ["INNER"]
+    # JOB CSV exports are converted to generic c0..cN columns.
+    selectivities = [1000, 5000, 10000, 20000, 50000]
 
     if intensity == "aggressive":
-        selectivities.extend([1920, 1930, 1940, 2020])
+        selectivities.extend([75000, 100000, 150000, 200000])
 
     templates = []
     for year in selectivities:
-        for jt in join_types:
-            templates.append({
-                "query_id": f"q_job_real_y{year}_{jt.lower()}",
-                "description": "JOB: title-cast-info join pipeline",
-                "operations": [
-                    _mk_filter("j1", "title", "production_year", ">=", year, ["id", "title", "production_year"]),
-                    _mk_join("j2", "j1", "cast_info", "id", "movie_id", ["id", "person_id", "role_id", "production_year"], join_type=jt, deps=["j1"]),
-                    _mk_join("j3", "j2", "movie_info", "id", "movie_id", ["id", "person_id", "info_type_id", "production_year"], join_type=jt, deps=["j2"]),
-                    _mk_agg("j4", "j3", ["info_type_id"], [{"func": "COUNT", "column": "person_id", "alias": "n_people"}], ["info_type_id", "n_people"], deps=["j3"]),
-                ],
-            })
+        templates.append({
+            "query_id": f"q_job_real_y{year}_base",
+            "description": "JOB: title table selectivity + aggregation",
+            "operations": [
+                _mk_filter("j1", "title", "c0", ">=", year, ["c0", "c1", "c2"]),
+                _mk_agg("j2", "j1", ["c1"], [{"func": "COUNT", "column": "c0", "alias": "n_rows"}], ["c1", "n_rows"], deps=["j1"]),
+            ],
+        })
 
-            templates.append({
-                "query_id": f"q_job_kw_y{year}_{jt.lower()}",
-                "description": "JOB: title-keyword fanout",
-                "operations": [
-                    _mk_filter("k1", "title", "production_year", ">=", year, ["id", "kind_id", "production_year"]),
-                    _mk_join("k2", "k1", "movie_keyword", "id", "movie_id", ["id", "keyword_id", "kind_id"], join_type=jt, deps=["k1"]),
-                    _mk_join("k3", "k2", "keyword", "keyword_id", "id", ["id", "keyword_id", "keyword"], join_type=jt, deps=["k2"]),
-                    _mk_agg("k4", "k3", ["keyword"], [{"func": "COUNT", "column": "id", "alias": "cnt"}], ["keyword", "cnt"], deps=["k3"]),
-                ],
-            })
+        templates.append({
+            "query_id": f"q_job_kw_y{year}_base",
+            "description": "JOB: keyword frequency aggregation",
+            "operations": [
+                _mk_filter("k1", "movie_keyword", "c0", ">=", year, ["c0", "c1", "c2"]),
+                _mk_agg("k2", "k1", ["c2"], [{"func": "COUNT", "column": "c0", "alias": "cnt"}], ["c2", "cnt"], deps=["k1"]),
+            ],
+        })
 
     return templates
 
@@ -315,24 +311,29 @@ def generate_job_queries(intensity: str) -> List[dict]:
 def generate_tpcds_queries(intensity: str) -> List[dict]:
     # Uses generic c0..cN names from data/scripts/tpcds_to_parquet.py conversion.
     filters = [1, 5, 10, 25, 50]
-    join_types = ["INNER", "LEFT"] if intensity != "balanced" else ["INNER"]
 
     if intensity == "aggressive":
         filters.extend([75, 100, 250])
 
     queries: List[dict] = []
     for f in filters:
-        for jt in join_types:
-            queries.append({
-                "query_id": f"q_tpcds_real_{f}_{jt.lower()}",
-                "description": "TPC-DS style sales-store-date aggregation",
-                "operations": [
-                    _mk_filter("t1", "store_sales", "c0", ">", f, ["c0", "c1", "c2", "c3"]),
-                    _mk_join("t2", "t1", "date_dim", "c0", "c0", ["c0", "c1", "c2", "c3"], join_type=jt, deps=["t1"]),
-                    _mk_join("t3", "t2", "store", "c1", "c0", ["c0", "c1", "c2", "c3"], join_type=jt, deps=["t2"]),
-                    _mk_agg("t4", "t3", ["c1"], [{"func": "SUM", "column": "c3", "alias": "revenue"}], ["c1", "revenue"], deps=["t3"]),
-                ],
-            })
+        queries.append({
+            "query_id": f"q_tpcds_real_{f}_base",
+            "description": "TPC-DS style store_sales aggregation",
+            "operations": [
+                _mk_filter("t1", "store_sales", "c0", ">", f, ["c0", "c1", "c2", "c3"]),
+                _mk_agg("t2", "t1", ["c1"], [{"func": "SUM", "column": "c3", "alias": "revenue"}], ["c1", "revenue"], deps=["t1"]),
+            ],
+        })
+
+        queries.append({
+            "query_id": f"q_tpcds_date_{f}_base",
+            "description": "TPC-DS date_dim bucketing",
+            "operations": [
+                _mk_filter("d1", "date_dim", "c0", ">", f, ["c0", "c1", "c2"]),
+                _mk_agg("d2", "d1", ["c1"], [{"func": "COUNT", "column": "c0", "alias": "n_days"}], ["c1", "n_days"], deps=["d1"]),
+            ],
+        })
     return queries
 
 

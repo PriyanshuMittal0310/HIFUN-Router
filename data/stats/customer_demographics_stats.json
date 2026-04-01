@@ -1,0 +1,32 @@
+{
+  "table_name": "customer_demographics",
+  "row_count": 1920800,
+  "column_count": 9,
+  "columns": {
+    "c0": {
+      "distinct_count": 1920800,
+      "min": 1,
+      "max": 1920800
+    },
+    "c4": {
+      "distinct_count": 20,
+      "min": 500,
+      "max": 10000
+    },
+    "c6": {
+      "distinct_count": 7,
+      "min": 0,
+      "max": 6
+    },
+    "c7": {
+      "distinct_count": 7,
+      "min": 0,
+      "max": 6
+    },
+    "c8": {
+      "distinct_count": 7,
+      "min": 0,
+      "max": 6
+    }
+  }
+}

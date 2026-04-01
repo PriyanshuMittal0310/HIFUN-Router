@@ -1,0 +1,27 @@
+{
+  "table_name": "movie_link",
+  "row_count": 29997,
+  "column_count": 4,
+  "columns": {
+    "c0": {
+      "distinct_count": 29997,
+      "min": 1,
+      "max": 29997
+    },
+    "c1": {
+      "distinct_count": 6411,
+      "min": 2,
+      "max": 186175
+    },
+    "c2": {
+      "distinct_count": 16169,
+      "min": 284,
+      "max": 2524994
+    },
+    "c3": {
+      "distinct_count": 16,
+      "min": 1,
+      "max": 17
+    }
+  }
+}

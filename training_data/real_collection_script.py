@@ -19,12 +19,17 @@ import argparse
 import json
 import logging
 import os
+import sys
 import traceback
 import time
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from config.spark_config import get_spark_session
 from config.paths         import STATS_DIR, PARQUET_DIR, GRAPHS_DIR, TPCH_PARQUET_DIR
@@ -50,6 +55,7 @@ DATASET_PARQUET_DIRS = {
     "snb_queries":       os.path.join(PARQUET_DIR, "snb"),
     "snb_real_queries":  os.path.join(PARQUET_DIR, "snb"),
     "snb_bi_real_queries": os.path.join(PARQUET_DIR, "snb"),
+    "ogb_real_queries":  os.path.join(GRAPHS_DIR, "ogbn_arxiv"),
     "job_real_queries":  os.path.join(PARQUET_DIR, "job"),
     "tpcds_real_queries": os.path.join(PARQUET_DIR, "tpcds"),
 }
@@ -212,6 +218,8 @@ def collect_labels(
                     logger.error("Parse/decompose failed for %s:\n%s", qid, traceback.format_exc())
                     continue
 
+                sub_map = {sub.sub_id: sub for sub in sub_exprs}
+
                 for sub in sub_exprs:
                     for rep in range(repeat):
                         sid = f"{sub.sub_id}_r{rep}"
@@ -224,9 +232,38 @@ def collect_labels(
 
                         has_traversal = bool(fv[FEATURE_NAMES.index("has_traversal")])
 
+                        def _prepare_sql_deps(target_sub, cache, prepared):
+                            for dep_sub_id in target_sub.depends_on_subs:
+                                if dep_sub_id in prepared:
+                                    continue
+                                dep_sub = sub_map.get(dep_sub_id)
+                                if dep_sub is None:
+                                    continue
+                                _prepare_sql_deps(dep_sub, cache, prepared)
+                                sql_gen.cache = cache
+                                dep_df = sql_gen.generate(dep_sub)
+                                if hasattr(dep_df, "count"):
+                                    dep_df.count()
+                                prepared.add(dep_sub_id)
+
+                        def _prepare_graph_deps(target_sub, cache, prepared):
+                            for dep_sub_id in target_sub.depends_on_subs:
+                                if dep_sub_id in prepared:
+                                    continue
+                                dep_sub = sub_map.get(dep_sub_id)
+                                if dep_sub is None:
+                                    continue
+                                _prepare_graph_deps(dep_sub, cache, prepared)
+                                graph_gen.cache = cache
+                                dep_df = graph_gen.generate(dep_sub)
+                                if hasattr(dep_df, "count"):
+                                    dep_df.count()
+                                prepared.add(dep_sub_id)
+
                         # ── SQL path ────────────────────────────────────────
                         shared = {}
                         def run_sql(s=sub, gen=sql_gen, cache=shared):
+                            _prepare_sql_deps(s, cache, set())
                             gen.cache = cache
                             return gen.generate(s)
 
@@ -236,6 +273,7 @@ def collect_labels(
                         if has_traversal:
                             shared2 = {}
                             def run_graph(s=sub, gen=graph_gen, cache=shared2):
+                                _prepare_graph_deps(s, cache, set())
                                 gen.cache = cache
                                 return gen.generate(s)
                             graph_med, graph_std = _measure(run_graph, n_warmup, n_measure)
@@ -243,6 +281,18 @@ def collect_labels(
                             # Pure relational: graph can't run — assign 3× SQL cost
                             graph_med = sql_med * 3.0 if sql_med != float("inf") else float("inf")
                             graph_std = 0.0
+
+                        # Stabilize labels when only one engine path is feasible.
+                        if sql_med == float("inf") and graph_med != float("inf"):
+                            sql_med = graph_med * 3.0
+                            sql_std = 0.0
+                        elif graph_med == float("inf") and sql_med != float("inf"):
+                            graph_med = sql_med * 3.0
+                            graph_std = 0.0
+
+                        if sql_med == float("inf") and graph_med == float("inf"):
+                            logger.info("  Skipping sub %s: both engines failed", sid)
+                            continue
 
                         label   = "GRAPH" if graph_med < sql_med else "SQL"
                         speedup = sql_med / max(graph_med, 1e-6)

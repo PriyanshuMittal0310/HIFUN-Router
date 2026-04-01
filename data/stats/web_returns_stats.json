@@ -1,0 +1,127 @@
+{
+  "table_name": "web_returns",
+  "row_count": 71763,
+  "column_count": 24,
+  "columns": {
+    "c0": {
+      "distinct_count": 2114,
+      "min": 2450842,
+      "max": 2452995
+    },
+    "c1": {
+      "distinct_count": 44797,
+      "min": 0,
+      "max": 86399
+    },
+    "c2": {
+      "distinct_count": 17029,
+      "min": 1,
+      "max": 18000
+    },
+    "c3": {
+      "distinct_count": 49451,
+      "min": 1,
+      "max": 100000
+    },
+    "c4": {
+      "distinct_count": 67183,
+      "min": 44,
+      "max": 1920789
+    },
+    "c5": {
+      "distinct_count": 7200,
+      "min": 1,
+      "max": 7200
+    },
+    "c6": {
+      "distinct_count": 37263,
+      "min": 2,
+      "max": 50000
+    },
+    "c7": {
+      "distinct_count": 49545,
+      "min": 1,
+      "max": 100000
+    },
+    "c8": {
+      "distinct_count": 67207,
+      "min": 44,
+      "max": 1920789
+    },
+    "c9": {
+      "distinct_count": 7201,
+      "min": 1,
+      "max": 7200
+    },
+    "c10": {
+      "distinct_count": 37238,
+      "min": 2,
+      "max": 50000
+    },
+    "c11": {
+      "distinct_count": 61,
+      "min": 1,
+      "max": 60
+    },
+    "c12": {
+      "distinct_count": 36,
+      "min": 1,
+      "max": 35
+    },
+    "c13": {
+      "distinct_count": 42249,
+      "min": 1,
+      "max": 59997
+    },
+    "c14": {
+      "distinct_count": 101,
+      "min": 1,
+      "max": 100
+    },
+    "c15": {
+      "distinct_count": 49199,
+      "min": 0.0,
+      "max": 25649.4
+    },
+    "c16": {
+      "distinct_count": 18342,
+      "min": 0.0,
+      "max": 2090.05
+    },
+    "c17": {
+      "distinct_count": 54754,
+      "min": 0.0,
+      "max": 26675.37
+    },
+    "c18": {
+      "distinct_count": 9947,
+      "min": 0.5,
+      "max": 100.0
+    },
+    "c19": {
+      "distinct_count": 40724,
+      "min": 0.0,
+      "max": 11730.85
+    },
+    "c20": {
+      "distinct_count": 44382,
+      "min": 0.0,
+      "max": 20822.97
+    },
+    "c21": {
+      "distinct_count": 34462,
+      "min": 0.0,
+      "max": 16140.11
+    },
+    "c22": {
+      "distinct_count": 34199,
+      "min": 0.0,
+      "max": 13995.91
+    },
+    "c23": {
+      "distinct_count": 51831,
+      "min": 0.63,
+      "max": 13871.85
+    }
+  }
+}

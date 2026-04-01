@@ -1,0 +1,12 @@
+{
+  "table_name": "role_type",
+  "row_count": 12,
+  "column_count": 2,
+  "columns": {
+    "c0": {
+      "distinct_count": 12,
+      "min": 1,
+      "max": 12
+    }
+  }
+}

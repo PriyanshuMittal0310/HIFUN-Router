@@ -1,0 +1,22 @@
+{
+  "table_name": "movie_info",
+  "row_count": 14835720,
+  "column_count": 5,
+  "columns": {
+    "c0": {
+      "distinct_count": 14835720,
+      "min": 1,
+      "max": 14835720
+    },
+    "c1": {
+      "distinct_count": 2468825,
+      "min": 1,
+      "max": 2526430
+    },
+    "c2": {
+      "distinct_count": 71,
+      "min": 1,
+      "max": 110
+    }
+  }
+}

@@ -1,17 +1,12 @@
 {
   "table_name": "person",
-  "row_count": 5000,
-  "column_count": 5,
+  "row_count": 1700,
+  "column_count": 13,
   "columns": {
-    "person_id": {
-      "distinct_count": 5000,
-      "min": 0.0,
-      "max": 4999.0
-    },
-    "age": {
-      "distinct_count": 52,
-      "min": 18.0,
-      "max": 69.0
+    "LocationCityId": {
+      "distinct_count": 958,
+      "min": 111,
+      "max": 1452
     }
   }
 }

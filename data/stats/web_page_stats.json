@@ -1,0 +1,47 @@
+{
+  "table_name": "web_page",
+  "row_count": 60,
+  "column_count": 14,
+  "columns": {
+    "c0": {
+      "distinct_count": 60,
+      "min": 1,
+      "max": 60
+    },
+    "c4": {
+      "distinct_count": 10,
+      "min": 2450807,
+      "max": 2450815
+    },
+    "c5": {
+      "distinct_count": 40,
+      "min": 2452549,
+      "max": 2452648
+    },
+    "c7": {
+      "distinct_count": 18,
+      "min": 1898,
+      "max": 98633
+    },
+    "c10": {
+      "distinct_count": 43,
+      "min": 701,
+      "max": 7046
+    },
+    "c11": {
+      "distinct_count": 22,
+      "min": 2,
+      "max": 25
+    },
+    "c12": {
+      "distinct_count": 8,
+      "min": 1,
+      "max": 7
+    },
+    "c13": {
+      "distinct_count": 6,
+      "min": 0,
+      "max": 4
+    }
+  }
+}

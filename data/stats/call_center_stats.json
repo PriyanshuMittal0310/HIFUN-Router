@@ -1,0 +1,62 @@
+{
+  "table_name": "call_center",
+  "row_count": 6,
+  "column_count": 31,
+  "columns": {
+    "c0": {
+      "distinct_count": 6,
+      "min": 1,
+      "max": 6
+    },
+    "c5": {
+      "distinct_count": 3,
+      "min": 2450806,
+      "max": 2451063
+    },
+    "c8": {
+      "distinct_count": 5,
+      "min": 1,
+      "max": 7
+    },
+    "c9": {
+      "distinct_count": 6,
+      "min": 649,
+      "max": 4134
+    },
+    "c12": {
+      "distinct_count": 3,
+      "min": 2,
+      "max": 6
+    },
+    "c16": {
+      "distinct_count": 4,
+      "min": 1,
+      "max": 5
+    },
+    "c18": {
+      "distinct_count": 4,
+      "min": 1,
+      "max": 6
+    },
+    "c20": {
+      "distinct_count": 3,
+      "min": 463,
+      "max": 984
+    },
+    "c27": {
+      "distinct_count": 1,
+      "min": 31904,
+      "max": 31904
+    },
+    "c29": {
+      "distinct_count": 1,
+      "min": -5,
+      "max": -5
+    },
+    "c30": {
+      "distinct_count": 4,
+      "min": 0.01,
+      "max": 0.12
+    }
+  }
+}

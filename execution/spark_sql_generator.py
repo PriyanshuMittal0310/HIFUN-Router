@@ -144,8 +144,22 @@ class SparkSQLGenerator:
         candidates = [
             os.path.join(self.parquet_dir, source_name),
             os.path.join(self.parquet_dir, f"{source_name}.parquet"),
+            os.path.join(self.parquet_dir, f"{source_name}_vertices"),
+            os.path.join(self.parquet_dir, f"{source_name}_vertices.parquet"),
+            os.path.join(self.parquet_dir, f"{source_name}_edges"),
+            os.path.join(self.parquet_dir, f"{source_name}_edges.parquet"),
             source_name,  # absolute path
         ]
+
+        # Alias graph-style source names to common relational vertex tables.
+        alias_sources = {
+            "snb": ["person", "persons"],
+        }
+        for alias in alias_sources.get(source_name, []):
+            candidates.extend([
+                os.path.join(self.parquet_dir, alias),
+                os.path.join(self.parquet_dir, f"{alias}.parquet"),
+            ])
         for c in candidates:
             if os.path.exists(c):
                 return c

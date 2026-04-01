@@ -1,0 +1,27 @@
+{
+  "table_name": "movie_companies",
+  "row_count": 2609129,
+  "column_count": 5,
+  "columns": {
+    "c0": {
+      "distinct_count": 2609129,
+      "min": 1,
+      "max": 2609129
+    },
+    "c1": {
+      "distinct_count": 1087236,
+      "min": 2,
+      "max": 2525745
+    },
+    "c2": {
+      "distinct_count": 234997,
+      "min": 1,
+      "max": 234997
+    },
+    "c3": {
+      "distinct_count": 2,
+      "min": 1,
+      "max": 2
+    }
+  }
+}

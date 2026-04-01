@@ -1,0 +1,122 @@
+{
+  "table_name": "store_sales",
+  "row_count": 2880404,
+  "column_count": 23,
+  "columns": {
+    "c0": {
+      "distinct_count": 1824,
+      "min": 2450816,
+      "max": 2452642
+    },
+    "c1": {
+      "distinct_count": 45648,
+      "min": 28800,
+      "max": 75599
+    },
+    "c2": {
+      "distinct_count": 18000,
+      "min": 1,
+      "max": 18000
+    },
+    "c3": {
+      "distinct_count": 90859,
+      "min": 1,
+      "max": 100000
+    },
+    "c4": {
+      "distinct_count": 225784,
+      "min": 15,
+      "max": 1920797
+    },
+    "c5": {
+      "distinct_count": 7201,
+      "min": 1,
+      "max": 7200
+    },
+    "c6": {
+      "distinct_count": 49601,
+      "min": 1,
+      "max": 50000
+    },
+    "c7": {
+      "distinct_count": 7,
+      "min": 1,
+      "max": 10
+    },
+    "c8": {
+      "distinct_count": 301,
+      "min": 1,
+      "max": 300
+    },
+    "c9": {
+      "distinct_count": 240000,
+      "min": 1,
+      "max": 240000
+    },
+    "c10": {
+      "distinct_count": 101,
+      "min": 1,
+      "max": 100
+    },
+    "c11": {
+      "distinct_count": 9902,
+      "min": 1.0,
+      "max": 100.0
+    },
+    "c12": {
+      "distinct_count": 19728,
+      "min": 1.0,
+      "max": 200.0
+    },
+    "c13": {
+      "distinct_count": 18687,
+      "min": 0.0,
+      "max": 199.56
+    },
+    "c14": {
+      "distinct_count": 209366,
+      "min": 0.0,
+      "max": 17588.25
+    },
+    "c15": {
+      "distinct_count": 411392,
+      "min": 0.0,
+      "max": 19562.4
+    },
+    "c16": {
+      "distinct_count": 380589,
+      "min": 1.0,
+      "max": 10000.0
+    },
+    "c17": {
+      "distinct_count": 578762,
+      "min": 1.12,
+      "max": 19984.0
+    },
+    "c18": {
+      "distinct_count": 78653,
+      "min": 0.0,
+      "max": 1749.87
+    },
+    "c19": {
+      "distinct_count": 209366,
+      "min": 0.0,
+      "max": 17588.25
+    },
+    "c20": {
+      "distinct_count": 463257,
+      "min": 0.0,
+      "max": 19562.4
+    },
+    "c21": {
+      "distinct_count": 618875,
+      "min": 0.0,
+      "max": 21192.87
+    },
+    "c22": {
+      "distinct_count": 566152,
+      "min": -9969.53,
+      "max": 9731.7
+    }
+  }
+}

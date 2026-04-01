@@ -1,0 +1,12 @@
+{
+  "table_name": "company_name",
+  "row_count": 234997,
+  "column_count": 7,
+  "columns": {
+    "c0": {
+      "distinct_count": 234997,
+      "min": 1,
+      "max": 234997
+    }
+  }
+}

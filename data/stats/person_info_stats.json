@@ -1,0 +1,22 @@
+{
+  "table_name": "person_info",
+  "row_count": 2963664,
+  "column_count": 5,
+  "columns": {
+    "c0": {
+      "distinct_count": 2963664,
+      "min": 1,
+      "max": 2963664
+    },
+    "c1": {
+      "distinct_count": 550721,
+      "min": 4,
+      "max": 4167491
+    },
+    "c2": {
+      "distinct_count": 22,
+      "min": 15,
+      "max": 39
+    }
+  }
+}

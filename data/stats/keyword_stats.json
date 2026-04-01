@@ -1,0 +1,12 @@
+{
+  "table_name": "keyword",
+  "row_count": 134170,
+  "column_count": 3,
+  "columns": {
+    "c0": {
+      "distinct_count": 134170,
+      "min": 1,
+      "max": 134170
+    }
+  }
+}

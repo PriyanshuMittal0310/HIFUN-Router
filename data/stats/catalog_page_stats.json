@@ -1,0 +1,32 @@
+{
+  "table_name": "catalog_page",
+  "row_count": 11718,
+  "column_count": 9,
+  "columns": {
+    "c0": {
+      "distinct_count": 11718,
+      "min": 1,
+      "max": 11718
+    },
+    "c2": {
+      "distinct_count": 92,
+      "min": 2450815,
+      "max": 2453005
+    },
+    "c3": {
+      "distinct_count": 98,
+      "min": 2450844,
+      "max": 2453186
+    },
+    "c5": {
+      "distinct_count": 110,
+      "min": 1,
+      "max": 109
+    },
+    "c6": {
+      "distinct_count": 109,
+      "min": 1,
+      "max": 108
+    }
+  }
+}

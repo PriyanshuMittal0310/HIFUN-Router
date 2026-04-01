@@ -1,0 +1,32 @@
+{
+  "table_name": "warehouse",
+  "row_count": 5,
+  "column_count": 14,
+  "columns": {
+    "c0": {
+      "distinct_count": 5,
+      "min": 1,
+      "max": 5
+    },
+    "c3": {
+      "distinct_count": 5,
+      "min": 138504,
+      "max": 977787
+    },
+    "c4": {
+      "distinct_count": 5,
+      "min": 368,
+      "max": 651
+    },
+    "c11": {
+      "distinct_count": 1,
+      "min": 35709,
+      "max": 35709
+    },
+    "c13": {
+      "distinct_count": 2,
+      "min": -5,
+      "max": -5
+    }
+  }
+}

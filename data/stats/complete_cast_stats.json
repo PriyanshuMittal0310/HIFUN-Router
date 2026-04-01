@@ -1,0 +1,27 @@
+{
+  "table_name": "complete_cast",
+  "row_count": 135086,
+  "column_count": 4,
+  "columns": {
+    "c0": {
+      "distinct_count": 135086,
+      "min": 1,
+      "max": 135086
+    },
+    "c1": {
+      "distinct_count": 93514,
+      "min": 285,
+      "max": 2528312
+    },
+    "c2": {
+      "distinct_count": 2,
+      "min": 1,
+      "max": 2
+    },
+    "c3": {
+      "distinct_count": 2,
+      "min": 3,
+      "max": 4
+    }
+  }
+}

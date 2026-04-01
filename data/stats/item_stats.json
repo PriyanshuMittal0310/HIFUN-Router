@@ -1,0 +1,47 @@
+{
+  "table_name": "item",
+  "row_count": 18000,
+  "column_count": 22,
+  "columns": {
+    "c0": {
+      "distinct_count": 18000,
+      "min": 1,
+      "max": 18000
+    },
+    "c5": {
+      "distinct_count": 2689,
+      "min": 0.09,
+      "max": 99.99
+    },
+    "c6": {
+      "distinct_count": 2041,
+      "min": 0.02,
+      "max": 87.36
+    },
+    "c7": {
+      "distinct_count": 949,
+      "min": 1001001,
+      "max": 10016017
+    },
+    "c9": {
+      "distinct_count": 17,
+      "min": 1,
+      "max": 16
+    },
+    "c11": {
+      "distinct_count": 11,
+      "min": 1,
+      "max": 10
+    },
+    "c13": {
+      "distinct_count": 995,
+      "min": 1,
+      "max": 1000
+    },
+    "c20": {
+      "distinct_count": 101,
+      "min": 1,
+      "max": 100
+    }
+  }
+}

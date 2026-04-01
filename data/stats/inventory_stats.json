@@ -1,0 +1,27 @@
+{
+  "table_name": "inventory",
+  "row_count": 11745000,
+  "column_count": 4,
+  "columns": {
+    "c0": {
+      "distinct_count": 261,
+      "min": 2450815,
+      "max": 2452635
+    },
+    "c1": {
+      "distinct_count": 18000,
+      "min": 1,
+      "max": 18000
+    },
+    "c2": {
+      "distinct_count": 5,
+      "min": 1,
+      "max": 5
+    },
+    "c3": {
+      "distinct_count": 1002,
+      "min": 0,
+      "max": 1000
+    }
+  }
+}

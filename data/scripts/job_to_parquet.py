@@ -37,7 +37,7 @@ def convert_job_to_parquet(spark, input_dir: str, output_dir: str) -> None:
         print(f"Converting {fname} (sep={repr(sep)}) -> {table_name}")
         df = (
             spark.read
-            .option("header", "true")
+            .option("header", "false")
             .option("inferSchema", "true")
             .option("sep", sep)
             .csv(fpath)
@@ -49,9 +49,13 @@ def convert_job_to_parquet(spark, input_dir: str, output_dir: str) -> None:
             if df.filter(F.col(last).isNotNull()).limit(1).count() == 0:
                 df = df.drop(last)
 
+        renamed = df
+        for i, c in enumerate(df.columns):
+            renamed = renamed.withColumnRenamed(c, f"c{i}")
+
         out_path = os.path.join(output_dir, table_name)
-        df.write.mode("overwrite").parquet(out_path)
-        print(f"  rows={df.count()} -> {out_path}")
+        renamed.write.mode("overwrite").parquet(out_path)
+        print(f"  rows={renamed.count()} -> {out_path}")
         converted += 1
 
     if converted == 0:

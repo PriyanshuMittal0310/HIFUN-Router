@@ -1,22 +1,57 @@
 {
   "table_name": "customer",
-  "row_count": 150000,
-  "column_count": 7,
+  "row_count": 100000,
+  "column_count": 18,
   "columns": {
-    "c_custkey": {
-      "distinct_count": 150000,
+    "c0": {
+      "distinct_count": 100000,
       "min": 1,
-      "max": 150000
+      "max": 100000
     },
-    "c_nationkey": {
-      "distinct_count": 25,
-      "min": 0,
-      "max": 24
+    "c2": {
+      "distinct_count": 94216,
+      "min": 17,
+      "max": 1920788
     },
-    "c_acctbal": {
-      "distinct_count": 140187,
-      "min": -999.99,
-      "max": 9999.99
+    "c3": {
+      "distinct_count": 7201,
+      "min": 1,
+      "max": 7200
+    },
+    "c4": {
+      "distinct_count": 43282,
+      "min": 1,
+      "max": 50000
+    },
+    "c5": {
+      "distinct_count": 3652,
+      "min": 2449028,
+      "max": 2452678
+    },
+    "c6": {
+      "distinct_count": 3652,
+      "min": 2448998,
+      "max": 2452648
+    },
+    "c11": {
+      "distinct_count": 32,
+      "min": 1,
+      "max": 31
+    },
+    "c12": {
+      "distinct_count": 13,
+      "min": 1,
+      "max": 12
+    },
+    "c13": {
+      "distinct_count": 70,
+      "min": 1924,
+      "max": 1992
+    },
+    "c17": {
+      "distinct_count": 367,
+      "min": 2452283,
+      "max": 2452648
     }
   }
 }

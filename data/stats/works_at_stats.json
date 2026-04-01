@@ -1,12 +1,12 @@
 {
   "table_name": "works_at",
-  "row_count": 5000,
-  "column_count": 2,
+  "row_count": 3637,
+  "column_count": 5,
   "columns": {
-    "person_id": {
-      "distinct_count": 5000,
-      "min": 0.0,
-      "max": 4999.0
+    "workFrom": {
+      "distinct_count": 16,
+      "min": 1998,
+      "max": 2013
     }
   }
 }

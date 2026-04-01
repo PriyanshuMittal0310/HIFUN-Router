@@ -1,0 +1,12 @@
+{
+  "table_name": "ship_mode",
+  "row_count": 20,
+  "column_count": 6,
+  "columns": {
+    "c0": {
+      "distinct_count": 20,
+      "min": 1,
+      "max": 20
+    }
+  }
+}

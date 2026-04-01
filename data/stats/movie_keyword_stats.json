@@ -1,0 +1,22 @@
+{
+  "table_name": "movie_keyword",
+  "row_count": 4523930,
+  "column_count": 3,
+  "columns": {
+    "c0": {
+      "distinct_count": 4523930,
+      "min": 1,
+      "max": 4523930
+    },
+    "c1": {
+      "distinct_count": 476794,
+      "min": 2,
+      "max": 2525971
+    },
+    "c2": {
+      "distinct_count": 134170,
+      "min": 1,
+      "max": 134170
+    }
+  }
+}

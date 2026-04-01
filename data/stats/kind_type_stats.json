@@ -1,0 +1,12 @@
+{
+  "table_name": "kind_type",
+  "row_count": 7,
+  "column_count": 2,
+  "columns": {
+    "c0": {
+      "distinct_count": 7,
+      "min": 1,
+      "max": 7
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "table_name": "time_dim",
+  "row_count": 86400,
+  "column_count": 10,
+  "columns": {
+    "c0": {
+      "distinct_count": 86400,
+      "min": 0,
+      "max": 86399
+    },
+    "c2": {
+      "distinct_count": 86400,
+      "min": 0,
+      "max": 86399
+    },
+    "c3": {
+      "distinct_count": 24,
+      "min": 0,
+      "max": 23
+    },
+    "c4": {
+      "distinct_count": 60,
+      "min": 0,
+      "max": 59
+    },
+    "c5": {
+      "distinct_count": 60,
+      "min": 0,
+      "max": 59
+    }
+  }
+}

@@ -1,22 +1,12 @@
 {
   "table_name": "posts",
-  "row_count": 20000,
-  "column_count": 4,
+  "row_count": 171943,
+  "column_count": 13,
   "columns": {
-    "post_id": {
-      "distinct_count": 20000,
-      "min": 0.0,
-      "max": 19999.0
-    },
-    "creator_id": {
-      "distinct_count": 4913,
-      "min": 0.0,
-      "max": 4999.0
-    },
     "content_length": {
-      "distinct_count": 4880,
-      "min": 10.0,
-      "max": 4999.0
+      "distinct_count": 167,
+      "min": 0,
+      "max": 1526
     }
   }
 }
