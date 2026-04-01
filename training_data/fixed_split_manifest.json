@@ -1,30 +1,30 @@
 {
-  "source": "training_data/real_labeled_runs.csv",
+  "source": "training_data/real_labeled_runs_graphfocus.csv",
   "seed": 42,
   "eval_fraction": 0.2,
   "min_eval_per_class": 1,
   "rows": {
-    "source_deduped": 738,
-    "train_base": 590,
-    "eval": 148,
-    "train_balanced": 1174
+    "source_deduped": 1299,
+    "train_base": 1040,
+    "eval": 259,
+    "train_balanced": 2068
   },
   "labels": {
     "source_deduped": {
-      "SQL": 734,
-      "GRAPH": 4
+      "SQL": 1292,
+      "GRAPH": 7
     },
     "train_base": {
-      "SQL": 587,
-      "GRAPH": 3
+      "SQL": 1034,
+      "GRAPH": 6
     },
     "eval": {
-      "SQL": 147,
+      "SQL": 258,
       "GRAPH": 1
     },
     "train_balanced": {
-      "SQL": 587,
-      "GRAPH": 587
+      "GRAPH": 1034,
+      "SQL": 1034
     }
   },
   "outputs": {

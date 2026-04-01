@@ -1,0 +1,13 @@
+{
+  "rows": 738,
+  "label_distribution": {
+    "SQL": 738,
+    "GRAPH": 0
+  },
+  "failure_taxonomy": {
+    "graph_not_applicable_relational": 738,
+    "sql_penalized_traversal_approx": 561,
+    "fallback_sql_failed_or_penalized": 561,
+    "strict_real_only_excluded": 561
+  }
+}
