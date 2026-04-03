@@ -66,6 +66,73 @@ def _deterministic_eval_split(
     return train_df, eval_df
 
 
+def _deterministic_group_eval_split(
+    df: pd.DataFrame,
+    eval_fraction: float,
+    min_eval_per_class: int,
+    seed: int,
+    group_col: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if "label" not in df.columns:
+        raise ValueError("Input dataset must contain 'label' column")
+    if group_col not in df.columns:
+        raise ValueError(f"Group-disjoint split requested but '{group_col}' column is missing")
+
+    rng = pd.Series(df[group_col].dropna().unique()).sample(frac=1.0, random_state=seed).tolist()
+    if not rng:
+        raise ValueError("No groups found for group-disjoint split")
+
+    label_counts = df["label"].value_counts().to_dict()
+    target_eval_rows = max(1, int(round(len(df) * eval_fraction)))
+
+    eval_groups: set[str] = set()
+
+    # First satisfy per-class minimum rows in eval.
+    for label in sorted(df["label"].unique().tolist()):
+        need = min_eval_per_class
+        current = 0
+        candidate_groups = (
+            df[df["label"] == label][group_col]
+            .dropna()
+            .drop_duplicates()
+            .sample(frac=1.0, random_state=seed)
+            .tolist()
+        )
+        for g in candidate_groups:
+            if g in eval_groups:
+                current = int((df[(df[group_col].isin(eval_groups)) & (df["label"] == label)]).shape[0])
+                if current >= need:
+                    break
+                continue
+            eval_groups.add(g)
+            current = int((df[(df[group_col].isin(eval_groups)) & (df["label"] == label)]).shape[0])
+            if current >= need:
+                break
+
+    # Then fill up to target eval rows.
+    for g in rng:
+        if g in eval_groups:
+            continue
+        current_rows = int(df[df[group_col].isin(eval_groups)].shape[0])
+        if current_rows >= target_eval_rows:
+            break
+        eval_groups.add(g)
+
+    eval_df = df[df[group_col].isin(eval_groups)].copy()
+    train_df = df[~df[group_col].isin(eval_groups)].copy()
+
+    # Safety checks: both classes must remain in train and eval.
+    for label, total in label_counts.items():
+        tr = int((train_df["label"] == label).sum())
+        ev = int((eval_df["label"] == label).sum())
+        if total > 1 and (tr == 0 or ev == 0):
+            raise ValueError(
+                f"Group split invalid for label={label}: train={tr}, eval={ev}, total={total}."
+            )
+
+    return train_df.sort_values("source_row_id"), eval_df.sort_values("source_row_id")
+
+
 def _balance_train(
     train_df: pd.DataFrame,
     seed: int,
@@ -140,6 +207,8 @@ def main() -> None:
     parser.add_argument("--eval_fraction", type=float, default=0.2)
     parser.add_argument("--min_eval_per_class", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--split_mode", choices=["group", "row"], default="group")
+    parser.add_argument("--group_col", default="query_id")
     parser.add_argument("--min_graph_train", type=int, default=100)
     parser.add_argument("--min_graph_eval", type=int, default=25)
     parser.add_argument("--allow_degenerate", action="store_true")
@@ -167,12 +236,23 @@ def main() -> None:
     # Deduplicate exact repeated signatures to avoid artificial leakage before split.
     df = df.drop_duplicates(subset=["source_row_id"]).reset_index(drop=True)
 
-    train_base, eval_df = _deterministic_eval_split(
-        df,
-        eval_fraction=args.eval_fraction,
-        min_eval_per_class=args.min_eval_per_class,
-        seed=args.seed,
-    )
+    split_mode_used = args.split_mode
+    if args.split_mode == "group" and args.group_col in df.columns and df[args.group_col].nunique() > 1:
+        train_base, eval_df = _deterministic_group_eval_split(
+            df,
+            eval_fraction=args.eval_fraction,
+            min_eval_per_class=args.min_eval_per_class,
+            seed=args.seed,
+            group_col=args.group_col,
+        )
+    else:
+        split_mode_used = "row"
+        train_base, eval_df = _deterministic_eval_split(
+            df,
+            eval_fraction=args.eval_fraction,
+            min_eval_per_class=args.min_eval_per_class,
+            seed=args.seed,
+        )
 
     _assert_min_graph_support(
         train_base,
@@ -199,6 +279,8 @@ def main() -> None:
     manifest: Dict[str, object] = {
         "source": source_path,
         "seed": args.seed,
+        "split_mode": split_mode_used,
+        "group_col": args.group_col,
         "eval_fraction": args.eval_fraction,
         "min_eval_per_class": args.min_eval_per_class,
         "min_graph_train": args.min_graph_train,
@@ -222,6 +304,11 @@ def main() -> None:
         "balancing": {
             "applied": bool(balanced_applied),
             "reason": balanced_reason,
+        },
+        "overlap": {
+            "source_row_id": int(len(set(train_base["source_row_id"]).intersection(set(eval_df["source_row_id"])))),
+            "query_id": int(len(set(train_base["query_id"]).intersection(set(eval_df["query_id"])))) if "query_id" in train_base.columns and "query_id" in eval_df.columns else None,
+            "sub_id": int(len(set(train_base["sub_id"]).intersection(set(eval_df["sub_id"])))) if "sub_id" in train_base.columns and "sub_id" in eval_df.columns else None,
         },
         "outputs": {
             "train_base": args.train_base_out,

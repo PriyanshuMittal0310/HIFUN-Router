@@ -165,7 +165,9 @@ quality-gate-strict:  ## Strict quality gate on curated real-measurement artifac
 		--eval training_data/fixed_eval_set_strict.csv \
 		--out_json training_data/dataset_quality_report_strict_runtime.json
 
-publish-eval: quality-gate-strict  ## Run publishable strict evaluation bundle
+publish-eval:  ## Run publishable strict evaluation bundle
+	$(PYTHON) -m training_data.fix_dataset_splits --source training_data/real_labeled_runs_strict_curated.csv --split_mode group --group_col query_id --train_base_out training_data/fixed_train_base_strict.csv --eval_out training_data/fixed_eval_set_strict.csv --graph_eval_out training_data/fixed_eval_graph_only_strict.csv --train_balanced_out training_data/fixed_train_balanced_strict.csv --manifest_out training_data/fixed_split_manifest_strict.json
+	$(PYTHON) -m training_data.dataset_quality_gate --source training_data/real_labeled_runs_strict_curated.csv --train training_data/fixed_train_base_strict.csv --eval training_data/fixed_eval_set_strict.csv --out_json training_data/dataset_quality_report_strict_runtime.json
 	$(PYTHON) -m model.trainer --data training_data/fixed_train_base_strict.csv
 	$(PYTHON) -m experiments.relevance_evaluation --train training_data/fixed_train_base_strict.csv --eval training_data/fixed_eval_set_strict.csv --out_json experiments/results/relevance_eval_strict_runtime.json --out_md experiments/results/relevance_eval_strict_runtime.md
 	$(PYTHON) -m experiments.ablation_study --data training_data/fixed_train_base_strict.csv --output experiments/results/ablation_strict_runtime.csv

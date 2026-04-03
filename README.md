@@ -18,6 +18,7 @@ This repository now supports a real-data-first training workflow with scalable q
 	- `training_data/fixed_eval_set_strict.csv`
 	- `training_data/fixed_eval_graph_only_strict.csv`
 	- `training_data/fixed_split_manifest_strict.json`
+	- strict split generation now uses query-disjoint mode (`split_mode=group`, `group_col=query_id`) to avoid train/eval query overlap
 - Strict quality gate passes:
 	- `training_data/dataset_quality_report_strict_curated.json`
 - Strict publishable evaluation artifacts generated:

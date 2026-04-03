@@ -6,31 +6,31 @@
 
 ## Core Strict Metric
 
-- XGBoost eval F1: 0.9818
+- XGBoost eval F1: 0.9643
 
 ## Bootstrap 95% CI (Eval)
 
-- F1: [0.9388, 1.0000] (median 0.9831)
-- Precision: [0.8846, 1.0000] (median 0.9667)
+- F1: [0.9130, 1.0000] (median 0.9667)
+- Precision: [0.8400, 1.0000] (median 0.9355)
 - Recall: [1.0000, 1.0000] (median 1.0000)
 
 ## Label-Permutation Sanity
 
 - Mode: within_group:query_id
-- Permuted-label mean F1: 0.9818 ± 0.0000
-- Permuted-label range: [0.9818, 0.9818]
+- Permuted-label mean F1: 0.4434 ± 0.2545
+- Permuted-label range: [0.0000, 0.9643]
 
 ## Overlap Audit
 
 - Overlap on source_row_id: 0
-- Overlap on query_id: 49
+- Overlap on query_id: 0
 - Overlap on sub_id: 2
 
 ## Top Permutation Importance (Eval F1 Drop)
 
 | Feature | Mean Drop | Std | Max Drop |
 |---|---:|---:|---:|
-| op_count_traversal | 0.4885 | 0.0772 | 0.6545 |
+| op_count_traversal | 0.4762 | 0.0722 | 0.6071 |
 | op_count_filter | 0.0000 | 0.0000 | 0.0000 |
 | op_count_join | 0.0000 | 0.0000 | 0.0000 |
 | op_count_aggregate | 0.0000 | 0.0000 | 0.0000 |

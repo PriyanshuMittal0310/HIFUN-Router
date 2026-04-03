@@ -39,7 +39,7 @@
     {
       "name": "eval_both_labels_present",
       "passed": true,
-      "detail": "eval SQL=30, GRAPH=27"
+      "detail": "eval SQL=31, GRAPH=27"
     },
     {
       "name": "min_graph_eval",

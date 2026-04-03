@@ -104,11 +104,16 @@ def _label_permutation_sanity(
         if train_groups is None:
             rng.shuffle(y_perm)
         else:
-            # Preserve per-group label counts while destroying per-row correspondence.
-            for g in np.unique(train_groups):
-                idx = np.where(train_groups == g)[0]
-                if len(idx) > 1:
-                    rng.shuffle(y_perm[idx])
+            # Group-aware permutation: reassign each group's labels from another random group.
+            uniq = np.unique(train_groups)
+            shuffled = np.array(uniq, copy=True)
+            rng.shuffle(shuffled)
+            group_to_idx = {g: np.where(train_groups == g)[0] for g in uniq}
+            for g_t, g_s in zip(uniq, shuffled):
+                idx_t = group_to_idx[g_t]
+                idx_s = group_to_idx[g_s]
+                sampled = rng.choice(y_train[idx_s], size=len(idx_t), replace=True)
+                y_perm[idx_t] = sampled
         model = _xgb(scale_pos_weight=scale_pos_weight, seed=seed + i + 1)
         model.fit(X_train, y_perm)
         y_pred = model.predict(X_eval)
@@ -320,9 +325,23 @@ def main() -> None:
     bootstrap_ci = _bootstrap_ci(y_eval, y_pred, n_bootstrap=args.n_bootstrap, seed=args.seed)
     perm_groups = None
     perm_mode = "global_shuffle"
+    perm_group_stats = None
     if args.perm_group_col and args.perm_group_col in train_df.columns:
-        perm_groups = train_df[args.perm_group_col].astype(str).values
-        perm_mode = f"within_group:{args.perm_group_col}"
+        candidate_groups = train_df[args.perm_group_col].astype(str).values
+        vc = pd.Series(candidate_groups).value_counts()
+        multi_group_rows = int(vc[vc > 1].sum())
+        multi_group_ratio = float(multi_group_rows / max(len(candidate_groups), 1))
+        perm_group_stats = {
+            "group_count": int(vc.shape[0]),
+            "multi_group_rows": multi_group_rows,
+            "multi_group_ratio": multi_group_ratio,
+        }
+        # Use grouped permutation only when a meaningful fraction of rows can actually be shuffled.
+        if multi_group_ratio >= 0.2:
+            perm_groups = candidate_groups
+            perm_mode = f"within_group:{args.perm_group_col}"
+        else:
+            perm_mode = f"global_shuffle_fallback:{args.perm_group_col}"
 
     perm_sanity = _label_permutation_sanity(
         X_train,
@@ -335,6 +354,8 @@ def main() -> None:
         train_groups=perm_groups,
     )
     perm_sanity["mode"] = perm_mode
+    if perm_group_stats is not None:
+        perm_sanity["group_stats"] = perm_group_stats
     perm_importance = _permutation_importance(
         xgb_model,
         X_eval,

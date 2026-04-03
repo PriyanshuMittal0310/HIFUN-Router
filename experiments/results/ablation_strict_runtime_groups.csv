@@ -1,7 +1,7 @@
 group,features_removed,n_features_removed,f1_without,f1_std,f1_drop,baseline_f1
-operation_counts,"op_count_filter, op_count_join, op_count_traversal, op_count_aggregate, op_count_map",5,0.973719806763285,0.01621807556201528,0.0,0.973719806763285
-structure,"ast_depth, num_projected_columns, num_tables_joined",3,0.973719806763285,0.01621807556201528,0.0,0.973719806763285
-graph_features,"has_traversal, max_hops, avg_degree, max_degree, degree_skew",5,0.973719806763285,0.01621807556201528,0.0,0.973719806763285
-cardinality,"input_cardinality_log, output_cardinality_log, selectivity",3,0.973719806763285,0.01621807556201528,0.0,0.973719806763285
-data_characteristics,"has_index, join_fanout, estimated_shuffle_bytes_log, estimated_traversal_ops",4,0.973719806763285,0.01621807556201528,0.0,0.973719806763285
-historical,"hist_avg_runtime_ms, hist_runtime_variance",2,0.973719806763285,0.01621807556201528,0.0,0.973719806763285
+operation_counts,"op_count_filter, op_count_join, op_count_traversal, op_count_aggregate, op_count_map",5,0.9777777777777776,1.1102230246251565e-16,0.0,0.9777777777777776
+structure,"ast_depth, num_projected_columns, num_tables_joined",3,0.9777777777777776,1.1102230246251565e-16,0.0,0.9777777777777776
+graph_features,"has_traversal, max_hops, avg_degree, max_degree, degree_skew",5,0.9777777777777776,1.1102230246251565e-16,0.0,0.9777777777777776
+cardinality,"input_cardinality_log, output_cardinality_log, selectivity",3,0.9777777777777776,1.1102230246251565e-16,0.0,0.9777777777777776
+data_characteristics,"has_index, join_fanout, estimated_shuffle_bytes_log, estimated_traversal_ops",4,0.9777777777777776,1.1102230246251565e-16,0.0,0.9777777777777776
+historical,"hist_avg_runtime_ms, hist_runtime_variance",2,0.9777777777777776,1.1102230246251565e-16,0.0,0.9777777777777776

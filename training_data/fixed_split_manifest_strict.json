@@ -1,18 +1,20 @@
 {
   "source": "training_data/real_labeled_runs_strict_curated.csv",
   "seed": 42,
+  "split_mode": "group",
+  "group_col": "query_id",
   "eval_fraction": 0.2,
   "min_eval_per_class": 1,
   "min_graph_train": 100,
   "min_graph_eval": 25,
-  "allow_degenerate": true,
+  "allow_degenerate": false,
   "min_unique_graph_for_upsample": 40,
   "rows": {
     "source_deduped": 288,
-    "train_base": 231,
-    "eval": 57,
+    "train_base": 230,
+    "eval": 58,
     "eval_graph_only": 27,
-    "train_balanced": 242
+    "train_balanced": 240
   },
   "labels": {
     "source_deduped": {
@@ -20,24 +22,29 @@
       "GRAPH": 137
     },
     "train_base": {
-      "SQL": 121,
+      "SQL": 120,
       "GRAPH": 110
     },
     "eval": {
-      "SQL": 30,
+      "SQL": 31,
       "GRAPH": 27
     },
     "eval_graph_only": {
       "GRAPH": 27
     },
     "train_balanced": {
-      "SQL": 121,
-      "GRAPH": 121
+      "SQL": 120,
+      "GRAPH": 120
     }
   },
   "balancing": {
     "applied": true,
     "reason": "ok"
+  },
+  "overlap": {
+    "source_row_id": 0,
+    "query_id": 0,
+    "sub_id": 2
   },
   "outputs": {
     "train_base": "training_data/fixed_train_base_strict.csv",
