@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native data-tpch-check
+.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -200,3 +200,13 @@ clean:  ## Remove generated data (keeps raw data)
 	rm -rf model/artifacts/*.pkl model/artifacts/*.json
 	rm -rf model/artifacts/analysis/
 	rm -rf training_data/labeled_runs.csv
+
+clean-local-results:  ## Remove local iterative result artifacts (keeps strict headline outputs)
+	rm -f experiments/results/*_default_check.csv
+	rm -f experiments/results/*_default_check.json
+	rm -f experiments/results/*_default_check.md
+	rm -f experiments/results/*_default_check_groups.csv
+	rm -f experiments/results/*_strict_recheck.json
+	rm -f experiments/results/*_strict_recheck.md
+	rm -f experiments/results/correctness_report_runtime.csv
+	rm -f experiments/results/ablation_debug_groups.csv

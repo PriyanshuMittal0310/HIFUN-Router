@@ -55,6 +55,14 @@ spark-warehouse/
 experiments/results/*_debug.csv
 experiments/results/*_debug.json
 experiments/results/*_debug.md
+experiments/results/*_default_check.csv
+experiments/results/*_default_check.json
+experiments/results/*_default_check.md
+experiments/results/*_default_check_groups.csv
+experiments/results/*_strict_recheck.json
+experiments/results/*_strict_recheck.md
+experiments/results/correctness_report_runtime.csv
+experiments/results/ablation_debug_groups.csv
 
 # Temporary query packs and ad-hoc collection outputs
 training_data/tmp_queries/
