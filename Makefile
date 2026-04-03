@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
+.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -22,6 +22,9 @@ data-tpch:  ## Convert TPC-H raw .tbl files to Parquet
 	$(PYTHON) data/scripts/tpch_to_parquet.py \
 		--input data/raw/tpch-kit/dbgen \
 		--output data/parquet/tpch/
+
+data-tpch-duckdb:  ## Generate TPCH customer/orders parquet via DuckDB TPCH extension
+	$(PYTHON) data/scripts/tpch_duckdb_to_parquet.py --output data/parquet/tpch --sf 1
 
 data-tpch-check:  ## Verify required TPCH .tbl inputs exist
 	@test -f data/raw/tpch-kit/dbgen/customer.tbl || (echo "Missing data/raw/tpch-kit/dbgen/customer.tbl" && exit 1)

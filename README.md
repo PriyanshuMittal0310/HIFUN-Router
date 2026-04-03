@@ -161,9 +161,12 @@ python3 -m experiments.publish_gate
 For publication-only native-data validation (no TPCH fallback), run:
 
 ```bash
+make data-tpch-duckdb
 python3 -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_native_runtime.csv --require_native_tpch
 python3 -m experiments.publish_gate --require_native_tpch
 ```
+
+If you already have TPCH `.tbl` files from `dbgen`, you can use `make data-tpch` instead.
 
 ### System prerequisites
 
