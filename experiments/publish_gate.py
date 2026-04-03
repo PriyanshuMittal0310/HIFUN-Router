@@ -66,6 +66,31 @@ def _check_robustness(robustness: Dict[str, Any], min_robust_f1: float, errors: 
         )
 
 
+def _check_ablation(
+    ablation: Dict[str, Any],
+    min_max_feature_drop: float,
+    min_max_group_drop: float,
+    errors: list[str],
+) -> None:
+    """Require non-flat feature evidence by checking max observed drop."""
+    ind = ablation.get("individual_features", {})
+    groups = ablation.get("feature_groups", {})
+
+    max_feature_drop = max((float(v.get("f1_drop", 0.0)) for v in ind.values()), default=0.0)
+    max_group_drop = max((float(v.get("f1_drop", 0.0)) for v in groups.values()), default=0.0)
+
+    if max_feature_drop < min_max_feature_drop:
+        errors.append(
+            "Ablation gate failed: max individual feature drop="
+            f"{max_feature_drop:.4f} < min {min_max_feature_drop:.4f}"
+        )
+    if max_group_drop < min_max_group_drop:
+        errors.append(
+            "Ablation gate failed: max feature-group drop="
+            f"{max_group_drop:.4f} < min {min_max_group_drop:.4f}"
+        )
+
+
 def _check_correctness(
     correctness_csv: str,
     min_executable_pass_rate: float,
@@ -113,6 +138,7 @@ def main() -> int:
     parser.add_argument("--manifest", default="training_data/fixed_split_manifest_strict.json")
     parser.add_argument("--relevance_json", default="experiments/results/relevance_eval_strict_runtime.json")
     parser.add_argument("--robustness_json", default="experiments/results/strict_robustness_eval_runtime.json")
+    parser.add_argument("--ablation_json", default="experiments/results/ablation_strict_runtime.json")
     parser.add_argument("--correctness_csv", default="experiments/results/correctness_report_runtime.csv")
     parser.add_argument("--max_query_overlap", type=int, default=0)
     parser.add_argument("--min_xgb_f1", type=float, default=0.95)
@@ -120,6 +146,8 @@ def main() -> int:
     parser.add_argument("--min_executable_pass_rate", type=float, default=1.0)
     parser.add_argument("--max_skipped_missing_data", type=int, default=0)
     parser.add_argument("--max_skipped_unsupported_schema", type=int, default=0)
+    parser.add_argument("--min_max_feature_drop", type=float, default=0.0)
+    parser.add_argument("--min_max_group_drop", type=float, default=0.0)
     parser.add_argument("--require_native_tpch", action="store_true")
     args = parser.parse_args()
 
@@ -128,12 +156,25 @@ def main() -> int:
     _require_file(args.manifest, "split manifest", errors)
     _require_file(args.relevance_json, "relevance report", errors)
     _require_file(args.robustness_json, "robustness report", errors)
+    _require_file(args.ablation_json, "ablation report", errors)
     _require_file(args.correctness_csv, "correctness report", errors)
 
-    if args.require_native_tpch and not os.path.exists(TPCH_PARQUET_DIR):
-        errors.append(
-            f"Native TPCH requirement failed: directory not found at {TPCH_PARQUET_DIR}"
-        )
+    if args.require_native_tpch:
+        if not os.path.exists(TPCH_PARQUET_DIR):
+            errors.append(
+                f"Native TPCH requirement failed: directory not found at {TPCH_PARQUET_DIR}"
+            )
+        else:
+            required_tpch_tables = [
+                os.path.join(TPCH_PARQUET_DIR, "customer"),
+                os.path.join(TPCH_PARQUET_DIR, "orders"),
+            ]
+            for tpath in required_tpch_tables:
+                if not os.path.exists(tpath):
+                    errors.append(
+                        "Native TPCH requirement failed: missing parquet table "
+                        f"{tpath}. Run: make data-tpch"
+                    )
 
     if errors:
         for e in errors:
@@ -143,10 +184,17 @@ def main() -> int:
     manifest = _load_json(args.manifest)
     relevance = _load_json(args.relevance_json)
     robustness = _load_json(args.robustness_json)
+    ablation = _load_json(args.ablation_json)
 
     _check_manifest(manifest, args.max_query_overlap, errors)
     _check_relevance(relevance, args.min_xgb_f1, errors)
     _check_robustness(robustness, args.min_robust_f1, errors)
+    _check_ablation(
+        ablation,
+        args.min_max_feature_drop,
+        args.min_max_group_drop,
+        errors,
+    )
     _check_correctness(
         args.correctness_csv,
         args.min_executable_pass_rate,

@@ -69,12 +69,17 @@ run_correctness() {
 
 run_publish_gate() {
   echo "[8/8] Validating strict publication gate"
-  "$PYTHON_BIN" experiments/publish_gate.py
+  "$PYTHON_BIN" experiments/publish_gate.py \
+    --min_max_feature_drop 0.005 \
+    --min_max_group_drop 0.005
 }
 
 run_publish_gate_native() {
   echo "[8/8] Validating strict publication gate (native TPCH required)"
-  "$PYTHON_BIN" experiments/publish_gate.py --require_native_tpch
+  "$PYTHON_BIN" experiments/publish_gate.py \
+    --require_native_tpch \
+    --min_max_feature_drop 0.005 \
+    --min_max_group_drop 0.005
 }
 
 case "$MODE" in

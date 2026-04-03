@@ -72,6 +72,7 @@ def run_ablation(
     y: np.ndarray,
     feature_names: list,
     cv_folds: int = 5,
+    cv_repeats: int = 3,
     min_graph_rows: int = 100,
     allow_degenerate: bool = False,
 ) -> dict:
@@ -89,43 +90,71 @@ def run_ablation(
             "Collect additional real graph-winning labels before interpreting feature ablation."
         )
 
-    skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
-
     def make_model():
         return DecisionTreeClassifier(max_depth=6, min_samples_leaf=10, random_state=42)
 
+    def repeated_cv_scores(X_input: np.ndarray) -> np.ndarray:
+        all_scores = []
+        for r in range(cv_repeats):
+            skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42 + r)
+            model = make_model()
+            scores = cross_val_score(model, X_input, y, cv=skf, scoring="f1")
+            all_scores.extend(scores.tolist())
+        return np.asarray(all_scores, dtype=np.float32)
+
     # Baseline: all features
-    baseline_model = make_model()
-    baseline_f1_scores = cross_val_score(baseline_model, X, y, cv=skf, scoring="f1")
+    baseline_f1_scores = repeated_cv_scores(X)
     baseline_f1 = float(baseline_f1_scores.mean())
     baseline_f1_std = float(baseline_f1_scores.std())
+    baseline_ci_low = float(np.percentile(baseline_f1_scores, 2.5))
+    baseline_ci_high = float(np.percentile(baseline_f1_scores, 97.5))
 
     results = {
         "baseline_f1": baseline_f1,
         "baseline_f1_std": baseline_f1_std,
+        "baseline_f1_ci": {
+            "p2_5": baseline_ci_low,
+            "p97_5": baseline_ci_high,
+        },
+        "cv_folds": cv_folds,
+        "cv_repeats": cv_repeats,
         "individual_features": {},
         "feature_groups": {},
     }
 
     # Per-feature ablation
-    print(f"\nBaseline F1 (all {len(feature_names)} features): {baseline_f1:.4f} ± {baseline_f1_std:.4f}")
+    print(
+        f"\nBaseline F1 (all {len(feature_names)} features): {baseline_f1:.4f} ± {baseline_f1_std:.4f} "
+        f"[95%~ {baseline_ci_low:.4f}, {baseline_ci_high:.4f}]"
+    )
     print("\nPer-feature ablation:")
 
     for i, feat in enumerate(feature_names):
         X_ablated = np.delete(X, i, axis=1)
-        model = make_model()
-        f1_scores = cross_val_score(model, X_ablated, y, cv=skf, scoring="f1")
+        f1_scores = repeated_cv_scores(X_ablated)
         f1_mean = float(f1_scores.mean())
         f1_std = float(f1_scores.std())
         f1_drop = baseline_f1 - f1_mean
+        f1_ci_low = float(np.percentile(f1_scores, 2.5))
+        f1_ci_high = float(np.percentile(f1_scores, 97.5))
+        drop_scores = baseline_f1_scores - f1_scores
+        f1_drop_std = float(drop_scores.std())
+        f1_drop_ci_low = float(np.percentile(drop_scores, 2.5))
+        f1_drop_ci_high = float(np.percentile(drop_scores, 97.5))
 
         results["individual_features"][feat] = {
             "f1_without": f1_mean,
             "f1_std": f1_std,
             "f1_drop": f1_drop,
+            "f1_ci": {"p2_5": f1_ci_low, "p97_5": f1_ci_high},
+            "f1_drop_std": f1_drop_std,
+            "f1_drop_ci": {"p2_5": f1_drop_ci_low, "p97_5": f1_drop_ci_high},
         }
         marker = " ***" if abs(f1_drop) > 0.01 else ""
-        print(f"  Drop '{feat}': F1={f1_mean:.4f} (Δ={f1_drop:+.4f}){marker}")
+        print(
+            f"  Drop '{feat}': F1={f1_mean:.4f} (Δ={f1_drop:+.4f}, "
+            f"Δ95%~[{f1_drop_ci_low:+.4f},{f1_drop_ci_high:+.4f}]){marker}"
+        )
 
     # Feature group ablation
     print("\nFeature group ablation:")
@@ -140,11 +169,16 @@ def run_ablation(
             continue
 
         X_ablated = np.delete(X, drop_indices, axis=1)
-        model = make_model()
-        f1_scores = cross_val_score(model, X_ablated, y, cv=skf, scoring="f1")
+        f1_scores = repeated_cv_scores(X_ablated)
         f1_mean = float(f1_scores.mean())
         f1_std = float(f1_scores.std())
         f1_drop = baseline_f1 - f1_mean
+        f1_ci_low = float(np.percentile(f1_scores, 2.5))
+        f1_ci_high = float(np.percentile(f1_scores, 97.5))
+        drop_scores = baseline_f1_scores - f1_scores
+        f1_drop_std = float(drop_scores.std())
+        f1_drop_ci_low = float(np.percentile(drop_scores, 2.5))
+        f1_drop_ci_high = float(np.percentile(drop_scores, 97.5))
 
         results["feature_groups"][group_name] = {
             "features_removed": group_features,
@@ -152,9 +186,15 @@ def run_ablation(
             "f1_without": f1_mean,
             "f1_std": f1_std,
             "f1_drop": f1_drop,
+            "f1_ci": {"p2_5": f1_ci_low, "p97_5": f1_ci_high},
+            "f1_drop_std": f1_drop_std,
+            "f1_drop_ci": {"p2_5": f1_drop_ci_low, "p97_5": f1_drop_ci_high},
         }
         marker = " ***" if abs(f1_drop) > 0.01 else ""
-        print(f"  Drop '{group_name}' ({len(drop_indices)} features): F1={f1_mean:.4f} (Δ={f1_drop:+.4f}){marker}")
+        print(
+            f"  Drop '{group_name}' ({len(drop_indices)} features): F1={f1_mean:.4f} "
+            f"(Δ={f1_drop:+.4f}, Δ95%~[{f1_drop_ci_low:+.4f},{f1_drop_ci_high:+.4f}]){marker}"
+        )
 
     return results
 
@@ -168,7 +208,12 @@ def results_to_dataframes(results: dict) -> tuple:
             "feature": feat,
             "f1_without": metrics["f1_without"],
             "f1_std": metrics["f1_std"],
+            "f1_ci_low": metrics.get("f1_ci", {}).get("p2_5"),
+            "f1_ci_high": metrics.get("f1_ci", {}).get("p97_5"),
             "f1_drop": metrics["f1_drop"],
+            "f1_drop_std": metrics.get("f1_drop_std"),
+            "f1_drop_ci_low": metrics.get("f1_drop_ci", {}).get("p2_5"),
+            "f1_drop_ci_high": metrics.get("f1_drop_ci", {}).get("p97_5"),
             "baseline_f1": results["baseline_f1"],
         })
     individual_df = pd.DataFrame(ind_rows)
@@ -183,13 +228,64 @@ def results_to_dataframes(results: dict) -> tuple:
             "n_features_removed": metrics["n_features_removed"],
             "f1_without": metrics["f1_without"],
             "f1_std": metrics["f1_std"],
+            "f1_ci_low": metrics.get("f1_ci", {}).get("p2_5"),
+            "f1_ci_high": metrics.get("f1_ci", {}).get("p97_5"),
             "f1_drop": metrics["f1_drop"],
+            "f1_drop_std": metrics.get("f1_drop_std"),
+            "f1_drop_ci_low": metrics.get("f1_drop_ci", {}).get("p2_5"),
+            "f1_drop_ci_high": metrics.get("f1_drop_ci", {}).get("p97_5"),
             "baseline_f1": results["baseline_f1"],
         })
     group_df = pd.DataFrame(group_rows)
     group_df = group_df.sort_values("f1_drop", ascending=False)
 
     return individual_df, group_df
+
+
+def write_markdown_summary(results: dict, individual_df: pd.DataFrame, group_df: pd.DataFrame, md_path: str) -> None:
+    """Write a concise markdown report for ablation/stability evidence."""
+    lines = []
+    lines.append("# Strict Ablation Summary")
+    lines.append("")
+    lines.append(f"- Baseline F1: {results['baseline_f1']:.4f}")
+    lines.append(f"- Baseline std: {results['baseline_f1_std']:.4f}")
+    lines.append(
+        f"- Baseline 95% interval: [{results.get('baseline_f1_ci', {}).get('p2_5', 0.0):.4f}, "
+        f"{results.get('baseline_f1_ci', {}).get('p97_5', 0.0):.4f}]"
+    )
+    lines.append(f"- CV folds: {results.get('cv_folds', 'n/a')}")
+    lines.append(f"- CV repeats: {results.get('cv_repeats', 'n/a')}")
+
+    max_feature_drop = float(individual_df['f1_drop'].max()) if not individual_df.empty else 0.0
+    max_group_drop = float(group_df['f1_drop'].max()) if not group_df.empty else 0.0
+    lines.append(f"- Max individual feature F1 drop: {max_feature_drop:+.4f}")
+    lines.append(f"- Max feature-group F1 drop: {max_group_drop:+.4f}")
+    lines.append("")
+
+    lines.append("## Top Individual Feature Drops")
+    lines.append("")
+    lines.append("| Feature | F1 drop | Drop std | Drop CI low | Drop CI high |")
+    lines.append("|---|---:|---:|---:|---:|")
+    for _, row in individual_df.head(10).iterrows():
+        lines.append(
+            f"| {row['feature']} | {row['f1_drop']:+.4f} | {row.get('f1_drop_std', 0.0):.4f} | "
+            f"{row.get('f1_drop_ci_low', 0.0):+.4f} | {row.get('f1_drop_ci_high', 0.0):+.4f} |"
+        )
+    lines.append("")
+
+    lines.append("## Feature Group Drops")
+    lines.append("")
+    lines.append("| Group | Removed | F1 drop | Drop std | Drop CI low | Drop CI high |")
+    lines.append("|---|---:|---:|---:|---:|---:|")
+    for _, row in group_df.iterrows():
+        lines.append(
+            f"| {row['group']} | {int(row['n_features_removed'])} | {row['f1_drop']:+.4f} | "
+            f"{row.get('f1_drop_std', 0.0):.4f} | {row.get('f1_drop_ci_low', 0.0):+.4f} | "
+            f"{row.get('f1_drop_ci_high', 0.0):+.4f} |"
+        )
+
+    with open(md_path, "w") as f:
+        f.write("\n".join(lines) + "\n")
 
 
 def main():
@@ -200,6 +296,8 @@ def main():
                         help="Output CSV path for ablation results")
     parser.add_argument("--cv-folds", type=int, default=5,
                         help="Number of cross-validation folds")
+    parser.add_argument("--cv-repeats", type=int, default=3,
+                        help="Number of repeated CV rounds with different seeds")
     parser.add_argument("--min-graph-rows", type=int, default=100,
                         help="Minimum GRAPH rows required for valid ablation")
     parser.add_argument("--allow-degenerate", action="store_true",
@@ -225,6 +323,7 @@ def main():
         y,
         feature_names,
         cv_folds=args.cv_folds,
+        cv_repeats=args.cv_repeats,
         min_graph_rows=args.min_graph_rows,
         allow_degenerate=args.allow_degenerate,
     )
@@ -249,6 +348,11 @@ def main():
     with open(json_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"Full results saved to {json_path}")
+
+    # Save markdown summary
+    md_path = output_base.replace(".csv", ".md")
+    write_markdown_summary(results, individual_df, group_df, md_path)
+    print(f"Markdown summary saved to {md_path}")
 
     # Print summary
     print("\n" + "=" * 70)

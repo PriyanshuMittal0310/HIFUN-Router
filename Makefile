@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native
+.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -22,6 +22,11 @@ data-tpch:  ## Convert TPC-H raw .tbl files to Parquet
 	$(PYTHON) data/scripts/tpch_to_parquet.py \
 		--input data/raw/tpch-kit/dbgen \
 		--output data/parquet/tpch/
+
+data-tpch-check:  ## Verify required TPCH .tbl inputs exist
+	@test -f data/raw/tpch-kit/dbgen/customer.tbl || (echo "Missing data/raw/tpch-kit/dbgen/customer.tbl" && exit 1)
+	@test -f data/raw/tpch-kit/dbgen/orders.tbl || (echo "Missing data/raw/tpch-kit/dbgen/orders.tbl" && exit 1)
+	@echo "TPCH raw input files found."
 
 data-snb:  ## Ingest LDBC SNB data (or generate synthetic SNB if raw unavailable)
 	$(PYTHON) data/scripts/snb_to_parquet.py \
@@ -146,7 +151,7 @@ learned:  ## Run ML-routed (learned) strategy
 compare:  ## Compare all strategies and produce comparison table
 	$(PYTHON) -m experiments.compare_results
 
-ablation:  ## Run feature ablation study
+ablation:  ## Run feature ablation study (repeated CV stability)
 	$(PYTHON) -m experiments.ablation_study
 
 evaluate: baselines learned compare ablation  ## Run full Phase 6 evaluation pipeline
@@ -180,10 +185,10 @@ publish-eval:  ## Run publishable strict evaluation bundle
 publish-eval-strict: publish-eval  ## Alias for strict publishable bundle
 
 publish-gate:  ## Validate strict publish artifacts and thresholds
-	$(PYTHON) -m experiments.publish_gate
+	$(PYTHON) -m experiments.publish_gate --min_max_feature_drop 0.005 --min_max_group_drop 0.005
 
 publish-gate-native:  ## Validate strict publish artifacts and require native TPCH parquet
-	$(PYTHON) -m experiments.publish_gate --require_native_tpch
+	$(PYTHON) -m experiments.publish_gate --require_native_tpch --min_max_feature_drop 0.005 --min_max_group_drop 0.005
 
 correctness-native:  ## Run correctness report requiring native TPCH parquet
 	$(PYTHON) -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_native_runtime.csv --require_native_tpch
