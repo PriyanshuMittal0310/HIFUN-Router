@@ -22,16 +22,24 @@ class SQLGenerator:
     SparkSQLGenerator which wraps PySpark DataFrame API.
     """
 
-    def __init__(self, data_loader, cache: Optional[Dict[str, pd.DataFrame]] = None):
+    def __init__(
+        self,
+        data_loader,
+        cache: Optional[Dict[str, pd.DataFrame]] = None,
+        strict_schema: bool = False,
+    ):
         """
         Args:
             data_loader: callable(source_name) -> pd.DataFrame
                          Loads a table/source by name.
             cache: shared result cache {sub_id or op_id -> DataFrame}
                    for resolving depends_on references.
+            strict_schema: when True, missing filter columns raise KeyError
+                           instead of returning unfiltered rows.
         """
         self.data_loader = data_loader
         self.cache = cache if cache is not None else {}
+        self.strict_schema = strict_schema
 
     def generate(self, sub_expr: SubExpression) -> pd.DataFrame:
         """Execute SQL-routed subexpression and return result DataFrame."""
@@ -99,6 +107,10 @@ class SQLGenerator:
         val = p["value"]
 
         if col not in df.columns:
+            if self.strict_schema:
+                raise KeyError(
+                    f"Missing filter column '{col}' in source '{node.source}'"
+                )
             logger.warning(f"Column {col} not found, returning unfiltered")
             if fields:
                 return df[[c for c in fields if c in df.columns]]

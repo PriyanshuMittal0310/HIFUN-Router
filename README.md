@@ -122,6 +122,11 @@ This repository now supports a real-data-first training workflow with scalable q
 - Source:
 	- https://github.com/gregrahn/tpcds-kit
 
+### TPCH Compatibility Fallback (Correctness Runs)
+
+- If `data/parquet/tpch/` is absent, correctness execution now synthesizes minimal TPCH-shaped `customer` and `orders` tables from local TPC-DS parquet (`data/parquet/tpcds/`) so TPCH/synthetic SQL sample queries remain executable.
+- This fallback is intended for reproducible correctness coverage in constrained local environments; for final benchmark claims, provide native TPCH parquet tables.
+
 ## Setup
 
 ## One-Command Strict Runner (recommended)

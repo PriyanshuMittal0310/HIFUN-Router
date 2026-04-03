@@ -70,6 +70,7 @@ class HybridRouter:
         force_engine: Optional[str] = None,
         custom_router: Optional[callable] = None,
         use_real_engines: bool = False,
+        strict_schema: bool = False,
         spark=None,
         hdfs_root: Optional[str] = None,
     ):
@@ -83,6 +84,8 @@ class HybridRouter:
             custom_router:    optional callable(sub_expr, fv, feature_names) → str
             use_real_engines: True  → PySpark + GraphFrames (Phase 2)
                               False → pandas (unit tests / Phase 1)
+            strict_schema:    when True, missing predicate columns in pandas SQL
+                              execution raise errors instead of being ignored.
             spark:            existing SparkSession (created automatically when
                               use_real_engines=True and spark is None)
             hdfs_root:        HDFS base URI, e.g. 'hdfs://namenode:9000/data'.
@@ -94,6 +97,7 @@ class HybridRouter:
         self.force_engine     = force_engine
         self.custom_router    = custom_router
         self.use_real_engines = use_real_engines
+        self.strict_schema    = strict_schema
         self.hdfs_root        = hdfs_root
 
         # Core components (always pandas-based for parsing / feature extraction)
@@ -155,7 +159,93 @@ class HybridRouter:
             # Backward-compatible alias used by existing SNB sample queries.
             fixed["company_name"] = fixed["organisation_id"].astype(str)
             return fixed
+        if source_name == "person" and "country" not in df.columns:
+            vertices_path = os.path.join(self.graph_dir, "vertices.parquet")
+            if os.path.exists(vertices_path):
+                vdf = pd.read_parquet(vertices_path)
+                if "country" in vdf.columns:
+                    key_col = "person_id" if "person_id" in vdf.columns else "id"
+                    if key_col in vdf.columns:
+                        fixed = df.copy()
+                        person_key = "id" if "id" in fixed.columns else "person_id"
+                        if person_key in fixed.columns:
+                            country_map = (
+                                vdf[[key_col, "country"]]
+                                .dropna(subset=[key_col])
+                                .drop_duplicates(subset=[key_col])
+                                .set_index(key_col)["country"]
+                            )
+                            fixed["country"] = fixed[person_key].map(country_map)
+                            return fixed
         return df
+
+    def _build_tpch_compat_table(self, source_name: str) -> Optional[pd.DataFrame]:
+        """Build minimal TPCH-like tables from TPC-DS parquet when TPCH is absent."""
+        if source_name not in {"customer", "orders"}:
+            return None
+
+        tpcds_dir = os.path.join(os.path.dirname(self.parquet_dir), "tpcds")
+        if not os.path.exists(tpcds_dir):
+            return None
+
+        customer_path = os.path.join(tpcds_dir, "customer")
+        if not os.path.exists(customer_path):
+            return None
+
+        cust_raw = pd.read_parquet(customer_path)
+        if "c0" not in cust_raw.columns:
+            return None
+
+        c_custkey = pd.to_numeric(cust_raw["c0"], errors="coerce").fillna(0).astype(int)
+        customer = pd.DataFrame({
+            "c_custkey": c_custkey,
+            "c_name": "CUST_" + c_custkey.astype(str),
+            "c_nationkey": (c_custkey % 25).astype(int),
+            "c_acctbal": (c_custkey % 10000).astype(float),
+            "c_mktsegment": ["AUTOMOBILE", "BUILDING", "FURNITURE", "MACHINERY", "HOUSEHOLD"][0],
+        })
+        customer["c_mktsegment"] = c_custkey.map(
+            lambda x: ["AUTOMOBILE", "BUILDING", "FURNITURE", "MACHINERY", "HOUSEHOLD"][x % 5]
+        )
+
+        if source_name == "customer":
+            return customer
+
+        store_sales_path = os.path.join(tpcds_dir, "store_sales")
+        if not os.path.exists(store_sales_path):
+            return None
+        sales_raw = pd.read_parquet(store_sales_path)
+        if sales_raw.empty:
+            return None
+
+        sales_raw = sales_raw.iloc[:200000].copy()
+        if "c3" in sales_raw.columns:
+            o_custkey = pd.to_numeric(sales_raw["c3"], errors="coerce")
+        else:
+            o_custkey = pd.Series(range(1, len(sales_raw) + 1), index=sales_raw.index)
+
+        max_key = int(customer["c_custkey"].max()) if not customer.empty else 1
+        o_custkey = o_custkey.fillna(0).astype(int)
+        o_custkey = (o_custkey % max_key) + 1
+
+        if "c20" in sales_raw.columns:
+            o_totalprice = pd.to_numeric(sales_raw["c20"], errors="coerce")
+        else:
+            o_totalprice = pd.Series(range(1, len(sales_raw) + 1), index=sales_raw.index, dtype=float)
+        o_totalprice = o_totalprice.fillna(0.0).abs() + 1.0
+
+        order_idx = pd.Series(range(1, len(sales_raw) + 1), index=sales_raw.index)
+        priorities = ["1-URGENT", "2-HIGH", "3-MEDIUM", "4-NOT SPECIFIED", "5-LOW"]
+        statuses = ["F", "O", "P"]
+
+        orders = pd.DataFrame({
+            "o_orderkey": order_idx.astype(int),
+            "o_custkey": o_custkey.astype(int),
+            "o_totalprice": o_totalprice.astype(float),
+            "o_orderpriority": order_idx.map(lambda x: priorities[x % len(priorities)]),
+            "o_orderstatus": order_idx.map(lambda x: statuses[x % len(statuses)]),
+        })
+        return orders
 
     def _load_table(self, source_name: str) -> pd.DataFrame:
         """Load a table by name from parquet directory or graph directory."""
@@ -199,6 +289,12 @@ class HybridRouter:
                     df = self._normalize_loaded_table(source_name, df)
                     self._table_cache[source_name] = df
                     return df
+
+        compat_df = self._build_tpch_compat_table(source_name)
+        if compat_df is not None:
+            compat_df = self._normalize_loaded_table(source_name, compat_df)
+            self._table_cache[source_name] = compat_df
+            return compat_df
 
         raise FileNotFoundError(
             f"Could not find table '{source_name}' in {self.parquet_dir} or {self.graph_dir}"
@@ -363,7 +459,11 @@ class HybridRouter:
             generator = GraphGenerator(self.graph_dir, cache=shared_cache)
             return generator.generate(sub_expr)
         else:
-            generator = SQLGenerator(self._load_table, cache=shared_cache)
+            generator = SQLGenerator(
+                self._load_table,
+                cache=shared_cache,
+                strict_schema=self.strict_schema,
+            )
             return generator.generate(sub_expr)
 
     @staticmethod

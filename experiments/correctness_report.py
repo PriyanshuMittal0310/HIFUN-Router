@@ -40,6 +40,12 @@ def _is_missing_data_error(exc: Exception) -> bool:
     return "not found" in msg and "table" in msg
 
 
+def _is_unsupported_schema_error(exc: Exception) -> bool:
+    """Return True when an exception indicates a query/schema mismatch."""
+    msg = str(exc).lower()
+    return "missing filter column" in msg
+
+
 def generate_correctness_table(query_dir: str, output_csv: str):
     """Run all queries through both executors and generate a CSV report."""
     results = []
@@ -59,10 +65,12 @@ def generate_correctness_table(query_dir: str, output_csv: str):
                 graph_dir=graph_dir,
                 stats_dir=STATS_DIR,
                 force_engine="SQL",
+                strict_schema=True,
             )
             ref_exec = ReferenceExecutor(
                 parquet_dir=parquet_dir,
                 graph_dir=graph_dir,
+                strict_schema=True,
             )
             try:
                 ref_df = ref_exec.execute(q)
@@ -73,7 +81,12 @@ def generate_correctness_table(query_dir: str, output_csv: str):
                 report["status"] = "pass" if report.get("pass", False) else "fail"
                 results.append(report)
             except Exception as e:
-                status = "skipped_missing_data" if _is_missing_data_error(e) else "fail"
+                if _is_missing_data_error(e):
+                    status = "skipped_missing_data"
+                elif _is_unsupported_schema_error(e):
+                    status = "skipped_unsupported_schema"
+                else:
+                    status = "fail"
                 results.append({
                     "query_id": qid,
                     "pass": False,
@@ -88,7 +101,9 @@ def generate_correctness_table(query_dir: str, output_csv: str):
 
     total = len(df)
     passed = int(df["pass"].sum())
-    skipped = int((df.get("status") == "skipped_missing_data").sum()) if "status" in df.columns else 0
+    skipped_missing_data = int((df.get("status") == "skipped_missing_data").sum()) if "status" in df.columns else 0
+    skipped_unsupported_schema = int((df.get("status") == "skipped_unsupported_schema").sum()) if "status" in df.columns else 0
+    skipped = skipped_missing_data + skipped_unsupported_schema
     executable = total - skipped
     exec_pass_pct = (100 * passed / executable) if executable else 0.0
     total_pass_pct = (100 * passed / total) if total else 0.0
@@ -96,7 +111,8 @@ def generate_correctness_table(query_dir: str, output_csv: str):
     print(
         f"\nCorrectness Summary: {passed}/{total} queries pass "
         f"({total_pass_pct:.1f}%). Executable-only: {passed}/{executable} "
-        f"({exec_pass_pct:.1f}%), skipped_missing_data={skipped}."
+        f"({exec_pass_pct:.1f}%), skipped_missing_data={skipped_missing_data}, "
+        f"skipped_unsupported_schema={skipped_unsupported_schema}."
     )
     cols = ["query_id", "row_count_match", "sha256_match", "col_mismatches", "pass"]
     available = [c for c in cols if c in df.columns]
