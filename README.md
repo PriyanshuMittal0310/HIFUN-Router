@@ -6,6 +6,27 @@ This repository now supports a real-data-first training workflow with scalable q
 
 ## Current Status (April 2026)
 
+### Publishable Strict Update (latest)
+
+- Strict curated dataset created and quality-gated:
+	- `training_data/real_labeled_runs_strict_curated.csv`
+	- 288 rows total, `SQL` 151, `GRAPH` 137
+	- GRAPH coverage across 2 datasets (`snb_real_queries`, `ogb_real_queries`)
+	- All rows are real measurements (`label_source=real_measurement`)
+- Strict fixed splits created:
+	- `training_data/fixed_train_base_strict.csv`
+	- `training_data/fixed_eval_set_strict.csv`
+	- `training_data/fixed_eval_graph_only_strict.csv`
+	- `training_data/fixed_split_manifest_strict.json`
+- Strict quality gate passes:
+	- `training_data/dataset_quality_report_strict_curated.json`
+- Strict publishable evaluation artifacts generated:
+	- `experiments/results/relevance_eval_strict.json`
+	- `experiments/results/relevance_eval_strict.md`
+	- `experiments/results/ablation_strict.csv`
+	- `experiments/results/ablation_strict_groups.csv`
+	- `experiments/results/ablation_strict.json`
+
 - Real dataset ingestion scripts added for:
 	- LDBC SNB (interactive raw data, parquet conversion, graph extraction)
 	- OGB (ogbn-arxiv conversion to GraphFrames parquet)
@@ -317,6 +338,93 @@ make publish-eval
 ```
 
 If quality gate fails, treat all downstream metrics as debug-only.
+
+For strict publishable flow, run:
+
+```bash
+python3 -m training_data.fix_dataset_splits \
+	--source training_data/real_labeled_runs_strict_curated.csv \
+	--train_base_out training_data/fixed_train_base_strict.csv \
+	--eval_out training_data/fixed_eval_set_strict.csv \
+	--graph_eval_out training_data/fixed_eval_graph_only_strict.csv \
+	--train_balanced_out training_data/fixed_train_balanced_strict.csv \
+	--manifest_out training_data/fixed_split_manifest_strict.json \
+	--allow_degenerate
+
+python3 -m training_data.dataset_quality_gate \
+	--source training_data/real_labeled_runs_strict_curated.csv \
+	--train training_data/fixed_train_base_strict.csv \
+	--eval training_data/fixed_eval_set_strict.csv \
+	--out_json training_data/dataset_quality_report_strict_curated.json
+
+python3 model/trainer.py \
+	--data training_data/fixed_train_base_strict.csv \
+	--model_out model/artifacts/classifier_strict.pkl \
+	--min_graph_rows 100
+
+python3 experiments/relevance_evaluation.py \
+	--train training_data/fixed_train_base_strict.csv \
+	--eval training_data/fixed_eval_set_strict.csv \
+	--out_json experiments/results/relevance_eval_strict.json \
+	--out_md experiments/results/relevance_eval_strict.md
+
+python3 experiments/ablation_study.py \
+	--data training_data/fixed_train_base_strict.csv \
+	--output experiments/results/ablation_strict.csv
+```
+
+## Docker Snapshot
+
+### Build image
+
+```bash
+docker build -t hifun-router:strict-latest .
+```
+
+### What is included in the Docker image
+
+- Included:
+	- Repository-tracked project code
+	- Strict curated dataset and strict reports, including:
+		- `training_data/real_labeled_runs_strict_curated.csv`
+		- `training_data/dataset_quality_report_strict_curated.json`
+		- `experiments/results/relevance_eval_strict.json`
+		- `experiments/results/ablation_strict.json`
+- Excluded (by `.dockerignore`):
+	- `data/raw/`
+	- `data/parquet/`
+	- `data/graphs/`
+	- temporary query folders under `training_data/tmp_queries*/`
+	- debug result files (`*_debug.*`)
+
+### Run image
+
+```bash
+docker run --rm hifun-router:strict-latest
+```
+
+### Share Docker image (offline)
+
+```bash
+docker save hifun-router:strict-latest -o hifun-router-strict-latest.tar
+gzip -9 hifun-router-strict-latest.tar
+```
+
+Receiver side:
+
+```bash
+gunzip hifun-router-strict-latest.tar.gz
+docker load -i hifun-router-strict-latest.tar
+docker run --rm hifun-router:strict-latest
+```
+
+### Share Docker image (registry)
+
+```bash
+docker tag hifun-router:strict-latest <registry-user>/hifun-router:strict-latest
+docker login
+docker push <registry-user>/hifun-router:strict-latest
+```
 
 ### Simulation Transparency
 
