@@ -26,6 +26,8 @@ This repository now supports a real-data-first training workflow with scalable q
 	- `experiments/results/ablation_strict.csv`
 	- `experiments/results/ablation_strict_groups.csv`
 	- `experiments/results/ablation_strict.json`
+	- `experiments/results/strict_robustness_eval.json`
+	- `experiments/results/strict_robustness_eval.md`
 
 - Real dataset ingestion scripts added for:
 	- LDBC SNB (interactive raw data, parquet conversion, graph extraction)
@@ -120,6 +122,27 @@ This repository now supports a real-data-first training workflow with scalable q
 	- https://github.com/gregrahn/tpcds-kit
 
 ## Setup
+
+## One-Command Strict Runner (recommended)
+
+If your workspace contains modified non-strict split artifacts, use the strict runner to avoid default-path failures:
+
+```bash
+./run_project_strict.sh all
+```
+
+Useful modes:
+
+- `./run_project_strict.sh smoke` (fast validation: quality + relevance + robustness)
+- `./run_project_strict.sh train`
+- `./run_project_strict.sh relevance`
+- `./run_project_strict.sh robustness`
+
+This script pins strict inputs explicitly:
+
+- `training_data/real_labeled_runs_strict_curated.csv`
+- `training_data/fixed_train_base_strict.csv`
+- `training_data/fixed_eval_set_strict.csv`
 
 ### System prerequisites
 
@@ -300,6 +323,29 @@ Outputs:
 
 - `experiments/results/dataset_shift_eval.json`
 - `experiments/results/dataset_shift_eval.md`
+
+### Phase 8: Strict Robustness Evaluation (new)
+
+Run confidence intervals, permutation-based sanity checks, and strict cross-dataset transfer from curated real labels:
+
+```bash
+python3 experiments/strict_robustness_evaluation.py \
+	--train training_data/fixed_train_base_strict.csv \
+	--eval training_data/fixed_eval_set_strict.csv \
+	--transfer_source training_data/real_labeled_runs_strict_curated.csv
+```
+
+Outputs:
+
+- `experiments/results/strict_robustness_eval.json`
+- `experiments/results/strict_robustness_eval.md`
+
+This report includes:
+
+- bootstrap 95% confidence intervals for strict eval metrics
+- label-permutation sanity distribution
+- permutation importance (eval F1 drop per feature)
+- cross-dataset transfer matrix on strict curated real labels
 
 ### Training Improvements (new)
 

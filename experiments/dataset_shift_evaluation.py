@@ -25,7 +25,9 @@ from features.feature_extractor import FEATURE_NAMES
 
 def _default_source() -> str:
     candidates = [
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_strict_curated.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base_strict.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"),
     ]
     for p in candidates:

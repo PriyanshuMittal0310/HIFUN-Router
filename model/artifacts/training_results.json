@@ -1,106 +1,121 @@
 {
-  "dataset_size": 186,
+  "dataset_size": 231,
+  "train_size": 182,
+  "test_size": 49,
   "label_distribution": {
-    "SQL": 144,
-    "GRAPH": 42
+    "SQL": 121,
+    "GRAPH": 110
   },
-  "cv_folds": 3,
+  "cv_folds": 5,
+  "labeled_data_path": "training_data/fixed_train_base_strict.csv",
+  "class_weight": "balanced",
+  "use_scale_pos_weight": true,
+  "min_graph_rows": 100,
+  "allow_degenerate": false,
+  "group_col": "query_id",
+  "grouped_eval_used": true,
+  "group_stats": {
+    "train_groups": 110,
+    "test_groups": 28,
+    "overlap_groups": 0
+  },
   "decision_tree": {
     "model": "DecisionTree",
-    "cv_f1_mean": 1.0,
-    "cv_f1_std": 0.0,
-    "cv_accuracy_mean": 1.0,
-    "cv_accuracy_std": 0.0,
-    "accuracy": 1.0,
-    "f1": 1.0,
-    "precision": 1.0,
+    "cv_f1_mean": 0.972830241122924,
+    "cv_f1_std": 0.02717418370364977,
+    "cv_accuracy_mean": 0.973548387096774,
+    "cv_accuracy_std": 0.02630783513463244,
+    "accuracy": 0.9795918367346939,
+    "f1": 0.9767441860465116,
+    "precision": 0.9545454545454546,
     "recall": 1.0,
     "confusion_matrix": [
       [
-        144,
-        0
+        27,
+        1
       ],
       [
         0,
-        42
+        21
       ]
     ],
     "classification_report": {
       "SQL": {
         "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 144.0
+        "recall": 0.9642857142857143,
+        "f1-score": 0.9818181818181818,
+        "support": 28.0
       },
       "GRAPH": {
-        "precision": 1.0,
+        "precision": 0.9545454545454546,
         "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 42.0
+        "f1-score": 0.9767441860465116,
+        "support": 21.0
       },
-      "accuracy": 1.0,
+      "accuracy": 0.9795918367346939,
       "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 186.0
+        "precision": 0.9772727272727273,
+        "recall": 0.9821428571428572,
+        "f1-score": 0.9792811839323468,
+        "support": 49.0
       },
       "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 186.0
+        "precision": 0.9805194805194806,
+        "recall": 0.9795918367346939,
+        "f1-score": 0.9796436122017517,
+        "support": 49.0
       }
     }
   },
   "xgboost": {
     "model": "XGBoost",
-    "cv_f1_mean": 0.96,
-    "cv_f1_std": 0.0565685424949238,
-    "cv_accuracy_mean": 0.9838709677419355,
-    "cv_accuracy_std": 0.022809896167307966,
-    "accuracy": 1.0,
-    "f1": 1.0,
-    "precision": 1.0,
+    "cv_f1_mean": 0.972830241122924,
+    "cv_f1_std": 0.02717418370364977,
+    "cv_accuracy_mean": 0.973548387096774,
+    "cv_accuracy_std": 0.02630783513463244,
+    "scale_pos_weight": 1.0449438202247192,
+    "accuracy": 0.9795918367346939,
+    "f1": 0.9767441860465116,
+    "precision": 0.9545454545454546,
     "recall": 1.0,
     "confusion_matrix": [
       [
-        144,
-        0
+        27,
+        1
       ],
       [
         0,
-        42
+        21
       ]
     ],
     "classification_report": {
       "SQL": {
         "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 144.0
+        "recall": 0.9642857142857143,
+        "f1-score": 0.9818181818181818,
+        "support": 28.0
       },
       "GRAPH": {
-        "precision": 1.0,
+        "precision": 0.9545454545454546,
         "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 42.0
+        "f1-score": 0.9767441860465116,
+        "support": 21.0
       },
-      "accuracy": 1.0,
+      "accuracy": 0.9795918367346939,
       "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 186.0
+        "precision": 0.9772727272727273,
+        "recall": 0.9821428571428572,
+        "f1-score": 0.9792811839323468,
+        "support": 49.0
       },
       "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 186.0
+        "precision": 0.9805194805194806,
+        "recall": 0.9795918367346939,
+        "f1-score": 0.9796436122017517,
+        "support": 49.0
       }
     }
   },
-  "best_model": "DecisionTree",
-  "model_path": "/tmp/pytest-of-priyanshu/pytest-0/test_full_pipeline0/classifier.pkl"
+  "best_model": "XGBoost",
+  "model_path": "/home/mitta/HIFUN-Router-clone/model/artifacts/classifier_v1.pkl"
 }

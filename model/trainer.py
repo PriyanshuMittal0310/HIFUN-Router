@@ -10,7 +10,7 @@ from typing import Dict, Tuple
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
+from sklearn.model_selection import GroupShuffleSplit, StratifiedGroupKFold, StratifiedKFold, cross_val_score, train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import (
     accuracy_score, f1_score, precision_score, recall_score,
@@ -29,8 +29,11 @@ from features.feature_extractor import FEATURE_NAMES
 def _default_labeled_path() -> str:
     """Prefer fixed non-resampled train split, then fallback datasets."""
     candidates = [
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base_strict.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced_strict.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_strict_curated.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
         LABELED_RUNS_CSV,
@@ -74,6 +77,7 @@ def _assert_dataset_validity(
 def train_decision_tree(
     X: np.ndarray,
     y: np.ndarray,
+    groups: np.ndarray | None = None,
     cv_folds: int = 5,
     class_weight: str | None = "balanced",
 ):
@@ -84,10 +88,14 @@ def train_decision_tree(
         random_state=42,
         class_weight=class_weight,
     )
-    skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
-
-    f1_scores = cross_val_score(dt, X, y, cv=skf, scoring="f1")
-    acc_scores = cross_val_score(dt, X, y, cv=skf, scoring="accuracy")
+    if groups is not None:
+        cv = StratifiedGroupKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+        f1_scores = cross_val_score(dt, X, y, cv=cv, scoring="f1", groups=groups)
+        acc_scores = cross_val_score(dt, X, y, cv=cv, scoring="accuracy", groups=groups)
+    else:
+        cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+        f1_scores = cross_val_score(dt, X, y, cv=cv, scoring="f1")
+        acc_scores = cross_val_score(dt, X, y, cv=cv, scoring="accuracy")
 
     # Fit on full data for final model
     dt.fit(X, y)
@@ -104,6 +112,7 @@ def train_decision_tree(
 def train_xgboost(
     X: np.ndarray,
     y: np.ndarray,
+    groups: np.ndarray | None = None,
     cv_folds: int = 5,
     use_scale_pos_weight: bool = True,
 ):
@@ -122,10 +131,14 @@ def train_xgboost(
         eval_metric="logloss",
         scale_pos_weight=scale_pos_weight,
     )
-    skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
-
-    f1_scores = cross_val_score(xgb_clf, X, y, cv=skf, scoring="f1")
-    acc_scores = cross_val_score(xgb_clf, X, y, cv=skf, scoring="accuracy")
+    if groups is not None:
+        cv = StratifiedGroupKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+        f1_scores = cross_val_score(xgb_clf, X, y, cv=cv, scoring="f1", groups=groups)
+        acc_scores = cross_val_score(xgb_clf, X, y, cv=cv, scoring="accuracy", groups=groups)
+    else:
+        cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+        f1_scores = cross_val_score(xgb_clf, X, y, cv=cv, scoring="f1")
+        acc_scores = cross_val_score(xgb_clf, X, y, cv=cv, scoring="accuracy")
 
     # Fit on full data for final model
     xgb_clf.fit(X, y)
@@ -165,6 +178,7 @@ def train(
     use_scale_pos_weight: bool = True,
     min_graph_rows: int = 100,
     allow_degenerate: bool = False,
+    group_col: str = "query_id",
 ) -> Dict:
     """Full training pipeline: load data, train both models, save best one.
 
@@ -177,20 +191,34 @@ def train(
     _assert_dataset_validity(y, df, min_graph_rows=min_graph_rows, allow_degenerate=allow_degenerate)
     print(f"Loaded {len(df)} samples ({y.sum()} GRAPH, {len(y) - y.sum()} SQL)")
 
-    # Create a holdout split for honest reporting in addition to CV metrics.
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=holdout_fraction,
-        stratify=y,
-        random_state=42,
-    )
+    groups_all: np.ndarray | None = None
+    grouped_eval_used = False
+    if group_col and group_col in df.columns and df[group_col].nunique() > 1:
+        grouped_eval_used = True
+        groups_all = df[group_col].astype(str).values
+        gss = GroupShuffleSplit(n_splits=1, test_size=holdout_fraction, random_state=42)
+        train_idx, test_idx = next(gss.split(X, y, groups_all))
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        groups_train = groups_all[train_idx]
+        groups_test = groups_all[test_idx]
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=holdout_fraction,
+            stratify=y,
+            random_state=42,
+        )
+        groups_train = None
+        groups_test = None
 
     # Train both models
     dt_model, dt_cv = train_decision_tree(
         X_train,
         y_train,
-        cv_folds,
+        groups=groups_train,
+        cv_folds=cv_folds,
         class_weight=class_weight,
     )
     print(f"Decision Tree CV F1: {dt_cv['cv_f1_mean']:.3f} +/- {dt_cv['cv_f1_std']:.3f}")
@@ -198,7 +226,8 @@ def train(
     xgb_model, xgb_cv = train_xgboost(
         X_train,
         y_train,
-        cv_folds,
+        groups=groups_train,
+        cv_folds=cv_folds,
         use_scale_pos_weight=use_scale_pos_weight,
     )
     print(f"XGBoost CV F1:       {xgb_cv['cv_f1_mean']:.3f} +/- {xgb_cv['cv_f1_std']:.3f}")
@@ -242,6 +271,13 @@ def train(
         "use_scale_pos_weight": use_scale_pos_weight,
         "min_graph_rows": min_graph_rows,
         "allow_degenerate": allow_degenerate,
+        "group_col": group_col,
+        "grouped_eval_used": grouped_eval_used,
+        "group_stats": {
+            "train_groups": int(len(set(groups_train))) if groups_train is not None else None,
+            "test_groups": int(len(set(groups_test))) if groups_test is not None else None,
+            "overlap_groups": int(len(set(groups_train).intersection(set(groups_test)))) if groups_train is not None else None,
+        },
         "decision_tree": {**dt_cv, **dt_eval},
         "xgboost": {**xgb_cv, **xgb_eval},
         "best_model": best_name,
@@ -265,6 +301,7 @@ if __name__ == "__main__":
     parser.add_argument("--holdout_fraction", type=float, default=0.2)
     parser.add_argument("--min_graph_rows", type=int, default=100)
     parser.add_argument("--allow_degenerate", action="store_true")
+    parser.add_argument("--group_col", default="query_id", help="Column used for grouped holdout/CV; set empty to disable")
     args = parser.parse_args()
 
     train(
@@ -274,4 +311,5 @@ if __name__ == "__main__":
         holdout_fraction=args.holdout_fraction,
         min_graph_rows=args.min_graph_rows,
         allow_degenerate=args.allow_degenerate,
+        group_col=args.group_col,
     )

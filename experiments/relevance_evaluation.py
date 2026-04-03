@@ -62,8 +62,11 @@ class EvalMetrics:
 
 def _default_train_path() -> str:
     candidates = [
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base_strict.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced_strict.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_strict_curated.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
     ]
@@ -75,8 +78,11 @@ def _default_train_path() -> str:
 
 def _default_eval_path() -> str:
     candidates = [
-        os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_graph_only.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_set_strict.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_graph_only_strict.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_set.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_graph_only.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_strict_curated.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
     ]

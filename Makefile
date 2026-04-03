@@ -1,6 +1,6 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate publish-eval
+.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict
 
-PYTHON := python
+PYTHON := python3
 SPARK_SUBMIT := spark-submit
 VENV := source/bin/activate
 
@@ -158,10 +158,22 @@ quality-gate:  ## Block invalid/degenerate datasets before reporting results
 		--train training_data/fixed_train_base.csv \
 		--eval training_data/fixed_eval_set.csv
 
-publish-eval: quality-gate  ## Run strict evaluation only when dataset passes quality gate
-	$(PYTHON) -m experiments.relevance_evaluation
-	$(PYTHON) -m experiments.ablation_study --data training_data/fixed_train_base.csv
-	@echo "Publishable evaluation complete."
+quality-gate-strict:  ## Strict quality gate on curated real-measurement artifacts
+	$(PYTHON) -m training_data.dataset_quality_gate \
+		--source training_data/real_labeled_runs_strict_curated.csv \
+		--train training_data/fixed_train_base_strict.csv \
+		--eval training_data/fixed_eval_set_strict.csv \
+		--out_json training_data/dataset_quality_report_strict_runtime.json
+
+publish-eval: quality-gate-strict  ## Run publishable strict evaluation bundle
+	$(PYTHON) -m model.trainer --data training_data/fixed_train_base_strict.csv
+	$(PYTHON) -m experiments.relevance_evaluation --train training_data/fixed_train_base_strict.csv --eval training_data/fixed_eval_set_strict.csv --out_json experiments/results/relevance_eval_strict_runtime.json --out_md experiments/results/relevance_eval_strict_runtime.md
+	$(PYTHON) -m experiments.ablation_study --data training_data/fixed_train_base_strict.csv --output experiments/results/ablation_strict_runtime.csv
+	$(PYTHON) -m experiments.dataset_shift_evaluation --source training_data/real_labeled_runs_strict_curated.csv --out_json experiments/results/dataset_shift_eval_strict_runtime.json --out_md experiments/results/dataset_shift_eval_strict_runtime.md
+	$(PYTHON) -m experiments.strict_robustness_evaluation --train training_data/fixed_train_base_strict.csv --eval training_data/fixed_eval_set_strict.csv --transfer_source training_data/real_labeled_runs_strict_curated.csv --out_json experiments/results/strict_robustness_eval_runtime.json --out_md experiments/results/strict_robustness_eval_runtime.md
+	@echo "Publishable strict evaluation complete."
+
+publish-eval-strict: publish-eval  ## Alias for strict publishable bundle
 
 clean:  ## Remove generated data (keeps raw data)
 	rm -rf data/parquet/tpch data/parquet/snb

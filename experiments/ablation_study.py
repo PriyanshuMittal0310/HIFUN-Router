@@ -29,6 +29,19 @@ from features.feature_extractor import FEATURE_NAMES
 
 logger = logging.getLogger(__name__)
 
+
+def _default_data_path() -> str:
+    candidates = [
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base_strict.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_strict_curated.csv"),
+        LABELED_RUNS_CSV,
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    return LABELED_RUNS_CSV
+
 # Feature groups for ablation (must match FEATURE_NAMES from config/feature_schema.json)
 FEATURE_GROUPS = {
     "operation_counts": [
@@ -181,7 +194,7 @@ def results_to_dataframes(results: dict) -> tuple:
 
 def main():
     parser = argparse.ArgumentParser(description="Feature ablation study")
-    parser.add_argument("--data", default=LABELED_RUNS_CSV,
+    parser.add_argument("--data", default=None,
                         help="Path to labeled training data CSV")
     parser.add_argument("--output", default=None,
                         help="Output CSV path for ablation results")
@@ -196,12 +209,14 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     # Load data
-    df = pd.read_csv(args.data)
+    data_path = args.data or _default_data_path()
+    df = pd.read_csv(data_path)
     feature_names = FEATURE_NAMES
     X = df[feature_names].values.astype(np.float32)
     y = (df["label"] == "GRAPH").astype(int).values
 
     print(f"Training data: {len(df)} samples ({y.sum()} GRAPH / {(1-y).sum()} SQL)")
+    print(f"Data path: {data_path}")
     print(f"Features: {len(feature_names)}")
 
     # Run ablation
