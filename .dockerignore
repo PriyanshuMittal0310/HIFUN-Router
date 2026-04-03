@@ -1,0 +1,25 @@
+.git
+.gitignore
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+.venv/
+venv/
+source/
+.ipynb_checkpoints/
+
+# Heavy raw/parquet/graph data not needed in image snapshot
+data/raw/
+data/parquet/
+data/graphs/
+
+# Local temp/debug outputs
+training_data/tmp_queries/
+training_data/tmp_queries_*/
+experiments/results/*_debug.csv
+experiments/results/*_debug.json
+experiments/results/*_debug.md

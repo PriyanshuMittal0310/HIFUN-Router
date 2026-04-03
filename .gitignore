@@ -50,3 +50,28 @@ metastore_db/
 derby.log
 spark-warehouse/
 *.tar.gz
+
+# Debug/temporary experiment outputs (keep strict publishable artifacts tracked)
+experiments/results/*_debug.csv
+experiments/results/*_debug.json
+experiments/results/*_debug.md
+
+# Temporary query packs and ad-hoc collection outputs
+training_data/tmp_queries/
+training_data/tmp_queries_*/
+training_data/real_labeled_runs_graphfocus_new.csv
+training_data/real_collection_failures_graphfocus_new.json
+
+# Local gate reports generated during iterative runs
+training_data/dataset_quality_report.json
+
+# Legacy balanced helper outputs that should stay local
+training_data/real_labeled_runs_balanced.csv
+training_data/real_labeled_runs_balanced_summary.txt
+
+# Local non-strict fixed artifacts
+training_data/fixed_train_base.csv
+training_data/fixed_eval_set.csv
+training_data/fixed_eval_graph_only.csv
+training_data/fixed_train_balanced.csv
+training_data/fixed_split_manifest.json
