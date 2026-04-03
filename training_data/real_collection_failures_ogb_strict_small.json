@@ -1,0 +1,11 @@
+{
+  "rows": 10,
+  "label_distribution": {
+    "SQL": 5,
+    "GRAPH": 5
+  },
+  "failure_taxonomy": {
+    "graph_not_applicable_relational": 20,
+    "both_engines_failed": 30
+  }
+}
