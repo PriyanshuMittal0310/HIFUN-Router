@@ -22,8 +22,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 # ── Arguments ─────────────────────────────────────────────────────────────────
 SF="${1:-5}"
 DBGEN_DIR="${PROJECT_ROOT}/data/raw/tpch-kit/dbgen"
-RAW_OUTPUT="${PROJECT_ROOT}/data/raw/tpch_sf${SF}"
-PARQUET_OUTPUT="${PROJECT_ROOT}/data/parquet/tpch_sf${SF}"
+RAW_OUTPUT="${PROJECT_ROOT}/data/raw/tpch-kit/dbgen"
+PARQUET_OUTPUT="${PROJECT_ROOT}/data/parquet/tpch"
 
 echo "============================================================"
 echo "  HIFUN Router — TPC-H Data Generation at SF=${SF}"
@@ -55,11 +55,7 @@ cd "${DBGEN_DIR}"
 echo "[INFO]  Generating TPC-H SF=${SF} (this may take several minutes) ..."
 ./dbgen -s "${SF}" -f -T a -b dists.dss
 
-# Move generated .tbl files to the raw output directory
-for tbl in *.tbl; do
-    [[ -f "${tbl}" ]] && mv "${tbl}" "${RAW_OUTPUT}/"
-done
-
+# dbgen writes .tbl files in DBGEN_DIR.
 echo "[OK]    Raw TBL files in: ${RAW_OUTPUT}"
 ls -lh "${RAW_OUTPUT}"/*.tbl | awk '{print "       "$5, $9}'
 
@@ -72,8 +68,7 @@ cd "${PROJECT_ROOT}"
 if python3 data/scripts/tpch_to_parquet.py --help 2>&1 | grep -q "\-\-input"; then
     python3 data/scripts/tpch_to_parquet.py \
         --input  "${RAW_OUTPUT}" \
-        --output "${PARQUET_OUTPUT}" \
-        --scale_factor "${SF}"
+    --output "${PARQUET_OUTPUT}"
 else
     # Inline PySpark conversion
     python3 - <<PYEOF
@@ -137,6 +132,5 @@ ls -lh "${PARQUET_OUTPUT}" 2>/dev/null || echo "(directory is empty or does not 
 echo ""
 echo "============================================================"
 echo "  TPC-H SF=${SF} generation complete."
-echo "  Set SCALE_FACTORS in experiments/scale_factor_experiment.py"
-echo "  to include 'sf${SF}': '${PARQUET_OUTPUT}'"
+echo "  Native TPCH parquet path ready for gate checks: ${PARQUET_OUTPUT}"
 echo "============================================================"

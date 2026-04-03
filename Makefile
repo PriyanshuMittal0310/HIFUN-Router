@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native data-tpch-check
+.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -185,10 +185,13 @@ publish-eval:  ## Run publishable strict evaluation bundle
 publish-eval-strict: publish-eval  ## Alias for strict publishable bundle
 
 publish-gate:  ## Validate strict publish artifacts and thresholds
-	$(PYTHON) -m experiments.publish_gate --min_max_feature_drop 0.005 --min_max_group_drop 0.005
+	$(PYTHON) -m experiments.publish_gate --min_max_feature_drop 0.005 --min_max_group_drop 0.005 --min_max_permutation_drop 0.05
 
 publish-gate-native:  ## Validate strict publish artifacts and require native TPCH parquet
-	$(PYTHON) -m experiments.publish_gate --require_native_tpch --min_max_feature_drop 0.005 --min_max_group_drop 0.005
+	$(PYTHON) -m experiments.publish_gate --require_native_tpch --min_max_feature_drop 0.005 --min_max_group_drop 0.005 --min_max_permutation_drop 0.05
+
+status-snapshot:  ## Generate one-page strict runtime status checklist
+	$(PYTHON) -m experiments.status_snapshot --output experiments/results/project_status_snapshot.md
 
 correctness-native:  ## Run correctness report requiring native TPCH parquet
 	$(PYTHON) -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_native_runtime.csv --require_native_tpch

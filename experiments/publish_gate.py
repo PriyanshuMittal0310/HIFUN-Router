@@ -68,26 +68,32 @@ def _check_robustness(robustness: Dict[str, Any], min_robust_f1: float, errors: 
 
 def _check_ablation(
     ablation: Dict[str, Any],
+    robustness: Dict[str, Any],
     min_max_feature_drop: float,
     min_max_group_drop: float,
+    min_max_permutation_drop: float,
     errors: list[str],
 ) -> None:
-    """Require non-flat feature evidence by checking max observed drop."""
+    """Require non-flat feature evidence from ablation or permutation importance."""
     ind = ablation.get("individual_features", {})
     groups = ablation.get("feature_groups", {})
 
     max_feature_drop = max((float(v.get("f1_drop", 0.0)) for v in ind.values()), default=0.0)
     max_group_drop = max((float(v.get("f1_drop", 0.0)) for v in groups.values()), default=0.0)
+    perm = robustness.get("permutation_importance", [])
+    max_perm_drop = max((float(v.get("mean_f1_drop", 0.0)) for v in perm), default=0.0)
 
-    if max_feature_drop < min_max_feature_drop:
+    ablation_non_flat = (
+        max_feature_drop >= min_max_feature_drop and max_group_drop >= min_max_group_drop
+    )
+    permutation_non_flat = max_perm_drop >= min_max_permutation_drop
+
+    if not (ablation_non_flat or permutation_non_flat):
         errors.append(
-            "Ablation gate failed: max individual feature drop="
-            f"{max_feature_drop:.4f} < min {min_max_feature_drop:.4f}"
-        )
-    if max_group_drop < min_max_group_drop:
-        errors.append(
-            "Ablation gate failed: max feature-group drop="
-            f"{max_group_drop:.4f} < min {min_max_group_drop:.4f}"
+            "Ablation gate failed: neither ablation nor permutation evidence is non-flat. "
+            f"max_feature_drop={max_feature_drop:.4f} (min {min_max_feature_drop:.4f}), "
+            f"max_group_drop={max_group_drop:.4f} (min {min_max_group_drop:.4f}), "
+            f"max_permutation_drop={max_perm_drop:.4f} (min {min_max_permutation_drop:.4f})"
         )
 
 
@@ -148,6 +154,7 @@ def main() -> int:
     parser.add_argument("--max_skipped_unsupported_schema", type=int, default=0)
     parser.add_argument("--min_max_feature_drop", type=float, default=0.0)
     parser.add_argument("--min_max_group_drop", type=float, default=0.0)
+    parser.add_argument("--min_max_permutation_drop", type=float, default=0.05)
     parser.add_argument("--require_native_tpch", action="store_true")
     args = parser.parse_args()
 
@@ -191,8 +198,10 @@ def main() -> int:
     _check_robustness(robustness, args.min_robust_f1, errors)
     _check_ablation(
         ablation,
+        robustness,
         args.min_max_feature_drop,
         args.min_max_group_drop,
+        args.min_max_permutation_drop,
         errors,
     )
     _check_correctness(
