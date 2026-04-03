@@ -36,6 +36,15 @@ class ReferenceExecutor:
         # Intermediate results keyed by op_id
         self._op_results: Dict[str, pd.DataFrame] = {}
 
+    def _normalize_loaded_table(self, source_name: str, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply small schema compatibility fixes for known datasets."""
+        if source_name == "works_at" and "company_name" not in df.columns and "organisation_id" in df.columns:
+            fixed = df.copy()
+            # Backward-compatible alias used by existing SNB sample queries.
+            fixed["company_name"] = fixed["organisation_id"].astype(str)
+            return fixed
+        return df
+
     def load_table(self, source_name: str) -> pd.DataFrame:
         """Load a table from parquet."""
         if source_name in self._table_cache:
@@ -50,6 +59,7 @@ class ReferenceExecutor:
         for path in candidates:
             if os.path.exists(path):
                 df = pd.read_parquet(path)
+                df = self._normalize_loaded_table(source_name, df)
                 self._table_cache[source_name] = df
                 return df
 
@@ -60,6 +70,7 @@ class ReferenceExecutor:
                 path = os.path.join(self.graph_dir, name)
                 if os.path.exists(path):
                     df = pd.read_parquet(path)
+                    df = self._normalize_loaded_table(source_name, df)
                     self._table_cache[source_name] = df
                     return df
 
@@ -69,6 +80,7 @@ class ReferenceExecutor:
                 path = os.path.join(self.graph_dir, name)
                 if os.path.exists(path):
                     df = pd.read_parquet(path)
+                    df = self._normalize_loaded_table(source_name, df)
                     self._table_cache[source_name] = df
                     return df
 

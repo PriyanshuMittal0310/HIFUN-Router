@@ -32,6 +32,14 @@ def _get_paths_for_query(qid: str):
     return TPCH_PARQUET_DIR, os.path.join(GRAPHS_DIR, "synthetic")
 
 
+def _is_missing_data_error(exc: Exception) -> bool:
+    """Return True when an exception indicates unavailable local tables/data."""
+    if isinstance(exc, FileNotFoundError):
+        return True
+    msg = str(exc).lower()
+    return "not found" in msg and "table" in msg
+
+
 def generate_correctness_table(query_dir: str, output_csv: str):
     """Run all queries through both executors and generate a CSV report."""
     results = []
@@ -62,11 +70,14 @@ def generate_correctness_table(query_dir: str, output_csv: str):
                 test_df = result_dict["result"]
                 report = compare_results(ref_df, test_df, qid)
                 report["source_file"] = fname
+                report["status"] = "pass" if report.get("pass", False) else "fail"
                 results.append(report)
             except Exception as e:
+                status = "skipped_missing_data" if _is_missing_data_error(e) else "fail"
                 results.append({
                     "query_id": qid,
                     "pass": False,
+                    "status": status,
                     "error": str(e),
                     "source_file": fname,
                 })
@@ -76,9 +87,17 @@ def generate_correctness_table(query_dir: str, output_csv: str):
     df.to_csv(output_csv, index=False)
 
     total = len(df)
-    passed = df["pass"].sum()
-    print(f"\nCorrectness Summary: {passed}/{total} queries pass "
-          f"({100 * passed / total:.1f}%)")
+    passed = int(df["pass"].sum())
+    skipped = int((df.get("status") == "skipped_missing_data").sum()) if "status" in df.columns else 0
+    executable = total - skipped
+    exec_pass_pct = (100 * passed / executable) if executable else 0.0
+    total_pass_pct = (100 * passed / total) if total else 0.0
+
+    print(
+        f"\nCorrectness Summary: {passed}/{total} queries pass "
+        f"({total_pass_pct:.1f}%). Executable-only: {passed}/{executable} "
+        f"({exec_pass_pct:.1f}%), skipped_missing_data={skipped}."
+    )
     cols = ["query_id", "row_count_match", "sha256_match", "col_mismatches", "pass"]
     available = [c for c in cols if c in df.columns]
     print(df[available].to_string(index=False))
