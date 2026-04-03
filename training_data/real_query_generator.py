@@ -409,17 +409,27 @@ def generate_tpcds_queries(intensity: str, focus_mode: str) -> List[dict]:
     return queries
 
 
-def generate_all(scale: str, ogb_graph_source: str, focus_mode: str) -> Dict[str, int]:
+def generate_all(
+    scale: str,
+    ogb_graph_source: str,
+    focus_mode: str,
+    include_sql_families_in_graph_focus: bool,
+) -> Dict[str, int]:
     if scale not in {"balanced", "aggressive"}:
         raise ValueError("scale must be one of: balanced, aggressive")
     if focus_mode not in {"all", "graph_win", "sql_win"}:
         raise ValueError("focus_mode must be one of: all, graph_win, sql_win")
 
     snb = generate_snb_queries("snb", intensity=scale, focus_mode=focus_mode)
-    snb_bi = generate_snb_bi_queries(intensity=scale)
+    snb_bi: List[dict] = []
     ogb = generate_ogb_queries(ogb_graph_source, intensity=scale, focus_mode=focus_mode)
-    job = generate_job_queries(intensity=scale, focus_mode=focus_mode)
-    tpcds = generate_tpcds_queries(intensity=scale, focus_mode=focus_mode)
+    job: List[dict] = []
+    tpcds: List[dict] = []
+
+    if focus_mode != "graph_win" or include_sql_families_in_graph_focus:
+        snb_bi = generate_snb_bi_queries(intensity=scale)
+        job = generate_job_queries(intensity=scale, focus_mode=focus_mode)
+        tpcds = generate_tpcds_queries(intensity=scale, focus_mode=focus_mode)
 
     _write("snb_real_queries.json", snb)
     _write("snb_bi_real_queries.json", snb_bi)
@@ -450,12 +460,18 @@ def main() -> None:
         choices=["all", "graph_win", "sql_win"],
         help="Bias generated workload families toward graph-win or sql-win patterns",
     )
+    parser.add_argument(
+        "--include-sql-families-in-graph-focus",
+        action="store_true",
+        help="In graph_win mode, also emit SNB-BI/JOB/TPCDS families (disabled by default)",
+    )
     args = parser.parse_args()
 
     counts = generate_all(
         scale=args.scale,
         ogb_graph_source=args.ogb_graph_source,
         focus_mode=args.focus_mode,
+        include_sql_families_in_graph_focus=args.include_sql_families_in_graph_focus,
     )
     total = sum(counts.values())
     print("Generated query packs:")

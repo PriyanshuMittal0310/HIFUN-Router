@@ -307,7 +307,14 @@ class TestAblationStudy:
         X = df[FEATURE_NAMES].values.astype(np.float32)
         y = (df["label"] == "GRAPH").astype(int).values
 
-        results = run_ablation(X, y, FEATURE_NAMES, cv_folds=3)
+        results = run_ablation(
+            X,
+            y,
+            FEATURE_NAMES,
+            cv_folds=3,
+            min_graph_rows=1,
+            allow_degenerate=True,
+        )
 
         assert "baseline_f1" in results
         assert results["baseline_f1"] > 0

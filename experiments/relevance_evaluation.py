@@ -9,8 +9,8 @@ This script addresses common research-quality gaps by:
 Usage:
   python experiments/relevance_evaluation.py
   python experiments/relevance_evaluation.py \
-      --train training_data/real_labeled_runs_balanced.csv \
-      --eval training_data/real_labeled_runs.csv
+    --train training_data/fixed_train_base.csv \
+    --eval training_data/fixed_eval_set.csv
 """
 
 import argparse
@@ -62,10 +62,10 @@ class EvalMetrics:
 
 def _default_train_path() -> str:
     candidates = [
-        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"),
-        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
     ]
     for p in candidates:
         if os.path.exists(p):
@@ -75,6 +75,7 @@ def _default_train_path() -> str:
 
 def _default_eval_path() -> str:
     candidates = [
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_graph_only.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_set.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
@@ -90,6 +91,37 @@ def _load_xy(path: str, feature_names: list[str]) -> tuple[np.ndarray, np.ndarra
     X = df[feature_names].values.astype(np.float32)
     y = (df["label"] == "GRAPH").astype(int).values
     return X, y, df
+
+
+def _assert_eval_validity(
+    y_train: np.ndarray,
+    y_eval: np.ndarray,
+    min_graph_train: int,
+    min_graph_eval: int,
+    allow_degenerate: bool,
+) -> None:
+    train_graph = int((y_train == 1).sum())
+    eval_graph = int((y_eval == 1).sum())
+    train_sql = int((y_train == 0).sum())
+    eval_sql = int((y_eval == 0).sum())
+
+    if train_graph == 0 or train_sql == 0:
+        raise ValueError("Train set must contain both SQL and GRAPH labels")
+    if eval_graph == 0 or eval_sql == 0:
+        raise ValueError("Eval set must contain both SQL and GRAPH labels")
+
+    problems = []
+    if train_graph < min_graph_train:
+        problems.append(f"train GRAPH rows={train_graph} < required {min_graph_train}")
+    if eval_graph < min_graph_eval:
+        problems.append(f"eval GRAPH rows={eval_graph} < required {min_graph_eval}")
+
+    if problems and not allow_degenerate:
+        raise ValueError(
+            "Degenerate train/eval distribution: "
+            + "; ".join(problems)
+            + ". Collect additional real graph-winning workloads or use --allow_degenerate for debugging only."
+        )
 
 
 def _metrics(
@@ -219,6 +251,9 @@ def main() -> None:
     parser.add_argument("--eval", dest="eval_path", default=None, help="Evaluation CSV path")
     parser.add_argument("--out_json", default=os.path.join(RESULTS_DIR, "relevance_eval.json"))
     parser.add_argument("--out_md", default=os.path.join(RESULTS_DIR, "relevance_eval.md"))
+    parser.add_argument("--min_graph_train", type=int, default=100)
+    parser.add_argument("--min_graph_eval", type=int, default=25)
+    parser.add_argument("--allow_degenerate", action="store_true")
     args = parser.parse_args()
 
     train_path = args.train or _default_train_path()
@@ -231,6 +266,14 @@ def main() -> None:
 
     X_train, y_train, train_df = _load_xy(train_path, feature_names)
     X_eval, y_eval, eval_df = _load_xy(eval_path, feature_names)
+
+    _assert_eval_validity(
+        y_train,
+        y_eval,
+        min_graph_train=args.min_graph_train,
+        min_graph_eval=args.min_graph_eval,
+        allow_degenerate=args.allow_degenerate,
+    )
 
     X_train_no_hist = train_df[feature_no_hist].values.astype(np.float32)
     X_eval_no_hist = eval_df[feature_no_hist].values.astype(np.float32)

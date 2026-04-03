@@ -1,5 +1,7 @@
 """Model training pipeline: Decision Tree + XGBoost classifiers for SQL/GRAPH routing."""
 
+import argparse
+
 import json
 import os
 import sys
@@ -25,12 +27,12 @@ from features.feature_extractor import FEATURE_NAMES
 
 
 def _default_labeled_path() -> str:
-    """Prefer fixed balanced train split, then fallback datasets."""
+    """Prefer fixed non-resampled train split, then fallback datasets."""
     candidates = [
-        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"),
-        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"),
         os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs.csv"),
+        os.path.join(PROJECT_ROOT, "training_data", "real_labeled_runs_balanced.csv"),
         LABELED_RUNS_CSV,
     ]
     for path in candidates:
@@ -45,6 +47,28 @@ def load_data(labeled_data_path: str):
     X = df[FEATURE_NAMES].values.astype(np.float32)
     y = (df["label"] == "GRAPH").astype(int).values  # 0=SQL, 1=GRAPH
     return X, y, df
+
+
+def _assert_dataset_validity(
+    y: np.ndarray,
+    df: pd.DataFrame,
+    min_graph_rows: int,
+    allow_degenerate: bool,
+) -> None:
+    graph_rows = int((y == 1).sum())
+    sql_rows = int((y == 0).sum())
+    if graph_rows == 0 or sql_rows == 0:
+        raise ValueError("Training data must contain both SQL and GRAPH labels")
+
+    if graph_rows < min_graph_rows and not allow_degenerate:
+        unique_graph = int(df[df["label"] == "GRAPH"].get("source_row_id", pd.Series(dtype=str)).nunique())
+        if unique_graph == 0:
+            unique_graph = graph_rows
+        raise ValueError(
+            f"Degenerate training data: GRAPH rows={graph_rows}, unique_GRAPH={unique_graph}, "
+            f"required>={min_graph_rows}. Collect more real graph-winning labels "
+            "instead of training on repeated upsampled rows."
+        )
 
 
 def train_decision_tree(
@@ -139,6 +163,8 @@ def train(
     holdout_fraction: float = 0.2,
     class_weight: str | None = "balanced",
     use_scale_pos_weight: bool = True,
+    min_graph_rows: int = 100,
+    allow_degenerate: bool = False,
 ) -> Dict:
     """Full training pipeline: load data, train both models, save best one.
 
@@ -148,6 +174,7 @@ def train(
 
     labeled_path = labeled_data_path or _default_labeled_path()
     X, y, df = load_data(labeled_path)
+    _assert_dataset_validity(y, df, min_graph_rows=min_graph_rows, allow_degenerate=allow_degenerate)
     print(f"Loaded {len(df)} samples ({y.sum()} GRAPH, {len(y) - y.sum()} SQL)")
 
     # Create a holdout split for honest reporting in addition to CV metrics.
@@ -213,6 +240,8 @@ def train(
         "labeled_data_path": labeled_path,
         "class_weight": class_weight,
         "use_scale_pos_weight": use_scale_pos_weight,
+        "min_graph_rows": min_graph_rows,
+        "allow_degenerate": allow_degenerate,
         "decision_tree": {**dt_cv, **dt_eval},
         "xgboost": {**xgb_cv, **xgb_eval},
         "best_model": best_name,
@@ -229,4 +258,20 @@ def train(
 
 
 if __name__ == "__main__":
-    train()
+    parser = argparse.ArgumentParser(description="Train SQL/GRAPH routing models")
+    parser.add_argument("--data", default=None, help="Path to labeled training CSV")
+    parser.add_argument("--model_out", default=CLASSIFIER_PATH, help="Path to output model pickle")
+    parser.add_argument("--cv_folds", type=int, default=5)
+    parser.add_argument("--holdout_fraction", type=float, default=0.2)
+    parser.add_argument("--min_graph_rows", type=int, default=100)
+    parser.add_argument("--allow_degenerate", action="store_true")
+    args = parser.parse_args()
+
+    train(
+        labeled_data_path=args.data,
+        model_out=args.model_out,
+        cv_folds=args.cv_folds,
+        holdout_fraction=args.holdout_fraction,
+        min_graph_rows=args.min_graph_rows,
+        allow_degenerate=args.allow_degenerate,
+    )

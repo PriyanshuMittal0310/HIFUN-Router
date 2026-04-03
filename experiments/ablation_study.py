@@ -59,11 +59,23 @@ def run_ablation(
     y: np.ndarray,
     feature_names: list,
     cv_folds: int = 5,
+    min_graph_rows: int = 100,
+    allow_degenerate: bool = False,
 ) -> dict:
     """Run feature ablation study.
 
     Returns dict with baseline F1 and per-feature/group ablation results.
     """
+    graph_rows = int((y == 1).sum())
+    sql_rows = int((y == 0).sum())
+    if graph_rows == 0 or sql_rows == 0:
+        raise ValueError("Ablation requires both SQL and GRAPH labels")
+    if graph_rows < min_graph_rows and not allow_degenerate:
+        raise ValueError(
+            f"Degenerate ablation dataset: GRAPH rows={graph_rows} < required {min_graph_rows}. "
+            "Collect additional real graph-winning labels before interpreting feature ablation."
+        )
+
     skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
 
     def make_model():
@@ -175,6 +187,10 @@ def main():
                         help="Output CSV path for ablation results")
     parser.add_argument("--cv-folds", type=int, default=5,
                         help="Number of cross-validation folds")
+    parser.add_argument("--min-graph-rows", type=int, default=100,
+                        help="Minimum GRAPH rows required for valid ablation")
+    parser.add_argument("--allow-degenerate", action="store_true",
+                        help="Allow running on degenerate datasets (debug only)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -189,7 +205,14 @@ def main():
     print(f"Features: {len(feature_names)}")
 
     # Run ablation
-    results = run_ablation(X, y, feature_names, cv_folds=args.cv_folds)
+    results = run_ablation(
+        X,
+        y,
+        feature_names,
+        cv_folds=args.cv_folds,
+        min_graph_rows=args.min_graph_rows,
+        allow_degenerate=args.allow_degenerate,
+    )
 
     # Save results
     output_base = args.output or os.path.join(RESULTS_DIR, "ablation.csv")

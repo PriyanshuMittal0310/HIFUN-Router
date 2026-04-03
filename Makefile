@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report
+.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate publish-eval
 
 PYTHON := python
 SPARK_SUBMIT := spark-submit
@@ -151,6 +151,17 @@ ablation:  ## Run feature ablation study
 
 evaluate: baselines learned compare ablation  ## Run full Phase 6 evaluation pipeline
 	@echo "Full evaluation pipeline complete."
+
+quality-gate:  ## Block invalid/degenerate datasets before reporting results
+	$(PYTHON) -m training_data.dataset_quality_gate \
+		--source training_data/real_labeled_runs.csv \
+		--train training_data/fixed_train_base.csv \
+		--eval training_data/fixed_eval_set.csv
+
+publish-eval: quality-gate  ## Run strict evaluation only when dataset passes quality gate
+	$(PYTHON) -m experiments.relevance_evaluation
+	$(PYTHON) -m experiments.ablation_study --data training_data/fixed_train_base.csv
+	@echo "Publishable evaluation complete."
 
 clean:  ## Remove generated data (keeps raw data)
 	rm -rf data/parquet/tpch data/parquet/snb

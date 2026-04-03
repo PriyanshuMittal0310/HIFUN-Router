@@ -36,11 +36,12 @@ This repository now supports a real-data-first training workflow with scalable q
 	- Datasets: `snb_real_queries` (432), `ogb_real_queries` (176), `snb_bi_real_queries` (96), `job_real_queries` (18), `tpcds_real_queries` (16)
 	- Labels: `SQL` 734, `GRAPH` 4
 
-- Balanced training labels (recommended for model fitting):
+- Balanced training labels (diagnostic only, not recommended for headline metrics):
 	- `training_data/real_labeled_runs_balanced.csv`
 	- Current composition: 1468 rows
 	- Labels: `SQL` 734, `GRAPH` 734
 	- Includes `resampled` column (`0` original row, `1` upsampled row)
+	- Use only for debugging model plumbing; this file duplicates scarce GRAPH rows and can overfit.
 
 - Balanced dataset summary:
 	- `training_data/real_labeled_runs_balanced_summary.txt`
@@ -187,6 +188,9 @@ python3 training_data/real_query_generator.py --scale aggressive
 python3 training_data/real_query_generator.py --scale balanced --focus-mode graph_win
 python3 training_data/real_query_generator.py --scale balanced --focus-mode sql_win
 
+# If needed, include SQL-heavy families even in graph focus mode
+# python3 training_data/real_query_generator.py --scale balanced --focus-mode graph_win --include-sql-families-in-graph-focus
+
 python3 training_data/real_collection_script.py \
 	--queries_dir dsl/sample_queries \
 	--output training_data/real_labeled_runs.csv \
@@ -202,6 +206,9 @@ python3 training_data/real_collection_script.py \
 # Create deterministic train/eval artifacts (leakage-safe balancing)
 python3 training_data/fix_dataset_splits.py \
   --source training_data/real_labeled_runs.csv
+
+# Optional debug-only mode for highly imbalanced early datasets
+# python3 training_data/fix_dataset_splits.py --source training_data/real_labeled_runs.csv --allow_degenerate
 ```
 
 ### Phase 4: Retrain model
@@ -210,12 +217,12 @@ python3 training_data/fix_dataset_splits.py \
 python3 model/trainer.py
 ```
 
-Trainer defaults now prefer fixed split artifacts:
+Trainer defaults now prefer non-resampled fixed split artifacts:
 
-1. `training_data/fixed_train_balanced.csv`
-2. `training_data/fixed_train_base.csv`
-3. `training_data/real_labeled_runs_balanced.csv`
-4. `training_data/real_labeled_runs.csv`
+1. `training_data/fixed_train_base.csv`
+2. `training_data/fixed_train_balanced.csv`
+3. `training_data/real_labeled_runs.csv`
+4. `training_data/real_labeled_runs_balanced.csv`
 5. `training_data/labeled_runs.csv`
 
 ### Phase 5: Verification
@@ -234,8 +241,8 @@ python3 experiments/relevance_evaluation.py
 
 By default this uses:
 
-- Train: `training_data/fixed_train_balanced.csv`
-- Eval: `training_data/fixed_eval_set.csv`
+- Train: `training_data/fixed_train_base.csv`
+- Eval: `training_data/fixed_eval_set.csv` (or `training_data/fixed_eval_graph_only.csv` for GRAPH-focused stress tests)
 
 Outputs:
 
@@ -275,14 +282,47 @@ Outputs:
 
 ### Training Improvements (new)
 
-- Trainer now prefers real datasets by default in this order:
-	1. `training_data/real_labeled_runs_balanced.csv`
-	2. `training_data/real_labeled_runs.csv`
-	3. `training_data/labeled_runs.csv`
+- Trainer now prefers non-resampled datasets by default in this order:
+	1. `training_data/fixed_train_base.csv`
+	2. `training_data/fixed_train_balanced.csv`
+	3. `training_data/real_labeled_runs.csv`
+	4. `training_data/real_labeled_runs_balanced.csv`
+	5. `training_data/labeled_runs.csv`
 - Trainer now applies imbalance-aware learning by default:
 	- Decision Tree uses `class_weight=balanced`
 	- XGBoost uses `scale_pos_weight`
 - Trainer now reports a stratified holdout evaluation split in addition to CV metrics.
+- Split/training/evaluation scripts now fail fast on degenerate GRAPH-class support unless `--allow_degenerate` is provided.
+
+### Validity Guardrails (critical)
+
+- Do not report headline model quality when eval has only a handful of GRAPH rows.
+- Default thresholds now require substantial GRAPH support in both train and eval.
+- Upsampled balanced datasets are kept for diagnostics, not for defensible model claims.
+
+Run the mandatory quality gate before any paper-facing metrics:
+
+```bash
+python3 -m training_data.dataset_quality_gate \
+	--source training_data/real_labeled_runs.csv \
+	--train training_data/fixed_train_base.csv \
+	--eval training_data/fixed_eval_set.csv
+```
+
+Or via Makefile:
+
+```bash
+make quality-gate
+make publish-eval
+```
+
+If quality gate fails, treat all downstream metrics as debug-only.
+
+### Simulation Transparency
+
+- Some older results in this repository were generated from heuristic/cost-model labels.
+- Use explicit language in reports when presenting simulated timing or simulated labels.
+- Treat simulation outputs as pipeline validation, not final evidence of engine-level performance.
 
 ## Notes on Git and Large Files
 

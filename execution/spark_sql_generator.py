@@ -9,7 +9,7 @@ Supports both local Parquet data and HDFS-backed Parquet tables.
 
 import logging
 import os
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Tuple, Union
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
@@ -60,6 +60,7 @@ class SparkSQLGenerator:
         self.hdfs_root = hdfs_root
         # internal Parquet/temp-view cache keyed by source name
         self._source_cache: Dict[str, DataFrame] = {}
+        self._traversal_graph_cache: Dict[str, Tuple[DataFrame, DataFrame]] = {}
 
     # ─────────────────────────────────────────────
     # Public API
@@ -96,7 +97,7 @@ class SparkSQLGenerator:
             "JOIN":      self._apply_join,
             "AGGREGATE": self._apply_aggregate,
             "MAP":       self._apply_map,
-            "TRAVERSAL": self._apply_traversal_as_filter,
+            "TRAVERSAL": self._apply_traversal_via_joins,
         }
         handler = dispatch.get(node.op_type)
         if handler is None:
@@ -302,30 +303,133 @@ class SparkSQLGenerator:
                 return df.select(proj)
         return df
 
-    def _apply_traversal_as_filter(
+    def _apply_traversal_via_joins(
         self,
         node: QueryNode,
         df: Optional[DataFrame],
         fields_override=None,
     ) -> DataFrame:
-        """Fallback: execute traversal as a SQL filter when routed to SQL engine."""
-        if df is None:
-            df = self._resolve_df(node.source, None)
-
+        """Execute TRAVERSAL in SQL path via iterative edge joins (Spark DataFrame BFS)."""
         t = node.traversal
-        if t and "start_vertex_filter" in t:
-            sf = t["start_vertex_filter"]
-            condition = self._build_condition(sf)
-            if condition is not None:
-                df = df.filter(condition)
+        if t is None:
+            raise ValueError(f"TRAVERSAL node '{node.op_id}' missing traversal spec")
 
-        fields = fields_override or node.fields
+        vertices, edges = self._load_traversal_graph(node.source)
+
+        start_filter = t.get("start_vertex_filter", {})
+        sf_condition = self._build_condition(start_filter) if start_filter else None
+        if sf_condition is not None:
+            frontier = vertices.filter(sf_condition).select(F.col("id")).distinct()
+        else:
+            # If no start filter exists, default to all vertices to keep behavior deterministic.
+            frontier = vertices.select(F.col("id")).distinct()
+
+        visited = frontier
+
+        max_hops = int(t.get("max_hops", 1))
+        direction = str(t.get("direction", "BOTH")).upper()
+        edge_label = t.get("edge_label")
+        if edge_label and "relationship" in edges.columns:
+            edges = edges.filter(F.col("relationship") == edge_label)
+
+        for _ in range(max_hops):
+            next_parts = []
+
+            if direction in ("OUT", "BOTH"):
+                next_out = (
+                    frontier.alias("f")
+                    .join(edges.alias("e"), F.col("f.id") == F.col("e.src"), "inner")
+                    .select(F.col("e.dst").alias("id"))
+                )
+                next_parts.append(next_out)
+
+            if direction in ("IN", "BOTH"):
+                next_in = (
+                    frontier.alias("f")
+                    .join(edges.alias("e"), F.col("f.id") == F.col("e.dst"), "inner")
+                    .select(F.col("e.src").alias("id"))
+                )
+                next_parts.append(next_in)
+
+            if not next_parts:
+                break
+
+            next_frontier = next_parts[0]
+            for p in next_parts[1:]:
+                next_frontier = next_frontier.unionByName(p)
+            next_frontier = next_frontier.distinct()
+            next_frontier = next_frontier.join(visited, on="id", how="left_anti")
+
+            if next_frontier.limit(1).count() == 0:
+                break
+
+            visited = visited.unionByName(next_frontier).distinct()
+            frontier = next_frontier
+
+        result = visited.join(vertices, on="id", how="inner")
+
+        return_fields = t.get("return_fields") or node.fields
+        fields = fields_override or return_fields
         if fields:
-            available = set(df.columns)
+            available = set(result.columns)
             proj = [c for c in fields if c in available]
             if proj:
-                df = df.select(proj)
-        return df
+                result = result.select(*proj)
+
+        return result.distinct()
+
+    def _load_traversal_graph(self, graph_name: str) -> Tuple[DataFrame, DataFrame]:
+        """Load traversal vertices/edges for SQL-path BFS; cache by graph name."""
+        if graph_name in self._traversal_graph_cache:
+            return self._traversal_graph_cache[graph_name]
+
+        # Start with the configured parquet directory, then attempt common graph siblings.
+        data_root = os.path.dirname(os.path.dirname(self.parquet_dir))
+        candidate_dirs = [
+            self.parquet_dir,
+            os.path.join(data_root, "graphs", graph_name),
+            os.path.join(data_root, "graphs"),
+        ]
+
+        def _resolve_from_dirs(names: list[str]) -> str:
+            for d in candidate_dirs:
+                for n in names:
+                    p = os.path.join(d, n)
+                    if os.path.exists(p):
+                        return p
+            raise FileNotFoundError(f"Traversal source file not found for {names} in {candidate_dirs}")
+
+        v_path = _resolve_from_dirs([
+            f"{graph_name}_vertices.parquet",
+            f"{graph_name}_vertices",
+            "vertices.parquet",
+            "vertices",
+        ])
+        e_path = _resolve_from_dirs([
+            f"{graph_name}_edges.parquet",
+            f"{graph_name}_edges",
+            "edges.parquet",
+            "edges",
+            "snb_edges.parquet",
+        ])
+
+        vertices = self.spark.read.parquet(v_path)
+        edges = self.spark.read.parquet(e_path)
+
+        if "id" not in vertices.columns:
+            vertices = vertices.withColumnRenamed(vertices.columns[0], "id")
+
+        if "src" not in edges.columns or "dst" not in edges.columns:
+            # Light schema normalization fallback for alternate edge exports.
+            if "source" in edges.columns and "target" in edges.columns:
+                edges = edges.withColumnRenamed("source", "src").withColumnRenamed("target", "dst")
+            else:
+                raise ValueError(
+                    f"Traversal edges must contain src/dst columns; found {edges.columns}"
+                )
+
+        self._traversal_graph_cache[graph_name] = (vertices, edges)
+        return vertices, edges
 
     # ─────────────────────────────────────────────
     # Helpers

@@ -7,6 +7,7 @@ Why this exists:
 Outputs (default):
 - training_data/fixed_train_base.csv
 - training_data/fixed_eval_set.csv
+- training_data/fixed_eval_graph_only.csv
 - training_data/fixed_train_balanced.csv
 - training_data/fixed_split_manifest.json
 """
@@ -65,10 +66,16 @@ def _deterministic_eval_split(
     return train_df, eval_df
 
 
-def _balance_train(train_df: pd.DataFrame, seed: int) -> pd.DataFrame:
+def _balance_train(
+    train_df: pd.DataFrame,
+    seed: int,
+    min_unique_minority_for_upsample: int,
+) -> tuple[pd.DataFrame, bool, str]:
     counts = train_df["label"].value_counts()
     if len(counts) < 2:
-        return train_df.copy()
+        out = train_df.copy()
+        out["resampled"] = 0
+        return out, False, "single_class"
 
     major_label = counts.idxmax()
     minor_label = counts.idxmin()
@@ -77,14 +84,54 @@ def _balance_train(train_df: pd.DataFrame, seed: int) -> pd.DataFrame:
     minor = train_df[train_df["label"] == minor_label].copy()
 
     if len(minor) == 0:
-        return train_df.copy()
+        out = train_df.copy()
+        out["resampled"] = 0
+        return out, False, "no_minority_class"
+
+    unique_minority = int(minor["source_row_id"].nunique()) if "source_row_id" in minor.columns else int(len(minor))
+    if unique_minority < min_unique_minority_for_upsample:
+        # Refuse to upsample when the minority class has too few unique examples;
+        # this prevents memorizing a handful of rows and reporting inflated metrics.
+        out = train_df.copy()
+        out["resampled"] = 0
+        return out, False, f"minority_unique_too_small:{unique_minority}"
 
     minor_up = minor.sample(n=len(major), replace=True, random_state=seed).copy()
     major["resampled"] = 0
     minor_up["resampled"] = 1
 
     out = pd.concat([major, minor_up], axis=0).sample(frac=1.0, random_state=seed).reset_index(drop=True)
-    return out
+    return out, True, "ok"
+
+
+def _assert_min_graph_support(
+    train_df: pd.DataFrame,
+    eval_df: pd.DataFrame,
+    min_graph_train: int,
+    min_graph_eval: int,
+    allow_degenerate: bool,
+) -> None:
+    train_graph = int((train_df["label"] == "GRAPH").sum())
+    eval_graph = int((eval_df["label"] == "GRAPH").sum())
+
+    problems = []
+    if train_graph < min_graph_train:
+        problems.append(
+            f"train GRAPH rows={train_graph} < required {min_graph_train}"
+        )
+    if eval_graph < min_graph_eval:
+        problems.append(
+            f"eval GRAPH rows={eval_graph} < required {min_graph_eval}"
+        )
+
+    if problems and not allow_degenerate:
+        joined = "; ".join(problems)
+        raise ValueError(
+            "Degenerate label distribution detected: "
+            + joined
+            + ". Generate additional real graph-winning workloads before training/evaluation, "
+            + "or rerun with --allow_degenerate for debugging only."
+        )
 
 
 def main() -> None:
@@ -93,8 +140,13 @@ def main() -> None:
     parser.add_argument("--eval_fraction", type=float, default=0.2)
     parser.add_argument("--min_eval_per_class", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--min_graph_train", type=int, default=100)
+    parser.add_argument("--min_graph_eval", type=int, default=25)
+    parser.add_argument("--allow_degenerate", action="store_true")
+    parser.add_argument("--min_unique_graph_for_upsample", type=int, default=40)
     parser.add_argument("--train_base_out", default=os.path.join(PROJECT_ROOT, "training_data", "fixed_train_base.csv"))
     parser.add_argument("--eval_out", default=os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_set.csv"))
+    parser.add_argument("--graph_eval_out", default=os.path.join(PROJECT_ROOT, "training_data", "fixed_eval_graph_only.csv"))
     parser.add_argument("--train_balanced_out", default=os.path.join(PROJECT_ROOT, "training_data", "fixed_train_balanced.csv"))
     parser.add_argument("--manifest_out", default=os.path.join(PROJECT_ROOT, "training_data", "fixed_split_manifest.json"))
     args = parser.parse_args()
@@ -121,11 +173,27 @@ def main() -> None:
         min_eval_per_class=args.min_eval_per_class,
         seed=args.seed,
     )
-    train_balanced = _balance_train(train_base, seed=args.seed)
+
+    _assert_min_graph_support(
+        train_base,
+        eval_df,
+        min_graph_train=args.min_graph_train,
+        min_graph_eval=args.min_graph_eval,
+        allow_degenerate=args.allow_degenerate,
+    )
+
+    train_balanced, balanced_applied, balanced_reason = _balance_train(
+        train_base,
+        seed=args.seed,
+        min_unique_minority_for_upsample=args.min_unique_graph_for_upsample,
+    )
+
+    graph_eval_df = eval_df[eval_df["label"] == "GRAPH"].copy().reset_index(drop=True)
 
     os.makedirs(os.path.dirname(args.train_base_out), exist_ok=True)
     train_base.to_csv(args.train_base_out, index=False)
     eval_df.to_csv(args.eval_out, index=False)
+    graph_eval_df.to_csv(args.graph_eval_out, index=False)
     train_balanced.to_csv(args.train_balanced_out, index=False)
 
     manifest: Dict[str, object] = {
@@ -133,21 +201,32 @@ def main() -> None:
         "seed": args.seed,
         "eval_fraction": args.eval_fraction,
         "min_eval_per_class": args.min_eval_per_class,
+        "min_graph_train": args.min_graph_train,
+        "min_graph_eval": args.min_graph_eval,
+        "allow_degenerate": bool(args.allow_degenerate),
+        "min_unique_graph_for_upsample": args.min_unique_graph_for_upsample,
         "rows": {
             "source_deduped": int(len(df)),
             "train_base": int(len(train_base)),
             "eval": int(len(eval_df)),
+            "eval_graph_only": int(len(graph_eval_df)),
             "train_balanced": int(len(train_balanced)),
         },
         "labels": {
             "source_deduped": df["label"].value_counts().to_dict(),
             "train_base": train_base["label"].value_counts().to_dict(),
             "eval": eval_df["label"].value_counts().to_dict(),
+            "eval_graph_only": graph_eval_df["label"].value_counts().to_dict(),
             "train_balanced": train_balanced["label"].value_counts().to_dict(),
+        },
+        "balancing": {
+            "applied": bool(balanced_applied),
+            "reason": balanced_reason,
         },
         "outputs": {
             "train_base": args.train_base_out,
             "eval": args.eval_out,
+            "eval_graph_only": args.graph_eval_out,
             "train_balanced": args.train_balanced_out,
         },
     }
