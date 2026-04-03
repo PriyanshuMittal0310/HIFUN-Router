@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict
+.PHONY: help setup data-tpch data-snb data-synthetic data-stats data-all validate-queries test clean collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -173,9 +173,20 @@ publish-eval:  ## Run publishable strict evaluation bundle
 	$(PYTHON) -m experiments.ablation_study --data training_data/fixed_train_base_strict.csv --output experiments/results/ablation_strict_runtime.csv
 	$(PYTHON) -m experiments.dataset_shift_evaluation --source training_data/real_labeled_runs_strict_curated.csv --out_json experiments/results/dataset_shift_eval_strict_runtime.json --out_md experiments/results/dataset_shift_eval_strict_runtime.md
 	$(PYTHON) -m experiments.strict_robustness_evaluation --train training_data/fixed_train_base_strict.csv --eval training_data/fixed_eval_set_strict.csv --transfer_source training_data/real_labeled_runs_strict_curated.csv --out_json experiments/results/strict_robustness_eval_runtime.json --out_md experiments/results/strict_robustness_eval_runtime.md
+	$(PYTHON) -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_runtime.csv
+	$(PYTHON) -m experiments.publish_gate
 	@echo "Publishable strict evaluation complete."
 
 publish-eval-strict: publish-eval  ## Alias for strict publishable bundle
+
+publish-gate:  ## Validate strict publish artifacts and thresholds
+	$(PYTHON) -m experiments.publish_gate
+
+publish-gate-native:  ## Validate strict publish artifacts and require native TPCH parquet
+	$(PYTHON) -m experiments.publish_gate --require_native_tpch
+
+correctness-native:  ## Run correctness report requiring native TPCH parquet
+	$(PYTHON) -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_native_runtime.csv --require_native_tpch
 
 clean:  ## Remove generated data (keeps raw data)
 	rm -rf data/parquet/tpch data/parquet/snb

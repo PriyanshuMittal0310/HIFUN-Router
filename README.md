@@ -140,6 +140,8 @@ If your workspace contains modified non-strict split artifacts, use the strict r
 Useful modes:
 
 - `./run_project_strict.sh smoke` (fast validation: quality + relevance + robustness)
+- `./run_project_strict.sh gate` (validate publication gate on existing artifacts)
+- `./run_project_strict.sh gate-native` (same, but requires native TPCH parquet)
 - `./run_project_strict.sh train`
 - `./run_project_strict.sh relevance`
 - `./run_project_strict.sh robustness`
@@ -149,6 +151,19 @@ This script pins strict inputs explicitly:
 - `training_data/real_labeled_runs_strict_curated.csv`
 - `training_data/fixed_train_base_strict.csv`
 - `training_data/fixed_eval_set_strict.csv`
+
+You can also run the gate directly:
+
+```bash
+python3 -m experiments.publish_gate
+```
+
+For publication-only native-data validation (no TPCH fallback), run:
+
+```bash
+python3 -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_native_runtime.csv --require_native_tpch
+python3 -m experiments.publish_gate --require_native_tpch
+```
 
 ### System prerequisites
 

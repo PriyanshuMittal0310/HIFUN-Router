@@ -258,6 +258,82 @@ class TestSQLGenerator:
         assert "SUM_o_totalprice" in result.columns
         assert "c_name" in result.columns
 
+    def test_filter_missing_column_strict_schema_raises(self, table_loader):
+        """Strict schema mode should fail fast on missing predicate columns."""
+        node = QueryNode(
+            op_id="s1", op_type="FILTER", source="customer",
+            fields=["c_custkey"],
+            predicate={"column": "does_not_exist", "operator": "=", "value": 1}
+        )
+        sub = SubExpression(
+            sub_id="sub_0", nodes=[node],
+            primary_op_type="RELATIONAL", depends_on_subs=[],
+            parallelizable=True
+        )
+        gen = SQLGenerator(table_loader, strict_schema=True)
+        with pytest.raises(KeyError):
+            gen.generate(sub)
+
+
+class TestCompatibilityFallbacks:
+    """Tests for schema compatibility enrichments and fallback table synthesis."""
+
+    def test_reference_executor_tpch_fallback_from_tpcds(self, tmp_path):
+        """Reference executor should synthesize TPCH-like customer/orders from TPC-DS."""
+        parquet_dir = tmp_path / "parquet" / "tpch"
+        graph_dir = tmp_path / "graphs" / "synthetic"
+        tpcds_dir = tmp_path / "parquet" / "tpcds"
+        parquet_dir.mkdir(parents=True, exist_ok=True)
+        graph_dir.mkdir(parents=True, exist_ok=True)
+        tpcds_dir.mkdir(parents=True, exist_ok=True)
+
+        pd.DataFrame({"c0": [1, 2, 3], "c1": [0, 0, 0]}).to_parquet(tpcds_dir / "customer")
+        pd.DataFrame({"c3": [1, 2, 3, 1], "c20": [100.0, 200.0, 150.0, 50.0]}).to_parquet(
+            tpcds_dir / "store_sales"
+        )
+
+        from tests.reference_executor import ReferenceExecutor
+        ex = ReferenceExecutor(parquet_dir=str(parquet_dir), graph_dir=str(graph_dir), strict_schema=True)
+
+        customer = ex.load_table("customer")
+        orders = ex.load_table("orders")
+
+        assert {"c_custkey", "c_name", "c_nationkey", "c_acctbal", "c_mktsegment"}.issubset(customer.columns)
+        assert {"o_orderkey", "o_custkey", "o_totalprice", "o_orderpriority", "o_orderstatus"}.issubset(orders.columns)
+        assert len(customer) == 3
+        assert len(orders) > 0
+
+    def test_hybrid_router_tpch_fallback_from_tpcds(self, tmp_path):
+        """HybridRouter loader should synthesize TPCH-like customer/orders from TPC-DS."""
+        parquet_dir = tmp_path / "parquet" / "tpch"
+        graph_dir = tmp_path / "graphs" / "synthetic"
+        stats_dir = tmp_path / "stats"
+        tpcds_dir = tmp_path / "parquet" / "tpcds"
+        parquet_dir.mkdir(parents=True, exist_ok=True)
+        graph_dir.mkdir(parents=True, exist_ok=True)
+        stats_dir.mkdir(parents=True, exist_ok=True)
+        tpcds_dir.mkdir(parents=True, exist_ok=True)
+
+        pd.DataFrame({"c0": [11, 12, 13], "c1": [0, 0, 0]}).to_parquet(tpcds_dir / "customer")
+        pd.DataFrame({"c3": [11, 12, 13], "c20": [300.0, 400.0, 500.0]}).to_parquet(
+            tpcds_dir / "store_sales"
+        )
+
+        from router.hybrid_router import HybridRouter
+        router = HybridRouter(
+            parquet_dir=str(parquet_dir),
+            graph_dir=str(graph_dir),
+            stats_dir=str(stats_dir),
+            force_engine="SQL",
+            strict_schema=True,
+        )
+
+        customer = router._load_table("customer")
+        orders = router._load_table("orders")
+
+        assert {"c_custkey", "c_name", "c_nationkey", "c_acctbal", "c_mktsegment"}.issubset(customer.columns)
+        assert {"o_orderkey", "o_custkey", "o_totalprice", "o_orderpriority", "o_orderstatus"}.issubset(orders.columns)
+
 
 # --- GraphGenerator Tests ---
 

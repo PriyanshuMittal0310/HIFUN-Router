@@ -60,6 +60,23 @@ run_robustness() {
     --out_md experiments/results/strict_robustness_eval_runtime.md
 }
 
+run_correctness() {
+  echo "[7/8] Running strict correctness report"
+  "$PYTHON_BIN" experiments/correctness_report.py \
+    --queries dsl/sample_queries \
+    --output experiments/results/correctness_report_runtime.csv
+}
+
+run_publish_gate() {
+  echo "[8/8] Validating strict publication gate"
+  "$PYTHON_BIN" experiments/publish_gate.py
+}
+
+run_publish_gate_native() {
+  echo "[8/8] Validating strict publication gate (native TPCH required)"
+  "$PYTHON_BIN" experiments/publish_gate.py --require_native_tpch
+}
+
 case "$MODE" in
   all)
     run_quality_gate
@@ -68,6 +85,8 @@ case "$MODE" in
     run_ablation
     run_shift
     run_robustness
+    run_correctness
+    run_publish_gate
     ;;
   quality)
     run_quality_gate
@@ -92,9 +111,17 @@ case "$MODE" in
     run_quality_gate
     run_relevance
     run_robustness
+    run_correctness
+    run_publish_gate
+    ;;
+  gate)
+    run_publish_gate
+    ;;
+  gate-native)
+    run_publish_gate_native
     ;;
   *)
-    echo "Usage: ./run_project_strict.sh [all|quality|train|relevance|ablation|shift|robustness|smoke]"
+    echo "Usage: ./run_project_strict.sh [all|quality|train|relevance|ablation|shift|robustness|smoke|gate|gate-native]"
     exit 1
     ;;
 esac

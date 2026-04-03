@@ -46,7 +46,11 @@ def _is_unsupported_schema_error(exc: Exception) -> bool:
     return "missing filter column" in msg
 
 
-def generate_correctness_table(query_dir: str, output_csv: str):
+def _is_tpch_query(qid: str) -> bool:
+    return qid.startswith("q_tpch") or qid.startswith("q_synth")
+
+
+def generate_correctness_table(query_dir: str, output_csv: str, require_native_tpch: bool = False):
     """Run all queries through both executors and generate a CSV report."""
     results = []
 
@@ -60,6 +64,20 @@ def generate_correctness_table(query_dir: str, output_csv: str):
         for q in queries:
             qid = q.get("query_id", "?")
             parquet_dir, graph_dir = _get_paths_for_query(qid)
+
+            if require_native_tpch and _is_tpch_query(qid):
+                native_customer = os.path.exists(os.path.join(parquet_dir, "customer"))
+                native_orders = os.path.exists(os.path.join(parquet_dir, "orders"))
+                if not (native_customer and native_orders):
+                    results.append({
+                        "query_id": qid,
+                        "pass": False,
+                        "status": "skipped_missing_data",
+                        "error": "native_tpch_required_but_missing_customer_or_orders",
+                        "source_file": fname,
+                    })
+                    continue
+
             router = HybridRouter(
                 parquet_dir=parquet_dir,
                 graph_dir=graph_dir,
@@ -127,9 +145,11 @@ def main():
     parser.add_argument("--output", default=os.path.join(RESULTS_DIR,
                         "correctness_report.csv"),
                         help="Output CSV path")
+    parser.add_argument("--require_native_tpch", action="store_true",
+                        help="Require native TPCH customer/orders parquet for TPCH/synthetic queries")
     args = parser.parse_args()
 
-    generate_correctness_table(args.queries, args.output)
+    generate_correctness_table(args.queries, args.output, require_native_tpch=args.require_native_tpch)
 
 
 if __name__ == "__main__":
