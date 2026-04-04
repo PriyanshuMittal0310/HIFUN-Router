@@ -15,6 +15,7 @@ Environment variables consumed:
 """
 
 import os
+import shutil
 from pyspark.sql import SparkSession
 
 # ─── GraphFrames JAR (Spark 3.4, Scala 2.12) ─────────────────────────────────
@@ -30,6 +31,41 @@ _DRIVER_MEM      = os.environ.get("HIFUN_DRIVER_MEM",     "4g")
 _EXECUTOR_MEM    = os.environ.get("HIFUN_EXECUTOR_MEM",   "4g")
 _EXECUTOR_CORES  = os.environ.get("HIFUN_EXECUTOR_CORES", "2")
 _HISTORY_LOG_DIR = os.environ.get("HIFUN_HISTORY_SERVER", "/tmp/spark-events")
+
+
+def _ensure_java_home() -> None:
+    """Best-effort JAVA_HOME discovery for local Spark runs.
+
+    PySpark frequently fails with a generic Java gateway error when JAVA_HOME is
+    unset even if `java` is available on PATH. This helper infers JAVA_HOME
+    from the resolved java binary path and sets it for the current process.
+    """
+    if os.environ.get("JAVA_HOME"):
+        return
+
+    java_bin = shutil.which("java")
+    if not java_bin:
+        # Common user-local JRE location used in this project environment.
+        local_root = os.path.expanduser("~/.local/java")
+        if os.path.isdir(local_root):
+            candidates = sorted(
+                [
+                    os.path.join(local_root, d, "bin", "java")
+                    for d in os.listdir(local_root)
+                ]
+            )
+            for c in reversed(candidates):
+                if os.path.exists(c):
+                    java_bin = c
+                    break
+    if not java_bin:
+        return
+
+    real_java = os.path.realpath(java_bin)
+    # Expected: /usr/lib/jvm/<jdk>/bin/java -> JAVA_HOME=/usr/lib/jvm/<jdk>
+    parent = os.path.dirname(real_java)
+    if os.path.basename(parent) == "bin":
+        os.environ["JAVA_HOME"] = os.path.dirname(parent)
 
 
 def get_spark_session(
@@ -60,9 +96,18 @@ def get_spark_session(
     Returns:
         A configured SparkSession (or the existing active session).
     """
+    _ensure_java_home()
+
     packages = _GF_PACKAGE
     if enable_delta:
         packages = f"{packages},{_DELTA_PACKAGE}"
+
+    # Spark fails hard if event logging is enabled and the directory is absent.
+    event_log_enabled = True
+    try:
+        os.makedirs(_HISTORY_LOG_DIR, exist_ok=True)
+    except OSError:
+        event_log_enabled = False
 
     builder = (
         SparkSession.builder
@@ -108,7 +153,7 @@ def get_spark_session(
         .config("spark.kryoserializer.buffer.max", "512m")
 
         # ── Event log (Spark History Server) ─────────────────────────────
-        .config("spark.eventLog.enabled",  "true")
+        .config("spark.eventLog.enabled",  "true" if event_log_enabled else "false")
         .config("spark.eventLog.dir",      _HISTORY_LOG_DIR)
         .config("spark.history.fs.logDirectory", _HISTORY_LOG_DIR)
 
@@ -141,12 +186,6 @@ def get_spark_session(
 
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
-
-    # Ensure event log directory exists (no-op on HDFS)
-    try:
-        os.makedirs(_HISTORY_LOG_DIR, exist_ok=True)
-    except OSError:
-        pass
 
     return spark
 
