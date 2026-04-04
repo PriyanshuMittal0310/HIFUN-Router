@@ -69,6 +69,68 @@ def _add_check(checks: list[dict], name: str, passed: bool, detail: str) -> None
     checks.append({"name": name, "passed": bool(passed), "detail": detail})
 
 
+def _parse_dataset_thresholds(raw: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    txt = (raw or "").strip()
+    if not txt:
+        return out
+    for item in txt.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if ":" not in item:
+            raise ValueError(
+                f"Invalid per-dataset threshold '{item}'. Expected format dataset:min_graph"
+            )
+        ds, val = item.split(":", 1)
+        ds = ds.strip()
+        val = val.strip()
+        if not ds:
+            raise ValueError(f"Invalid dataset key in '{item}'")
+        out[ds] = int(val)
+    return out
+
+
+def _check_per_dataset_graph_min(
+    checks: list[dict],
+    scope: str,
+    df: pd.DataFrame | None,
+    per_dataset_min_graph: dict[str, int],
+    require_dataset_presence: bool,
+) -> None:
+    if not per_dataset_min_graph:
+        return
+    if df is None:
+        for ds, min_graph in per_dataset_min_graph.items():
+            _add_check(
+                checks,
+                f"{scope}_dataset_graph_min:{ds}",
+                not require_dataset_presence,
+                f"dataset missing because {scope} split is unavailable; required GRAPH>={min_graph}",
+            )
+        return
+
+    if "dataset" not in df.columns or "label" not in df.columns:
+        _add_check(
+            checks,
+            f"{scope}_dataset_graph_min",
+            False,
+            f"{scope} split missing required columns: dataset/label",
+        )
+        return
+
+    for ds, min_graph in per_dataset_min_graph.items():
+        subset = df[df["dataset"] == ds]
+        present = len(subset) > 0
+        graph_rows = int((subset["label"] == "GRAPH").sum()) if present else 0
+        passed = graph_rows >= min_graph and (present or not require_dataset_presence)
+        if require_dataset_presence and not present:
+            detail = f"dataset absent in {scope}; required GRAPH>={min_graph}"
+        else:
+            detail = f"dataset={ds}, GRAPH={graph_rows}, required>={min_graph}, rows={len(subset)}"
+        _add_check(checks, f"{scope}_dataset_graph_min:{ds}", passed, detail)
+
+
 def evaluate_gate(
     source_df: pd.DataFrame,
     train_df: pd.DataFrame | None,
@@ -80,6 +142,8 @@ def evaluate_gate(
     max_graph_duplication_factor: float,
     min_graph_datasets: int,
     min_real_measurement_share: float,
+    per_dataset_min_graph: dict[str, int],
+    require_dataset_presence: bool,
 ) -> GateResult:
     checks: list[dict] = []
 
@@ -169,6 +233,28 @@ def evaluate_gate(
             f"eval GRAPH={n_eval_graph}, required>={min_graph_eval}",
         )
 
+    _check_per_dataset_graph_min(
+        checks,
+        scope="source",
+        df=source_df,
+        per_dataset_min_graph=per_dataset_min_graph,
+        require_dataset_presence=require_dataset_presence,
+    )
+    _check_per_dataset_graph_min(
+        checks,
+        scope="train",
+        df=train_df,
+        per_dataset_min_graph=per_dataset_min_graph,
+        require_dataset_presence=require_dataset_presence,
+    )
+    _check_per_dataset_graph_min(
+        checks,
+        scope="eval",
+        df=eval_df,
+        per_dataset_min_graph=per_dataset_min_graph,
+        require_dataset_presence=require_dataset_presence,
+    )
+
     passed = all(c["passed"] for c in checks)
     summary = {
         "rows_total": n_total,
@@ -195,8 +281,20 @@ def main() -> None:
     parser.add_argument("--max_graph_duplication_factor", type=float, default=3.0)
     parser.add_argument("--min_graph_datasets", type=int, default=2)
     parser.add_argument("--min_real_measurement_share", type=float, default=0.90)
+    parser.add_argument(
+        "--per_dataset_min_graph",
+        default="",
+        help="Comma-separated dataset:min_graph list, e.g. snb_real_queries:25,ogb_real_queries:25",
+    )
+    parser.add_argument(
+        "--require_dataset_presence",
+        action="store_true",
+        help="When set, each dataset listed in --per_dataset_min_graph must exist in source/train/eval splits",
+    )
     parser.add_argument("--out_json", default="training_data/dataset_quality_report.json")
     args = parser.parse_args()
+
+    per_dataset_min_graph = _parse_dataset_thresholds(args.per_dataset_min_graph)
 
     source_df = pd.read_csv(args.source)
     train_df = _safe_load(args.train)
@@ -213,6 +311,8 @@ def main() -> None:
         max_graph_duplication_factor=args.max_graph_duplication_factor,
         min_graph_datasets=args.min_graph_datasets,
         min_real_measurement_share=args.min_real_measurement_share,
+        per_dataset_min_graph=per_dataset_min_graph,
+        require_dataset_presence=args.require_dataset_presence,
     )
 
     os.makedirs(os.path.dirname(args.out_json), exist_ok=True)

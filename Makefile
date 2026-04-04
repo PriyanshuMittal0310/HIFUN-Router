@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
+.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict quality-gate-coverage-all build-all-validated-data publish-eval-all publish-eval-all-coverage publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -172,6 +172,32 @@ quality-gate-strict:  ## Strict quality gate on curated real-measurement artifac
 		--train training_data/fixed_train_base_strict.csv \
 		--eval training_data/fixed_eval_set_strict.csv \
 		--out_json training_data/dataset_quality_report_strict_runtime.json
+
+build-all-validated-data:  ## Build strict all-data source by merging strict curated + other real-measured datasets
+	$(PYTHON) -m training_data.build_validated_all_source \
+		--strict_source training_data/real_labeled_runs_strict_curated.csv \
+		--full_source training_data/real_labeled_runs.csv \
+		--output training_data/real_labeled_runs_strict_all.csv \
+		--summary_out training_data/real_labeled_runs_strict_all_summary.json
+
+publish-eval-all: build-all-validated-data  ## Run strict eval bundle on all validated real datasets
+	$(PYTHON) -m training_data.fix_dataset_splits --source training_data/real_labeled_runs_strict_all.csv --split_mode group --group_col query_id --train_base_out training_data/fixed_train_base_strict_all.csv --eval_out training_data/fixed_eval_set_strict_all.csv --graph_eval_out training_data/fixed_eval_graph_only_strict_all.csv --train_balanced_out training_data/fixed_train_balanced_strict_all.csv --manifest_out training_data/fixed_split_manifest_strict_all.json
+	$(PYTHON) -m training_data.dataset_quality_gate --source training_data/real_labeled_runs_strict_all.csv --train training_data/fixed_train_base_strict_all.csv --eval training_data/fixed_eval_set_strict_all.csv --out_json training_data/dataset_quality_report_strict_all_runtime.json
+	$(PYTHON) -m model.trainer --data training_data/fixed_train_base_strict_all.csv
+	$(PYTHON) -m experiments.relevance_evaluation --train training_data/fixed_train_base_strict_all.csv --eval training_data/fixed_eval_set_strict_all.csv --out_json experiments/results/relevance_eval_strict_all_runtime.json --out_md experiments/results/relevance_eval_strict_all_runtime.md
+
+quality-gate-coverage-all:  ## Enforce per-dataset GRAPH minima for broad multi-dataset claims
+	$(PYTHON) -m training_data.dataset_quality_gate \
+		--source training_data/real_labeled_runs_strict_all.csv \
+		--train training_data/fixed_train_base_strict_all.csv \
+		--eval training_data/fixed_eval_set_strict_all.csv \
+		--per_dataset_min_graph "snb_real_queries:25,ogb_real_queries:25,snb_bi_real_queries:25,job_real_queries:25,tpcds_real_queries:25" \
+		--require_dataset_presence \
+		--out_json training_data/dataset_quality_report_strict_all_coverage.json
+
+publish-eval-all-coverage: publish-eval-all  ## All-data eval plus strict per-dataset coverage and improved ablation protocol
+	$(PYTHON) -m experiments.ablation_study --data training_data/fixed_train_base_strict_all.csv --output experiments/results/ablation_strict_all_runtime.csv --model xgboost --group-col query_id --by-dataset
+	$(MAKE) quality-gate-coverage-all
 
 publish-eval:  ## Run publishable strict evaluation bundle
 	$(PYTHON) -m training_data.fix_dataset_splits --source training_data/real_labeled_runs_strict_curated.csv --split_mode group --group_col query_id --train_base_out training_data/fixed_train_base_strict.csv --eval_out training_data/fixed_eval_set_strict.csv --graph_eval_out training_data/fixed_eval_graph_only_strict.csv --train_balanced_out training_data/fixed_train_balanced_strict.csv --manifest_out training_data/fixed_split_manifest_strict.json

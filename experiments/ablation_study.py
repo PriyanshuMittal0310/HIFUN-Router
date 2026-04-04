@@ -18,8 +18,9 @@ import sys
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold, StratifiedGroupKFold, cross_val_score
 from sklearn.tree import DecisionTreeClassifier
+import xgboost as xgb
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -75,6 +76,8 @@ def run_ablation(
     cv_repeats: int = 3,
     min_graph_rows: int = 100,
     allow_degenerate: bool = False,
+    model_name: str = "xgboost",
+    groups: np.ndarray | None = None,
 ) -> dict:
     """Run feature ablation study.
 
@@ -91,14 +94,31 @@ def run_ablation(
         )
 
     def make_model():
-        return DecisionTreeClassifier(max_depth=6, min_samples_leaf=10, random_state=42)
+        if model_name == "decision_tree":
+            return DecisionTreeClassifier(max_depth=6, min_samples_leaf=10, random_state=42)
+        return xgb.XGBClassifier(
+            n_estimators=200,
+            max_depth=5,
+            learning_rate=0.05,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            random_state=42,
+            eval_metric="logloss",
+            scale_pos_weight=float((y == 0).sum() / max((y == 1).sum(), 1)),
+        )
 
     def repeated_cv_scores(X_input: np.ndarray) -> np.ndarray:
         all_scores = []
         for r in range(cv_repeats):
-            skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42 + r)
+            if groups is not None:
+                skf = StratifiedGroupKFold(n_splits=cv_folds, shuffle=True, random_state=42 + r)
+            else:
+                skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42 + r)
             model = make_model()
-            scores = cross_val_score(model, X_input, y, cv=skf, scoring="f1")
+            if groups is not None:
+                scores = cross_val_score(model, X_input, y, cv=skf, scoring="f1", groups=groups)
+            else:
+                scores = cross_val_score(model, X_input, y, cv=skf, scoring="f1")
             all_scores.extend(scores.tolist())
         return np.asarray(all_scores, dtype=np.float32)
 
@@ -116,6 +136,8 @@ def run_ablation(
             "p2_5": baseline_ci_low,
             "p97_5": baseline_ci_high,
         },
+        "model_name": model_name,
+        "grouped_cv_used": bool(groups is not None),
         "cv_folds": cv_folds,
         "cv_repeats": cv_repeats,
         "individual_features": {},
@@ -249,6 +271,8 @@ def write_markdown_summary(results: dict, individual_df: pd.DataFrame, group_df:
     lines.append("")
     lines.append(f"- Baseline F1: {results['baseline_f1']:.4f}")
     lines.append(f"- Baseline std: {results['baseline_f1_std']:.4f}")
+    lines.append(f"- Model: {results.get('model_name', 'decision_tree')}")
+    lines.append(f"- Grouped CV: {results.get('grouped_cv_used', False)}")
     lines.append(
         f"- Baseline 95% interval: [{results.get('baseline_f1_ci', {}).get('p2_5', 0.0):.4f}, "
         f"{results.get('baseline_f1_ci', {}).get('p97_5', 0.0):.4f}]"
@@ -302,6 +326,18 @@ def main():
                         help="Minimum GRAPH rows required for valid ablation")
     parser.add_argument("--allow-degenerate", action="store_true",
                         help="Allow running on degenerate datasets (debug only)")
+    parser.add_argument("--model", choices=["xgboost", "decision_tree"], default="xgboost",
+                        help="Model used for ablation protocol")
+    parser.add_argument("--group-col", default="query_id",
+                        help="Column for grouped CV (query-disjoint folds)")
+    parser.add_argument("--disable-grouped-cv", action="store_true",
+                        help="Disable grouped CV even if group column exists")
+    parser.add_argument("--by-dataset", action="store_true",
+                        help="Also run per-dataset ablation where sample support is sufficient")
+    parser.add_argument("--min-dataset-rows", type=int, default=80,
+                        help="Minimum dataset rows for per-dataset ablation")
+    parser.add_argument("--min-dataset-graph", type=int, default=20,
+                        help="Minimum GRAPH rows for per-dataset ablation")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -312,6 +348,9 @@ def main():
     feature_names = FEATURE_NAMES
     X = df[feature_names].values.astype(np.float32)
     y = (df["label"] == "GRAPH").astype(int).values
+    groups = None
+    if not args.disable_grouped_cv and args.group_col and args.group_col in df.columns:
+        groups = df[args.group_col].astype(str).values
 
     print(f"Training data: {len(df)} samples ({y.sum()} GRAPH / {(1-y).sum()} SQL)")
     print(f"Data path: {data_path}")
@@ -326,7 +365,34 @@ def main():
         cv_repeats=args.cv_repeats,
         min_graph_rows=args.min_graph_rows,
         allow_degenerate=args.allow_degenerate,
+        model_name=args.model,
+        groups=groups,
     )
+
+    if args.by_dataset and "dataset" in df.columns:
+        by_dataset_results = {}
+        for dname, ddf in df.groupby("dataset"):
+            d_graph = int((ddf["label"] == "GRAPH").sum())
+            if len(ddf) < args.min_dataset_rows or d_graph < args.min_dataset_graph:
+                continue
+            dX = ddf[feature_names].values.astype(np.float32)
+            dy = (ddf["label"] == "GRAPH").astype(int).values
+            dgroups = None
+            if groups is not None and args.group_col in ddf.columns:
+                dgroups = ddf[args.group_col].astype(str).values
+            by_dataset_results[dname] = run_ablation(
+                dX,
+                dy,
+                feature_names,
+                cv_folds=args.cv_folds,
+                cv_repeats=args.cv_repeats,
+                min_graph_rows=args.min_dataset_graph,
+                allow_degenerate=args.allow_degenerate,
+                model_name=args.model,
+                groups=dgroups,
+            )
+        if by_dataset_results:
+            results["by_dataset"] = by_dataset_results
 
     # Save results
     output_base = args.output or os.path.join(RESULTS_DIR, "ablation.csv")

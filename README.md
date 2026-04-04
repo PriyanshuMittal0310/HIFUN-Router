@@ -158,6 +158,31 @@ You can also run the gate directly:
 python3 -m experiments.publish_gate
 ```
 
+To train/evaluate with all available real-measurement datasets (strict curated +
+additional SNB-BI/JOB/TPCDS rows) while enforcing quality checks:
+
+```bash
+make publish-eval-all
+```
+
+For broad multi-dataset publishability claims, enforce per-dataset GRAPH minima:
+
+```bash
+make quality-gate-coverage-all
+```
+
+This target currently requires at least 25 GRAPH rows in each dataset
+(`snb_real_queries`, `ogb_real_queries`, `snb_bi_real_queries`, `job_real_queries`, `tpcds_real_queries`) across source/train/eval.
+
+To generate stronger interpretability evidence on all-data splits:
+
+```bash
+python3 -m experiments.ablation_study \
+	--data training_data/fixed_train_base_strict_all.csv \
+	--output experiments/results/ablation_strict_all_runtime.csv \
+	--model xgboost --group-col query_id --by-dataset
+```
+
 For publication-only native-data validation (no TPCH fallback), run:
 
 ```bash
