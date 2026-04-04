@@ -1,7 +1,7 @@
 # ─── Core Big-Data / Spark ecosystem ─────────────────────────────────────────
 pyspark==3.4.2
 # GraphFrames Python bindings (JAR auto-downloaded by Spark via --packages)
-graphframes==0.6
+graphframes==0.8.3
 # Delta Lake (ACID writes, time-travel, MERGE) — optional but recommended
 delta-spark==2.4.0
 
@@ -25,7 +25,7 @@ statsmodels==0.14.1       # VIF computation (model/feature_analysis.py)
 matplotlib==3.8.2
 seaborn==0.13.1
 
-# ─── Experiment tracking & reporting ─────────────────────────="───────────────
+# ─── Experiment tracking & reporting ─────────────────────────────────────────
 jsonschema==4.21.1        # DSL query validation
 
 # ─── Interactive development ──────────────────────────────────────────────────

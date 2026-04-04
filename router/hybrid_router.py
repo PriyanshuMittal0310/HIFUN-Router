@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -39,6 +40,10 @@ from config.paths import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class DependencyCycleError(ValueError):
+    """Raised when SubExpression dependencies contain a cycle."""
 
 
 class HybridRouter:
@@ -193,10 +198,26 @@ class HybridRouter:
             return None
 
         cust_raw = pd.read_parquet(customer_path)
-        if "c0" not in cust_raw.columns:
+        if cust_raw.empty:
             return None
 
-        c_custkey = pd.to_numeric(cust_raw["c0"], errors="coerce").fillna(0).astype(int)
+        def _first_existing(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
+            for col in candidates:
+                if col in df.columns:
+                    return col
+            return None
+
+        customer_key_col = _first_existing(
+            cust_raw,
+            ["c_customer_sk", "customer_sk", "customer_id", "c_custkey"],
+        )
+        if customer_key_col is None:
+            logger.warning(
+                "TPCH compatibility skipped: no customer key column found in TPC-DS customer table"
+            )
+            return None
+
+        c_custkey = pd.to_numeric(cust_raw[customer_key_col], errors="coerce").fillna(0).astype(int)
         customer = pd.DataFrame({
             "c_custkey": c_custkey,
             "c_name": "CUST_" + c_custkey.astype(str),
@@ -219,19 +240,31 @@ class HybridRouter:
             return None
 
         sales_raw = sales_raw.iloc[:200000].copy()
-        if "c3" in sales_raw.columns:
-            o_custkey = pd.to_numeric(sales_raw["c3"], errors="coerce")
-        else:
-            o_custkey = pd.Series(range(1, len(sales_raw) + 1), index=sales_raw.index)
+        sales_customer_col = _first_existing(
+            sales_raw,
+            ["ss_customer_sk", "customer_sk", "customer_id", "o_custkey"],
+        )
+        if sales_customer_col is None:
+            logger.warning(
+                "TPCH compatibility skipped: no customer key column found in TPC-DS store_sales table"
+            )
+            return None
+        o_custkey = pd.to_numeric(sales_raw[sales_customer_col], errors="coerce")
 
         max_key = int(customer["c_custkey"].max()) if not customer.empty else 1
         o_custkey = o_custkey.fillna(0).astype(int)
         o_custkey = (o_custkey % max_key) + 1
 
-        if "c20" in sales_raw.columns:
-            o_totalprice = pd.to_numeric(sales_raw["c20"], errors="coerce")
-        else:
-            o_totalprice = pd.Series(range(1, len(sales_raw) + 1), index=sales_raw.index, dtype=float)
+        sales_total_col = _first_existing(
+            sales_raw,
+            ["ss_net_paid", "ss_sales_price", "ss_ext_sales_price", "o_totalprice"],
+        )
+        if sales_total_col is None:
+            logger.warning(
+                "TPCH compatibility skipped: no sales amount column found in TPC-DS store_sales table"
+            )
+            return None
+        o_totalprice = pd.to_numeric(sales_raw[sales_total_col], errors="coerce")
         o_totalprice = o_totalprice.fillna(0.0).abs() + 1.0
 
         order_idx = pd.Series(range(1, len(sales_raw) + 1), index=sales_raw.index)
@@ -334,27 +367,20 @@ class HybridRouter:
         levels = self._build_execution_levels(sub_expressions)
 
         for level in levels:
-            for sub_expr in level:
-                # Extract features & predict engine
-                engine, confidence, inference_ms = self._route_subexpression(sub_expr)
+            level_results = self._execute_level(level, shared_cache)
+            for item in level_results:
+                sub_expr = item["sub_expr"]
                 routing_decisions.append({
                     "sub_id": sub_expr.sub_id,
-                    "engine": engine,
+                    "engine": item["engine"],
                     "primary_op_type": sub_expr.primary_op_type,
                     "n_nodes": len(sub_expr.nodes),
-                    "confidence": confidence,
-                    "inference_ms": inference_ms,
+                    "confidence": item["confidence"],
+                    "inference_ms": item["inference_ms"],
                 })
-
-                # Execute
-                t_exec_start = time.perf_counter()
-                result_df = self._execute_subexpression(sub_expr, engine, shared_cache)
-                t_exec_end = time.perf_counter()
-                execution_times[sub_expr.sub_id] = (t_exec_end - t_exec_start) * 1000
-
-                # Store in caches
-                shared_cache[sub_expr.sub_id] = result_df
-                composer.register_result(sub_expr.sub_id, result_df)
+                execution_times[sub_expr.sub_id] = item["execution_ms"]
+                shared_cache[sub_expr.sub_id] = item["result_df"]
+                composer.register_result(sub_expr.sub_id, item["result_df"])
 
         # Step 5: Compose
         final_result = composer.compose(sub_expressions)
@@ -466,6 +492,49 @@ class HybridRouter:
             )
             return generator.generate(sub_expr)
 
+    def _execute_one_subexpression(
+        self,
+        sub_expr: SubExpression,
+        shared_cache: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Route + execute one sub-expression and return timing + output."""
+        engine, confidence, inference_ms = self._route_subexpression(sub_expr)
+        t_exec_start = time.perf_counter()
+        result_df = self._execute_subexpression(sub_expr, engine, shared_cache)
+        execution_ms = (time.perf_counter() - t_exec_start) * 1000
+        return {
+            "sub_expr": sub_expr,
+            "engine": engine,
+            "confidence": confidence,
+            "inference_ms": inference_ms,
+            "execution_ms": execution_ms,
+            "result_df": result_df,
+        }
+
+    def _execute_level(
+        self,
+        level: List[SubExpression],
+        shared_cache: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """Execute one dependency level; parallelize only when safe and useful."""
+        if not level:
+            return []
+
+        if len(level) == 1:
+            return [self._execute_one_subexpression(level[0], shared_cache)]
+
+        workers = min(len(level), max(1, os.cpu_count() or 1))
+        ordered_results: List[Optional[Dict[str, Any]]] = [None] * len(level)
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            future_to_idx = {
+                executor.submit(self._execute_one_subexpression, sub_expr, shared_cache): idx
+                for idx, sub_expr in enumerate(level)
+            }
+            for future, idx in future_to_idx.items():
+                ordered_results[idx] = future.result()
+
+        return [r for r in ordered_results if r is not None]
+
     @staticmethod
     def _build_execution_levels(
         sub_expressions: List[SubExpression]
@@ -496,9 +565,10 @@ class HybridRouter:
                     still_remaining.append(se)
 
             if not current_level:
-                # Circular dependency or unresolvable — force assign remaining
-                current_level = still_remaining
-                still_remaining = []
+                unresolved = [se.sub_id for se in still_remaining]
+                raise DependencyCycleError(
+                    f"Circular or unresolvable dependency detected among sub-expressions: {unresolved}"
+                )
 
             for se in current_level:
                 assigned[se.sub_id] = len(levels)
