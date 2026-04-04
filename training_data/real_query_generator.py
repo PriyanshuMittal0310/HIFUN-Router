@@ -268,6 +268,45 @@ def generate_snb_bi_queries(intensity: str) -> List[dict]:
     return queries
 
 
+def generate_snb_bi_graph_queries(intensity: str) -> List[dict]:
+    seeds = [1, 10, 100, 1000]
+    hops = [2, 3, 4] if intensity != "balanced" else [2, 3]
+    queries: List[dict] = []
+    qn = 0
+    for sid in seeds:
+        for h in hops:
+            qn += 1
+            queries.append({
+                "query_id": f"q_snb_bi_graph_{qn:04d}",
+                "description": "SNB-BI graph-projection traversal",
+                "operations": [
+                    {
+                        "op_id": "bg1",
+                        "type": "TRAVERSAL",
+                        "source": "snb",
+                        "fields": ["id"],
+                        "traversal": {
+                            "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                            "edge_label": "KNOWS",
+                            "direction": "BOTH",
+                            "max_hops": h,
+                            "return_fields": ["id"],
+                        },
+                        "depends_on": [],
+                    },
+                    _mk_agg(
+                        "bg2",
+                        "bg1",
+                        ["id"],
+                        [{"func": "COUNT", "column": "id", "alias": "reach"}],
+                        ["id", "reach"],
+                        deps=["bg1"],
+                    ),
+                ],
+            })
+    return queries
+
+
 def generate_ogb_queries(graph_source: str, intensity: str, focus_mode: str) -> List[dict]:
     seeds = [0, 1, 2, 10, 100, 1000, 10000]
     hops = [1, 2, 3, 4] if intensity != "balanced" else [1, 2, 3]
@@ -377,6 +416,50 @@ def generate_job_queries(intensity: str, focus_mode: str) -> List[dict]:
     return templates
 
 
+def generate_job_graph_queries(intensity: str) -> List[dict]:
+    seeds = [
+        "movie_keyword:c0:1",
+        "movie_keyword:c0:10",
+        "cast_info:c0:1",
+        "movie_companies:c0:1",
+    ]
+    hops = [2, 3, 4] if intensity != "balanced" else [2, 3]
+    queries: List[dict] = []
+    qn = 0
+    for sid in seeds:
+        for h in hops:
+            qn += 1
+            queries.append({
+                "query_id": f"q_job_graph_{qn:04d}",
+                "description": "JOB graph-projection traversal",
+                "operations": [
+                    {
+                        "op_id": "jg1",
+                        "type": "TRAVERSAL",
+                        "source": "job_real_queries",
+                        "fields": ["id"],
+                        "traversal": {
+                            "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                            "edge_label": "KNOWS",
+                            "direction": "BOTH",
+                            "max_hops": h,
+                            "return_fields": ["id"],
+                        },
+                        "depends_on": [],
+                    },
+                    _mk_agg(
+                        "jg2",
+                        "jg1",
+                        ["id"],
+                        [{"func": "COUNT", "column": "id", "alias": "reach"}],
+                        ["id", "reach"],
+                        deps=["jg1"],
+                    ),
+                ],
+            })
+    return queries
+
+
 def generate_tpcds_queries(intensity: str, focus_mode: str) -> List[dict]:
     # Uses generic c0..cN names from data/scripts/tpcds_to_parquet.py conversion.
     filters = [1, 5, 10, 25, 50]
@@ -409,6 +492,50 @@ def generate_tpcds_queries(intensity: str, focus_mode: str) -> List[dict]:
     return queries
 
 
+def generate_tpcds_graph_queries(intensity: str) -> List[dict]:
+    seeds = [
+        "store_sales:c0:1",
+        "catalog_sales:c0:1",
+        "web_sales:c0:1",
+        "store_sales:c0:10",
+    ]
+    hops = [2, 3, 4] if intensity != "balanced" else [2, 3]
+    queries: List[dict] = []
+    qn = 0
+    for sid in seeds:
+        for h in hops:
+            qn += 1
+            queries.append({
+                "query_id": f"q_tpcds_graph_{qn:04d}",
+                "description": "TPCDS graph-projection traversal",
+                "operations": [
+                    {
+                        "op_id": "tg1",
+                        "type": "TRAVERSAL",
+                        "source": "tpcds_real_queries",
+                        "fields": ["id"],
+                        "traversal": {
+                            "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                            "edge_label": "KNOWS",
+                            "direction": "BOTH",
+                            "max_hops": h,
+                            "return_fields": ["id"],
+                        },
+                        "depends_on": [],
+                    },
+                    _mk_agg(
+                        "tg2",
+                        "tg1",
+                        ["id"],
+                        [{"func": "COUNT", "column": "id", "alias": "reach"}],
+                        ["id", "reach"],
+                        deps=["tg1"],
+                    ),
+                ],
+            })
+    return queries
+
+
 def generate_all(
     scale: str,
     ogb_graph_source: str,
@@ -430,6 +557,11 @@ def generate_all(
         snb_bi = generate_snb_bi_queries(intensity=scale)
         job = generate_job_queries(intensity=scale, focus_mode=focus_mode)
         tpcds = generate_tpcds_queries(intensity=scale, focus_mode=focus_mode)
+
+    if focus_mode in {"all", "graph_win"}:
+        snb_bi.extend(generate_snb_bi_graph_queries(intensity=scale))
+        job.extend(generate_job_graph_queries(intensity=scale))
+        tpcds.extend(generate_tpcds_graph_queries(intensity=scale))
 
     _write("snb_real_queries.json", snb)
     _write("snb_bi_real_queries.json", snb_bi)

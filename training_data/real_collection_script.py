@@ -65,6 +65,8 @@ DATASET_GRAPH_DIRS = {
     "snb_real_queries":  os.path.join(GRAPHS_DIR, "snb"),
     "snb_bi_real_queries": os.path.join(GRAPHS_DIR, "snb"),
     "ogb_real_queries":  os.path.join(GRAPHS_DIR, "ogbn_arxiv"),
+    "job_real_queries":  os.path.join(GRAPHS_DIR, "job"),
+    "tpcds_real_queries": os.path.join(GRAPHS_DIR, "tpcds"),
 }
 
 

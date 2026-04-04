@@ -10270,5 +10270,629 @@
         ]
       }
     ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0001",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0002",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0003",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0004",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0005",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0006",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 10
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0007",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0008",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0009",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 100
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0010",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0011",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_snb_bi_graph_0012",
+    "description": "SNB-BI graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "bg1",
+        "type": "TRAVERSAL",
+        "source": "snb",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": 1000
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "bg2",
+        "type": "AGGREGATE",
+        "source": "bg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "bg1"
+        ]
+      }
+    ]
   }
 ]

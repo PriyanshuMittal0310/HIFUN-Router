@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-all validate-queries test clean clean-local-results collect-data train analyze report quality-gate quality-gate-strict quality-gate-coverage-all build-all-validated-data publish-eval-all publish-eval-all-coverage publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
+.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-graphs-real data-all validate-queries test clean clean-local-results collect-data collect-coverage-boost train analyze report quality-gate quality-gate-strict quality-gate-coverage-all build-all-validated-data publish-eval-all publish-eval-all-coverage publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -46,6 +46,9 @@ data-synthetic-all:  ## Generate synthetic graphs for all degree variants [2,5,1
 data-stats:  ## Precompute table and graph statistics
 	$(PYTHON) data/scripts/compute_stats.py
 
+data-graphs-real:  ## Build JOB/TPCDS graph projections for graph-win collection
+	$(PYTHON) data/scripts/build_dataset_graphs.py
+
 data-all: data-tpch data-snb data-synthetic data-stats  ## Run full data preparation pipeline
 	@echo "All data preparation complete."
 
@@ -68,6 +71,10 @@ test:  ## Run all tests
 
 collect-data:  ## Generate labeled training data from DSL queries
 	$(PYTHON) -m training_data.collection_script
+
+collect-coverage-boost: data-graphs-real  ## Targeted real collection to improve per-dataset GRAPH coverage
+	$(PYTHON) -m training_data.real_query_generator --scale aggressive --focus-mode graph_win --include-sql-families-in-graph-focus
+	$(PYTHON) -m training_data.real_collection_script --queries_dir dsl/sample_queries --output training_data/real_labeled_runs_coverage_boost.csv --n_warmup 1 --n_measure 2 --repeat 1 --no_penalize_sql_traversal_approx
 
 train: collect-data  ## Train ML classifier (Decision Tree + XGBoost)
 	$(PYTHON) -m model.trainer
