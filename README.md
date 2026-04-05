@@ -1,544 +1,488 @@
-## HIFUN Router
+# HIFUN Router — Hybrid SQL/Graph Query Routing System
 
-Hybrid query router for selecting SQL vs GRAPH execution paths from DSL sub-expressions.
+> A dynamic query routing framework that parses structured DSL queries, decomposes them into dependency-aware DAGs, extracts a 22-dimensional feature vector, and routes execution to either SQL (Spark SQL / pandas) or Graph (GraphFrames) backends.
 
-This repository now supports a real-data-first training workflow with scalable query generation and measured runtime labels.
+📂 **Repository:** [https://github.com/DataScience-ArtificialIntelligence/HybridSQLGraphQueryRoutingSystem](https://github.com/DataScience-ArtificialIntelligence/HybridSQLGraphQueryRoutingSystem)  
+🎥 **2-Minute Demo Video:** [https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing](https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing)  
+🎬 **Demo Runbook (4-min script):** RUN_STREAMLIT_DEMO.md
+---
 
 ## Current Status (April 2026)
 
-### Publishable Strict Update (latest)
+- Strict curated source is available and quality-gated:
+    - `training_data/real_labeled_runs_strict_curated.csv`
+    - `training_data/fixed_train_base_strict.csv`
+    - `training_data/fixed_eval_set_strict.csv`
+    - `training_data/dataset_quality_report_strict_runtime.json`
+- Publishable strict runtime artifacts are generated under `experiments/results/`:
+    - `relevance_eval_strict_runtime.json`
+    - `dataset_shift_eval_strict_runtime.json`
+    - `strict_robustness_eval_runtime.json`
+    - `ablation_strict_runtime.json`
+- Dashboard supports:
+    - `strict` profile for publication-grade artifacts
+    - `fast` profile for quick iteration artifacts (`*_fast_runtime.*`)
 
-- Strict curated dataset created and quality-gated:
-	- `training_data/real_labeled_runs_strict_curated.csv`
-	- 288 rows total, `SQL` 151, `GRAPH` 137
-	- GRAPH coverage across 2 datasets (`snb_real_queries`, `ogb_real_queries`)
-	- All rows are real measurements (`label_source=real_measurement`)
-- Strict fixed splits created:
-	- `training_data/fixed_train_base_strict.csv`
-	- `training_data/fixed_eval_set_strict.csv`
-	- `training_data/fixed_eval_graph_only_strict.csv`
-	- `training_data/fixed_split_manifest_strict.json`
-	- strict split generation now uses query-disjoint mode (`split_mode=group`, `group_col=query_id`) to avoid train/eval query overlap
-- Strict quality gate passes:
-	- `training_data/dataset_quality_report_strict_curated.json`
-- Strict publishable evaluation artifacts generated:
-	- `experiments/results/relevance_eval_strict.json`
-	- `experiments/results/relevance_eval_strict.md`
-	- `experiments/results/ablation_strict.csv`
-	- `experiments/results/ablation_strict_groups.csv`
-	- `experiments/results/ablation_strict.json`
-	- `experiments/results/strict_robustness_eval.json`
-	- `experiments/results/strict_robustness_eval.md`
+---
 
-- Real dataset ingestion scripts added for:
-	- LDBC SNB (interactive raw data, parquet conversion, graph extraction)
-	- OGB (ogbn-arxiv conversion to GraphFrames parquet)
-	- JOB/IMDB (CSV/TSV to parquet)
-	- TPC-DS (dsdgen .dat to parquet)
-- Real query pack generator added with rigorous variants:
-	- SNB traversal + mixed graph/relational workloads
-	- SNB BI-style analytical templates
-	- OGB traversal workloads
-	- JOB multi-join SQL templates
-	- TPC-DS analytical SQL templates
-- Real label collection supports repeat runs and source availability checks.
-- Large generated files are excluded from git (raw/parquet/graph outputs and runtime artifacts).
+## 👥 Team Members
 
-### Progress Summary
+| Name | Department | Roll No. | Institute | Email |
+|------|-----------|----------|-----------|-------|
+| Piyush Prashant | Data Science & AI | 24BDS055 | IIIT Dharwad | 24bds055@iiitdwd.ac.in |
+| Priyanshu Mittal | Data Science & AI | 24BDS058 | IIIT Dharwad | 24bds058@iiitdwd.ac.in |
+| Harshitha M S | Data Science & AI | 24BDS038 | IIIT Dharwad | 24bds038@iiitdwd.ac.in |
+| J. Sameer Karthikeya | Data Science & AI | 24BDS026 | IIIT Dharwad | 24bds026@iiitdwd.ac.in |
 
-- Phase 1 complete: real data pipeline available for SNB, OGB, JOB, and TPC-DS.
-- Phase 2 complete: statistics generation generalized for all discovered parquet/graph datasets.
-- Phase 3 complete: real labeled runtime dataset generated from all configured real query packs.
-- Class balancing utility applied and a balanced training CSV generated.
-- Repository pushed with code/query/stat updates required for the above workflow.
+---
 
-### Latest Dataset Snapshot
+## 📁 Repository Structure
 
-- Primary measured labels:
-	- `training_data/real_labeled_runs.csv`
-	- Current composition: 738 rows
-	- Datasets: `snb_real_queries` (432), `ogb_real_queries` (176), `snb_bi_real_queries` (96), `job_real_queries` (18), `tpcds_real_queries` (16)
-	- Labels: `SQL` 734, `GRAPH` 4
+```
+HIFUN-Router/
+│
+├── config/                          # Configuration files
+│   ├── feature_schema.json          # 22-dimensional feature schema definition
+│   ├── paths.py                     # Filesystem path constants
+│   └── spark_config.py              # PySpark session & cluster configuration
+│
+├── data/
+│   ├── graphs/                      # Pre-built graph parquet files (SNB, synthetic)
+│   │   ├── snb/                     # LDBC Social Network Benchmark graph
+│   │   │   ├── vertices.parquet
+│   │   │   └── edges.parquet
+│   │   └── synthetic/               # Synthetically generated graph data
+│   ├── scripts/                     # Dataset ingestion & conversion scripts
+│   │   ├── ldbc_snb_to_parquet.py
+│   │   ├── ogb_to_parquet.py
+│   │   ├── job_to_parquet.py
+│   │   ├── tpcds_to_parquet.py
+│   │   ├── generate_synthetic.py
+│   │   └── compute_stats.py
+│   └── stats/                       # JSON column statistics per table
+│
+├── dsl/
+│   └── sample_queries/              # Example JSON DSL query files (TPC-H, SNB, etc.)
+│
+├── experiments/                     # Evaluation & benchmarking scripts
+│   ├── relevance_evaluation.py      # Model vs baseline accuracy/F1
+│   ├── dataset_shift_evaluation.py  # Cross-family domain shift analysis
+│   ├── strict_robustness_evaluation.py  # Bootstrap CI + permutation tests
+│   └── results/                     # JSON/MD output artifacts from evaluations
+│
+├── features/
+│   └── feature_extractor.py         # Builds the R^22 feature vector per routing node
+│
+├── model/
+│   ├── trainer.py                   # XGBoost/LogReg model training & cross-validation
+│   ├── predictor.py                 # Inference wrapper for routing-time prediction
+│   ├── feature_analysis.py          # VIF, correlation, collinearity analysis
+│   ├── feature_importance.py        # SHAP-based feature importance plots
+│   └── artifacts/                   # Saved model files & analysis outputs
+│       ├── classifier_v1.pkl
+│       ├── classifier_v1_dt.pkl
+│       ├── feature_schema_v1.json
+│       ├── training_results.json
+│       └── analysis/                # SHAP bar/summary plots + values
+│
+├── notebooks/                       # Jupyter exploration & reporting notebooks
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_feature_analysis.ipynb
+│   ├── 03_model_training.ipynb
+│   ├── 04_results_visualization.ipynb
+│   └── project_report.ipynb         # Full project report notebook
+│
+├── parser/
+│   ├── dsl_parser.py                # JSON DSL → AST with jsonschema validation
+│   └── ast_nodes.py                 # Typed operation node representations
+│
+├── report/
+│   ├── hifun_router_ieee_report.tex # LaTeX source for the IEEE-format paper
+│   └── decision_boundary.pdf        # Decision boundary visualization
+│
+├── router/
+│   ├── hybrid_router.py             # Core routing engine (rule + ML hybrid)
+│   └── baselines.py                 # AlwaysSQL, AlwaysGRAPH, TraversalRule baselines
+│
+├── execution/
+│   ├── sql_generator.py             # Translates plan nodes → Spark SQL / pandas
+│   ├── graph_generator.py           # Translates plan nodes → GraphFrames operations
+│   └── result_composer.py           # Merges cross-engine outputs into final result
+│
+├── training_data/                   # Curated train/eval CSV splits & generation scripts
+│   ├── fixed_train_balanced_strict.csv
+│   ├── fixed_eval_set_strict.csv
+│   ├── fixed_split_manifest_strict.json
+│   ├── real_labeled_runs_strict_curated.csv
+│   ├── query_generator.py
+│   ├── real_collection_script.py
+│   ├── real_query_generator.py
+│   ├── fix_dataset_splits.py
+│   └── dataset_quality_gate.py
+│
+├── tests/                           # Unit + integration test suite (pytest)
+│   ├── test_parser.py
+│   ├── test_decomposer.py
+│   ├── test_features.py
+│   ├── test_model.py
+│   ├── test_execution.py
+│   ├── test_correctness.py
+│   ├── test_experiments.py
+│   └── reference_executor.py
+│
+├── decomposer/
+│   └── query_decomposer.py          # Builds dependency DAG + schedulable blocks
+│
+├── streamlit_app.py                 # Interactive evaluation dashboard (demo UI)
+├── test_setup.py                    # Environment sanity check
+├── run_project_strict.sh            # End-to-end strict pipeline runner
+├── Dockerfile                       # Container image definition
+├── Makefile                         # Convenience command shortcuts
+├── requirements.txt                 # Python dependency list
+├── SETUP_AND_RUN.md                 # Detailed Linux setup guide
+└── RUN_STREAMLIT_DEMO.md            # Demo recording script and guide
+```
 
-- Balanced training labels (diagnostic only, not recommended for headline metrics):
-	- `training_data/real_labeled_runs_balanced.csv`
-	- Current composition: 1468 rows
-	- Labels: `SQL` 734, `GRAPH` 734
-	- Includes `resampled` column (`0` original row, `1` upsampled row)
-	- Use only for debugging model plumbing; this file duplicates scarce GRAPH rows and can overfit.
+---
 
-- Balanced dataset summary:
-	- `training_data/real_labeled_runs_balanced_summary.txt`
+## ⚙️ Installation & Setup
 
-## Repository Structure
+### Prerequisites
 
-- `data/scripts/`: dataset download and conversion scripts
-- `dsl/sample_queries/`: DSL query packs (templates + generated real variants)
-- `training_data/`: query generation and real runtime label collection
-- `features/`: feature extraction and statistics loaders
-- `execution/`: Spark SQL and GraphFrames execution generators
-- `model/`: trainer, predictor, and artifacts
-- `experiments/`: evaluation and baseline experiments
+Install system packages (Ubuntu/Debian):
 
-## Datasets Used and How to Access
+```bash
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv openjdk-17-jdk \
+                   docker.io docker-compose-plugin make
+```
 
-### 1) LDBC SNB (recommended primary graph+mixed workload)
+Enable Docker for your user:
 
-- Why: strongest alignment with router features (`input_cardinality_log`, `avg_degree`, `max_degree`, `degree_skew`).
-- Access path in project:
-	- Raw output: `data/raw/ldbc_snb/`
-	- Converted tables: `data/parquet/snb/`
-	- Graph parquet: `data/graphs/snb/`
-- Generation source:
-	- Docker image: `ldbc/datagen-standalone:latest` (used in this workflow)
+```bash
+sudo systemctl enable --now docker
+sudo usermod -aG docker "$USER"
+newgrp docker
+```
 
-### 2) OGB (real graph topology)
+### 1. Clone the Repository
 
-- Why: natural power-law-like graph structures for GRAPH-class robustness.
-- Supported dataset now: `ogbn-arxiv`
-- Access path in project:
-	- Download cache: `data/raw/ogb/`
-	- Graph parquet: `data/graphs/ogbn_arxiv/`
-- Source:
-	- OGB Python package (`ogb`)
+```bash
+cd ~
+git clone https://github.com/PriyanshuMittal0310/HIFUN-Router.git HIFUN-Router-clone
+cd HIFUN-Router-clone
+```
 
-### 3) JOB / IMDB (real SQL-heavy joins)
+### 2. Create Python Virtual Environment
 
-- Why: realistic join fanout and multi-table SQL complexity.
-- Input expected:
-	- Place JOB table CSV/TSV files under `data/raw/job/`
-- Converted output:
-	- `data/parquet/job/`
-- Source:
-	- https://github.com/gregrahn/join-order-benchmark
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip wheel setuptools
+pip install -r requirements.txt
+```
 
-### 4) TPC-DS (optional SQL diversity beyond TPC-H)
+### 3. Set Environment Variables
 
-- Why: larger query variety and more dimensional analytical patterns.
-- Input expected:
-	- dsdgen outputs under `data/raw/tpcds/`
-- Converted output:
-	- `data/parquet/tpcds/`
-- Source:
-	- https://github.com/gregrahn/tpcds-kit
+```bash
+export PYTHONPATH="$PWD"
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+mkdir -p /tmp/spark-events
+export HIFUN_HISTORY_SERVER=/tmp/spark-events
+```
 
-### TPCH Compatibility Fallback (Correctness Runs)
+### 4. Verify Environment
 
-- If `data/parquet/tpch/` is absent, correctness execution now synthesizes minimal TPCH-shaped `customer` and `orders` tables from local TPC-DS parquet (`data/parquet/tpcds/`) so TPCH/synthetic SQL sample queries remain executable.
-- This fallback is intended for reproducible correctness coverage in constrained local environments; for final benchmark claims, provide native TPCH parquet tables.
+```bash
+python test_setup.py
+```
 
-## Setup
+A successful run prints confirmation that Spark, GraphFrames, and the ML stack are importable.
 
-## One-Command Strict Runner (recommended)
+---
 
-If your workspace contains modified non-strict split artifacts, use the strict runner to avoid default-path failures:
+## 🚀 Running the Project
+
+### Quick Start (Recommended Strict Runner)
+
+Use this for reproducible strict artifacts without manually chaining commands:
+
+```bash
+source .venv/bin/activate
+export PYTHONPATH="$PWD"
+./run_project_strict.sh smoke
+```
+
+Use this for the full strict bundle:
 
 ```bash
 ./run_project_strict.sh all
 ```
 
-Useful modes:
+### Quick Start (Manual)
 
-- `./run_project_strict.sh smoke` (fast validation: quality + relevance + robustness)
-- `./run_project_strict.sh gate` (validate publication gate on existing artifacts)
-- `./run_project_strict.sh gate-native` (same, but requires native TPCH parquet)
-- `./run_project_strict.sh train`
-- `./run_project_strict.sh relevance`
-- `./run_project_strict.sh robustness`
-
-This script pins strict inputs explicitly:
-
-- `training_data/real_labeled_runs_strict_curated.csv`
-- `training_data/fixed_train_base_strict.csv`
-- `training_data/fixed_eval_set_strict.csv`
-
-You can also run the gate directly:
+If you want to run step-by-step manually:
 
 ```bash
-python3 -m experiments.publish_gate
-```
-
-To train/evaluate with all available real-measurement datasets (strict curated +
-additional SNB-BI/JOB/TPCDS rows) while enforcing quality checks:
-
-```bash
-make publish-eval-all
-```
-
-For broad multi-dataset publishability claims, enforce per-dataset GRAPH minima:
-
-```bash
-make quality-gate-coverage-all
-```
-
-This target currently requires at least 25 GRAPH rows in each dataset
-(`snb_real_queries`, `ogb_real_queries`, `snb_bi_real_queries`, `job_real_queries`, `tpcds_real_queries`) across source/train/eval.
-
-To generate stronger interpretability evidence on all-data splits:
-
-```bash
-python3 -m experiments.ablation_study \
-	--data training_data/fixed_train_base_strict_all.csv \
-	--output experiments/results/ablation_strict_all_runtime.csv \
-	--model xgboost --group-col query_id --by-dataset
-```
-
-For publication-only native-data validation (no TPCH fallback), run:
-
-```bash
-make data-tpch-duckdb
-python3 -m experiments.correctness_report --queries dsl/sample_queries --output experiments/results/correctness_report_native_runtime.csv --require_native_tpch
-python3 -m experiments.publish_gate --require_native_tpch
-```
-
-If you already have TPCH `.tbl` files from `dbgen`, you can use `make data-tpch` instead.
-
-### System prerequisites
-
-- Docker (daemon running)
-- Java 17 for Spark runtime
-- Python 3.12+
-
-### Python dependencies
-
-```bash
-python3 -m pip install --user --break-system-packages -r requirements.txt
-```
-
-If `python3 -m venv` is unavailable, use:
-
-```bash
-python3 -m pip install --user --break-system-packages virtualenv
-~/.local/bin/virtualenv .venv
-. .venv/bin/activate
-pip install --upgrade pip wheel setuptools
-pip install -r requirements.txt
-```
-
-If Java is unavailable system-wide, a user-space Java can be installed with:
-
-```bash
-python3 -m pip install --user --break-system-packages jdk4py==17.0.9.2
-export JAVA_HOME="$(python3 - << 'PY'
-import jdk4py
-print(str(jdk4py.JAVA_HOME))
-PY
-)"
+source .venv/bin/activate
+export PYTHONPATH="$PWD"
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH="$JAVA_HOME/bin:$PATH"
-mkdir -p /tmp/spark-events
+
+python -m model.trainer
+python -m experiments.relevance_evaluation
+python -m experiments.dataset_shift_evaluation \
+    --source training_data/real_labeled_runs_strict_curated.csv
+pytest -q
 ```
 
-## Phase-by-Phase Pipeline
+---
 
-### Phase 1: Generate/convert real datasets
+### Full Data Pipeline (Rebuild from Raw Data)
 
-#### SNB raw generation
+#### Step 1 — Generate Datasets
 
 ```bash
+# LDBC SNB via Docker datagen
 mkdir -p data/raw/ldbc_snb
-sg docker -c 'docker run --rm \
-	--mount type=bind,source="'"$(pwd)"'"/data/raw/ldbc_snb,target=/out \
-	ldbc/datagen-standalone:latest \
-	--parallelism 1 -- --format csv --scale-factor 1 --mode raw --output-dir /out'
+docker run --rm \
+  --mount type=bind,source="$(pwd)/data/raw/ldbc_snb",target=/out \
+  ldbc/datagen-standalone:latest \
+  --parallelism 1 -- --format csv --scale-factor 1 --mode raw --output-dir /out
+
+python -m data.scripts.ldbc_snb_to_parquet \
+    --input data/raw/ldbc_snb \
+    --parquet-dir data/parquet/snb \
+    --graph-dir data/graphs/snb
+
+# OGB graph dataset
+python -m data.scripts.ogb_to_parquet \
+    --dataset ogbn-arxiv --root data/raw/ogb --graph-dir data/graphs
+
+# JOB/IMDB (if available)
+python -m data.scripts.job_to_parquet \
+    --input data/raw/job --output data/parquet/job
+
+# TPC-DS (if available)
+python -m data.scripts.tpcds_to_parquet \
+    --input data/raw/tpcds --output data/parquet/tpcds
 ```
 
-#### SNB conversion to project schema/parquet
+#### Step 2 — Compute Column Statistics
 
 ```bash
-python3 data/scripts/ldbc_snb_to_parquet.py --input data/raw/ldbc_snb
+python -m data.scripts.compute_stats
 ```
 
-#### OGB conversion
+#### Step 3 — Generate Query Workloads
 
 ```bash
-python3 data/scripts/ogb_to_parquet.py --dataset ogbn-arxiv
+python -m training_data.real_query_generator --scale aggressive --focus-mode all
 ```
 
-#### Optional JOB conversion
+#### Step 4 — Collect Runtime Labels
 
 ```bash
-python3 data/scripts/job_to_parquet.py --input data/raw/job --output data/parquet/job
+python -m training_data.real_collection_script \
+  --queries_dir dsl/sample_queries \
+  --output training_data/real_labeled_runs.csv \
+  --n_warmup 2 --n_measure 3 --repeat 3
 ```
 
-#### Optional TPC-DS conversion
+#### Step 5 — Create Train/Eval Splits
 
 ```bash
-python3 data/scripts/tpcds_to_parquet.py --input data/raw/tpcds --output data/parquet/tpcds
+python -m training_data.fix_dataset_splits \
+    --source training_data/real_labeled_runs.csv
 ```
 
-### Phase 2: Compute stats
+#### Step 6 — Train the Router Model
 
 ```bash
-python3 data/scripts/compute_stats.py
+python -m model.trainer
 ```
 
-### Phase 3: Generate rigorous query packs and collect real labels
+---
+
+### Running Evaluations
 
 ```bash
-python3 training_data/real_query_generator.py --scale aggressive
+# Relevance evaluation (accuracy, F1, PR-AUC)
+python -m experiments.relevance_evaluation
 
-# Optional: targeted workload mining for class diversity
-python3 training_data/real_query_generator.py --scale balanced --focus-mode graph_win
-python3 training_data/real_query_generator.py --scale balanced --focus-mode sql_win
+# Domain shift evaluation (strict curated source)
+python -m experiments.dataset_shift_evaluation \
+    --source training_data/real_labeled_runs_strict_curated.csv
 
-# If needed, include SQL-heavy families even in graph focus mode
-# python3 training_data/real_query_generator.py --scale balanced --focus-mode graph_win --include-sql-families-in-graph-focus
-
-python3 training_data/real_collection_script.py \
-	--queries_dir dsl/sample_queries \
-	--output training_data/real_labeled_runs.csv \
-	--n_warmup 2 --n_measure 3 --repeat 3
-
-# Quality controls for strict real-only labels and failure taxonomy
-python3 training_data/real_collection_script.py \
-	--queries_dir dsl/sample_queries \
-	--output training_data/real_labeled_runs_strict.csv \
-	--strict_real_only \
-	--failure_report training_data/real_collection_failures.json
-
-# Create deterministic train/eval artifacts (leakage-safe balancing)
-python3 training_data/fix_dataset_splits.py \
-  --source training_data/real_labeled_runs.csv
-
-# Optional debug-only mode for highly imbalanced early datasets
-# python3 training_data/fix_dataset_splits.py --source training_data/real_labeled_runs.csv --allow_degenerate
+# Strict robustness (bootstrap CI + permutation tests)
+python -m experiments.strict_robustness_evaluation \
+    --train training_data/fixed_train_base_strict.csv \
+    --eval training_data/fixed_eval_set_strict.csv \
+    --transfer_source training_data/real_labeled_runs_strict_curated.csv \
+    --n_bootstrap 1000 --n_perm_labels 100 --n_perm_features 20 \
+    --out_json experiments/results/strict_robustness_eval_runtime.json \
+    --out_md experiments/results/strict_robustness_eval_runtime.md
 ```
 
-### Phase 4: Retrain model
+For broad all-data transfer analysis, you can still run:
 
 ```bash
-python3 model/trainer.py
+python -m experiments.dataset_shift_evaluation \
+    --source training_data/real_labeled_runs.csv
 ```
 
-Trainer defaults now prefer non-resampled fixed split artifacts:
+---
 
-1. `training_data/fixed_train_base.csv`
-2. `training_data/fixed_train_balanced.csv`
-3. `training_data/real_labeled_runs.csv`
-4. `training_data/real_labeled_runs_balanced.csv`
-5. `training_data/labeled_runs.csv`
-
-### Phase 5: Verification
+### Running Tests
 
 ```bash
-python3 -m pytest -q
+# All tests
+pytest -q
+
+# Specific suites
+pytest tests/test_execution.py -v
+pytest tests/test_correctness.py -v
+pytest tests/test_experiments.py -v
 ```
 
-### Phase 6: Relevance and Robustness Evaluation (new)
+---
 
-Use this step to benchmark learned routing against stronger baselines and a no-history ablation.
+### Makefile Shortcuts
 
 ```bash
-python3 experiments/relevance_evaluation.py
+make help          # Show all available commands
+make setup         # Set up environment
+make test-env      # Verify environment
+make data-all      # Run full dataset pipeline
+make train         # Train routing model
+make evaluate      # Run all evaluations
+make test-all      # Run full test suite
+make clean         # Remove generated outputs
 ```
 
-By default this uses:
+---
 
-- Train: `training_data/fixed_train_base.csv`
-- Eval: `training_data/fixed_eval_set.csv` (or `training_data/fixed_eval_graph_only.csv` for GRAPH-focused stress tests)
-
-Outputs:
-
-- `experiments/results/relevance_eval.json`
-- `experiments/results/relevance_eval.md`
-
-This report includes:
-
-- `AlwaysSQL`, `AlwaysGRAPH`, traversal rule, threshold baseline
-- Logistic Regression (class-balanced)
-- Decision Tree (class-balanced)
-- XGBoost (class-balanced)
-- `XGBoostNoHistory` ablation to detect leakage from historical runtime features
-- PR-AUC and Brier calibration metrics for probabilistic models
-- confidence-threshold sweep (coverage vs. quality)
-- per-dataset confusion matrices for XGBoost
-
-### Phase 7: Dataset-Shift Generalization (new)
-
-Measure cross-dataset transfer quality (train on one dataset family, evaluate on another).
+### Optional: Docker Big-Data Stack (Spark + HDFS + YARN)
 
 ```bash
-python3 experiments/dataset_shift_evaluation.py \
-	--source training_data/real_labeled_runs.csv
+# Start all services
+docker compose up -d
+docker compose ps
+
+# Monitor Spark master
+docker compose logs -f spark-master
+
+# Stop services
+docker compose down
 ```
 
-Modes included in the report:
+Service UIs once running:
 
-- `one_to_one`: train on one dataset family, evaluate on another
-- `leave_one_out`: train on all datasets except one held-out dataset
-- `grouped_domains`: train/evaluate across graph/mixed/sql domain groups
+| Service | URL |
+|---------|-----|
+| Spark Master | http://localhost:8080 |
+| Spark Worker 1 | http://localhost:8081 |
+| Spark Worker 2 | http://localhost:8082 |
+| Spark History Server | http://localhost:18080 |
+| HDFS NameNode | http://localhost:9870 |
+| YARN Resource Manager | http://localhost:8088 |
 
-Outputs:
+---
 
-- `experiments/results/dataset_shift_eval.json`
-- `experiments/results/dataset_shift_eval.md`
+## 🖥️ Launching the Demo Dashboard
 
-### Phase 8: Strict Robustness Evaluation (new)
-
-Run confidence intervals, permutation-based sanity checks, and strict cross-dataset transfer from curated real labels:
+The project includes an interactive Streamlit dashboard for exploring routing decisions and evaluation metrics.
 
 ```bash
-python3 experiments/strict_robustness_evaluation.py \
-	--train training_data/fixed_train_base_strict.csv \
-	--eval training_data/fixed_eval_set_strict.csv \
-	--transfer_source training_data/real_labeled_runs_strict_curated.csv
+source .venv/bin/activate
+export PYTHONPATH="$PWD"
+
+streamlit run streamlit_app.py --server.port 8501 --server.headless true
 ```
 
-Outputs:
+Open your browser at: **http://localhost:8501**
 
-- `experiments/results/strict_robustness_eval.json`
-- `experiments/results/strict_robustness_eval.md`
+The dashboard features four tabs: **Dataset and Quality**, **Relevance Evaluation**, **Robustness Evaluation**, and **Cross-Dataset Generalization**. Use the sidebar to switch between `fast` (rapid iteration) and `strict` (publication-grade) run profiles.
 
-This report includes:
+---
 
-- bootstrap 95% confidence intervals for strict eval metrics
-- label-permutation sanity distribution
-- permutation importance (eval F1 drop per feature)
-- cross-dataset transfer matrix on strict curated real labels
+## 🎥 2-Minute Demo Video
 
-### Training Improvements (new)
+🔗 **Demo Link:** [https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing](https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing)
 
-- Trainer now prefers non-resampled datasets by default in this order:
-	1. `training_data/fixed_train_base.csv`
-	2. `training_data/fixed_train_balanced.csv`
-	3. `training_data/real_labeled_runs.csv`
-	4. `training_data/real_labeled_runs_balanced.csv`
-	5. `training_data/labeled_runs.csv`
-- Trainer now applies imbalance-aware learning by default:
-	- Decision Tree uses `class_weight=balanced`
-	- XGBoost uses `scale_pos_weight`
-- Trainer now reports a stratified holdout evaluation split in addition to CV metrics.
-- Split/training/evaluation scripts now fail fast on degenerate GRAPH-class support unless `--allow_degenerate` is provided.
+Also available:
+- 4-minute detailed recording script: RUN_STREAMLIT_DEMO.md
 
-### Validity Guardrails (critical)
+---
 
-- Do not report headline model quality when eval has only a handful of GRAPH rows.
-- Default thresholds now require substantial GRAPH support in both train and eval.
-- Upsampled balanced datasets are kept for diagnostics, not for defensible model claims.
+## 📊 Key Results
 
-Run the mandatory quality gate before any paper-facing metrics:
+| Policy | Accuracy | F1 | Precision | Recall |
+|--------|----------|----|-----------|--------|
+| AlwaysSQL | 0.5345 | 0.0000 | 0.0000 | 0.0000 |
+| AlwaysGRAPH | 0.4655 | 0.6353 | 0.4655 | 1.0000 |
+| **TraversalRule** | **0.9655** | **0.9643** | **0.9310** | **1.0000** |
+| LogReg (Balanced) | 0.9655 | 0.9643 | 0.9310 | 1.0000 |
+| XGBoost (Balanced) | 0.9655 | 0.9643 | 0.9310 | 1.0000 |
 
+Evaluated on a strict template-disjoint split of **N=58** evaluation cases. Bootstrap 95% CI (F1): **[0.913, 1.000]**. Top permutation-importance feature: `op_count_traversal`.
+
+See also:
+- `experiments/results/relevance_eval_strict_runtime.json`
+- `experiments/results/strict_robustness_eval_runtime.json`
+- `experiments/results/dataset_shift_eval_strict_runtime.json`
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Query Parsing | Python, jsonschema |
+| Distributed Compute | Apache Spark 3.4.2, PySpark |
+| Graph Engine | GraphFrames 0.8.3 |
+| Storage | Apache Parquet, HDFS |
+| Cluster Management | Apache YARN |
+| ML Models | XGBoost 2.0.3, LightGBM 4.2.0, scikit-learn 1.4.0 |
+| Explainability | SHAP 0.44.0 |
+| Dashboard | Streamlit 1.44.1 |
+| Notebooks | JupyterLab 4.1.2 |
+| Containerization | Docker Compose |
+| Testing | pytest 7.4.4 |
+
+---
+
+## 🩺 Troubleshooting
+
+**`JAVA_HOME is not set`**
 ```bash
-python3 -m training_data.dataset_quality_gate \
-	--source training_data/real_labeled_runs.csv \
-	--train training_data/fixed_train_base.csv \
-	--eval training_data/fixed_eval_set.csv
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
-Or via Makefile:
-
+**`ModuleNotFoundError: No module named 'config'`**
 ```bash
-make quality-gate
-make publish-eval
+cd ~/HIFUN-Router-clone
+export PYTHONPATH="$PWD"
 ```
 
-If quality gate fails, treat all downstream metrics as debug-only.
-
-For strict publishable flow, run:
-
+**Spark fails downloading packages on first run**
 ```bash
-python3 -m training_data.fix_dataset_splits \
-	--source training_data/real_labeled_runs_strict_curated.csv \
-	--train_base_out training_data/fixed_train_base_strict.csv \
-	--eval_out training_data/fixed_eval_set_strict.csv \
-	--graph_eval_out training_data/fixed_eval_graph_only_strict.csv \
-	--train_balanced_out training_data/fixed_train_balanced_strict.csv \
-	--manifest_out training_data/fixed_split_manifest_strict.json \
-	--allow_degenerate
-
-python3 -m training_data.dataset_quality_gate \
-	--source training_data/real_labeled_runs_strict_curated.csv \
-	--train training_data/fixed_train_base_strict.csv \
-	--eval training_data/fixed_eval_set_strict.csv \
-	--out_json training_data/dataset_quality_report_strict_curated.json
-
-python3 model/trainer.py \
-	--data training_data/fixed_train_base_strict.csv \
-	--model_out model/artifacts/classifier_strict.pkl \
-	--min_graph_rows 100
-
-python3 experiments/relevance_evaluation.py \
-	--train training_data/fixed_train_base_strict.csv \
-	--eval training_data/fixed_eval_set_strict.csv \
-	--out_json experiments/results/relevance_eval_strict.json \
-	--out_md experiments/results/relevance_eval_strict.md
-
-python3 experiments/ablation_study.py \
-	--data training_data/fixed_train_base_strict.csv \
-	--output experiments/results/ablation_strict.csv
+python test_setup.py   # retry — Spark caches JARs on second run
 ```
 
-## Docker Snapshot
+---
 
-### Build image
+## 📚 References
 
-```bash
-docker build -t hifun-router:strict-latest .
-```
+1. L. Libkin et al., "HIFUN: A Framework for Hybrid Query Processing," *Journal of Intelligent Information Systems*, 2022.
+2. M. Armbrust et al., "Spark SQL: Relational Data Processing in Spark," *SIGMOD*, 2015.
+3. A. Dave et al., "GraphFrames: An Integrated API for Mixing Graph and Relational Queries," *GRADES*, 2016.
+4. R. Marcus et al., "Neo: A Learned Query Optimizer," *VLDB*, 2019.
+5. W. Hu et al., "Open Graph Benchmark: Datasets for Machine Learning on Graphs," *NeurIPS*, 2020.
+6. LDBC Council, "LDBC Social Network Benchmark," 2015.
 
-### What is included in the Docker image
+---
 
-- Included:
-	- Repository-tracked project code
-	- Strict curated dataset and strict reports, including:
-		- `training_data/real_labeled_runs_strict_curated.csv`
-		- `training_data/dataset_quality_report_strict_curated.json`
-		- `experiments/results/relevance_eval_strict.json`
-		- `experiments/results/ablation_strict.json`
-- Excluded (by `.dockerignore`):
-	- `data/raw/`
-	- `data/parquet/`
-	- `data/graphs/`
-	- temporary query folders under `training_data/tmp_queries*/`
-	- debug result files (`*_debug.*`)
-
-### Run image
-
-```bash
-docker run --rm hifun-router:strict-latest
-```
-
-### Share Docker image (offline)
-
-```bash
-docker save hifun-router:strict-latest -o hifun-router-strict-latest.tar
-gzip -9 hifun-router-strict-latest.tar
-```
-
-Receiver side:
-
-```bash
-gunzip hifun-router-strict-latest.tar.gz
-docker load -i hifun-router-strict-latest.tar
-docker run --rm hifun-router:strict-latest
-```
-
-### Share Docker image (registry)
-
-```bash
-docker tag hifun-router:strict-latest <registry-user>/hifun-router:strict-latest
-docker login
-docker push <registry-user>/hifun-router:strict-latest
-```
-
-### Simulation Transparency
-
-- Some older results in this repository were generated from heuristic/cost-model labels.
-- Use explicit language in reports when presenting simulated timing or simulated labels.
-- Treat simulation outputs as pipeline validation, not final evidence of engine-level performance.
-
-## Notes on Git and Large Files
-
-- Generated data under `data/raw/`, `data/parquet/`, and parquet graph outputs are intentionally ignored.
-- Runtime/training artifacts are also ignored (for example, `training_data/real_labeled_runs.csv`, model artifact binaries).
-- Keep only scripts, configs, and query templates in git; regenerate data locally using this README.
-
-## Key Scripts Added/Updated
-
-- `data/scripts/ldbc_snb_to_parquet.py`
-- `data/scripts/ogb_to_parquet.py`
-- `data/scripts/job_to_parquet.py`
-- `data/scripts/tpcds_to_parquet.py`
-- `data/scripts/download_real_datasets.sh`
-- `training_data/real_query_generator.py`
-- `training_data/real_collection_script.py`
+*IIIT Dharwad — Department of Data Science and AI — BDA Project, 2025-2026*
