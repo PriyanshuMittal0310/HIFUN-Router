@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "both_labels_present",
+      "passed": true,
+      "detail": "SQL=885, GRAPH=141"
+    },
+    {
+      "name": "min_graph_total",
+      "passed": true,
+      "detail": "GRAPH=141, required>=100"
+    },
+    {
+      "name": "min_graph_ratio",
+      "passed": true,
+      "detail": "ratio=0.1374, required>=0.1000"
+    },
+    {
+      "name": "graph_across_datasets",
+      "passed": true,
+      "detail": "GRAPH present in 2 dataset(s), required>=2"
+    },
+    {
+      "name": "graph_duplication_factor",
+      "passed": true,
+      "detail": "dup_factor=1.00, total=141, unique=141, allowed<=3.00"
+    },
+    {
+      "name": "real_measurement_share",
+      "passed": true,
+      "detail": "share=1.0000, required>=0.9000"
+    },
+    {
+      "name": "min_graph_train",
+      "passed": true,
+      "detail": "train GRAPH=103, required>=100"
+    },
+    {
+      "name": "eval_both_labels_present",
+      "passed": true,
+      "detail": "eval SQL=167, GRAPH=38"
+    },
+    {
+      "name": "min_graph_eval",
+      "passed": true,
+      "detail": "eval GRAPH=38, required>=25"
+    }
+  ],
+  "summary": {
+    "rows_total": 1026,
+    "rows_sql": 885,
+    "rows_graph": 141,
+    "graph_ratio": 0.13742690058479531,
+    "graph_duplication_factor": 1.0,
+    "graph_unique_rows": 141,
+    "graph_total_rows": 141
+  }
+}

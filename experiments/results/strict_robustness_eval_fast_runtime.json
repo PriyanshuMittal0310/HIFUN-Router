@@ -1,0 +1,219 @@
+{
+  "train_path": "training_data/fixed_train_base_strict.csv",
+  "eval_path": "training_data/fixed_eval_set_strict.csv",
+  "transfer_source": "training_data/real_labeled_runs_strict_curated.csv",
+  "train_rows": 230,
+  "eval_rows": 58,
+  "xgb_eval_f1": 0.9642857142857143,
+  "logreg_eval_f1": 0.9642857142857143,
+  "bootstrap_ci": {
+    "n_bootstrap": 150,
+    "f1": {
+      "p2_5": 0.9090909090909091,
+      "p50": 0.9655172413793104,
+      "p97_5": 1.0
+    },
+    "precision": {
+      "p2_5": 0.8333333333333334,
+      "p50": 0.9333333333333333,
+      "p97_5": 1.0
+    },
+    "recall": {
+      "p2_5": 1.0,
+      "p50": 1.0,
+      "p97_5": 1.0
+    }
+  },
+  "label_permutation_sanity": {
+    "n_permutations": 20,
+    "f1_mean": 0.46846688686602855,
+    "f1_std": 0.2541076717923716,
+    "f1_min": 0.0,
+    "f1_max": 0.9642857142857143,
+    "scores": [
+      0.5263157894736842,
+      0.13793103448275862,
+      0.45714285714285713,
+      0.782608695652174,
+      0.6666666666666666,
+      0.9642857142857143,
+      0.4444444444444444,
+      0.5263157894736842,
+      0.8627450980392157,
+      0.2222222222222222,
+      0.6666666666666666,
+      0.4166666666666667,
+      0.4864864864864865,
+      0.2727272727272727,
+      0.6352941176470588,
+      0.0,
+      0.1935483870967742,
+      0.37142857142857144,
+      0.1016949152542373,
+      0.6341463414634146
+    ],
+    "mode": "within_group:query_id",
+    "group_stats": {
+      "group_count": 113,
+      "multi_group_rows": 230,
+      "multi_group_ratio": 1.0
+    }
+  },
+  "overlap_audit": {
+    "source_row_id_overlap": 0,
+    "query_id_overlap": 0,
+    "sub_id_overlap": 2
+  },
+  "permutation_importance": [
+    {
+      "feature": "op_count_traversal",
+      "mean_f1_drop": 0.5,
+      "std_f1_drop": 0.07362688617174391,
+      "max_f1_drop": 0.5714285714285714
+    },
+    {
+      "feature": "op_count_filter",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "op_count_join",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "op_count_aggregate",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "op_count_map",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "ast_depth",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "has_traversal",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "max_hops",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "input_cardinality_log",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "output_cardinality_log",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "selectivity",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "avg_degree",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "max_degree",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "degree_skew",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "num_projected_columns",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "has_index",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "join_fanout",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "estimated_shuffle_bytes_log",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "estimated_traversal_ops",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "hist_avg_runtime_ms",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "hist_runtime_variance",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "num_tables_joined",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    }
+  ],
+  "cross_dataset_transfer": [
+    {
+      "train_dataset": "ogb_real_queries",
+      "eval_dataset": "snb_real_queries",
+      "rows": 238,
+      "f1": 0.9741379310344828,
+      "precision": 0.9495798319327731,
+      "recall": 1.0
+    },
+    {
+      "train_dataset": "snb_real_queries",
+      "eval_dataset": "ogb_real_queries",
+      "rows": 50,
+      "f1": 0.9795918367346939,
+      "precision": 0.96,
+      "recall": 1.0
+    }
+  ]
+}

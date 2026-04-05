@@ -1,4 +1,4 @@
-.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-graphs-real data-all validate-queries test clean clean-local-results collect-data collect-coverage-boost train analyze report quality-gate quality-gate-strict quality-gate-coverage-all build-all-validated-data publish-eval-all publish-eval-all-coverage publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
+.PHONY: help setup data-tpch data-tpch-duckdb data-snb data-synthetic data-stats data-graphs-real data-all validate-queries test clean clean-local-results collect-data collect-coverage-boost collect-coverage-boost-iter train analyze report quality-gate quality-gate-strict quality-gate-coverage-all build-all-validated-data publish-eval-all publish-eval-all-coverage publish-eval publish-eval-strict publish-gate publish-gate-native status-snapshot data-tpch-check
 
 PYTHON := python3
 SPARK_SUBMIT := spark-submit
@@ -75,6 +75,11 @@ collect-data:  ## Generate labeled training data from DSL queries
 collect-coverage-boost: data-graphs-real  ## Targeted real collection to improve per-dataset GRAPH coverage
 	$(PYTHON) -m training_data.real_query_generator --scale aggressive --focus-mode graph_win --include-sql-families-in-graph-focus
 	$(PYTHON) -m training_data.real_collection_script --queries_dir dsl/sample_queries --output training_data/real_labeled_runs_coverage_boost.csv --n_warmup 1 --n_measure 2 --repeat 1 --no_penalize_sql_traversal_approx
+
+collect-coverage-boost-iter: collect-coverage-boost  ## Merge boosted labels into strict-all and run coverage gate preview
+	$(PYTHON) -m training_data.merge_and_dedup_labels --base training_data/real_labeled_runs_strict_all.csv --extra training_data/real_labeled_runs_coverage_boost.csv --output training_data/real_labeled_runs_strict_all_plus_boost_preview.csv --summary_out training_data/real_labeled_runs_strict_all_plus_boost_preview_summary.json
+	$(PYTHON) -m training_data.fix_dataset_splits --source training_data/real_labeled_runs_strict_all_plus_boost_preview.csv --split_mode group --group_col query_id --train_base_out training_data/fixed_train_base_strict_all_plus_boost_preview.csv --eval_out training_data/fixed_eval_set_strict_all_plus_boost_preview.csv --graph_eval_out training_data/fixed_eval_graph_only_strict_all_plus_boost_preview.csv --train_balanced_out training_data/fixed_train_balanced_strict_all_plus_boost_preview.csv --manifest_out training_data/fixed_split_manifest_strict_all_plus_boost_preview.json
+	$(PYTHON) -m training_data.dataset_quality_gate --source training_data/real_labeled_runs_strict_all_plus_boost_preview.csv --train training_data/fixed_train_base_strict_all_plus_boost_preview.csv --eval training_data/fixed_eval_set_strict_all_plus_boost_preview.csv --per_dataset_min_graph "snb_real_queries:25,ogb_real_queries:25,snb_bi_real_queries:25,job_real_queries:25,tpcds_real_queries:25" --require_dataset_presence --out_json training_data/dataset_quality_report_strict_all_plus_boost_preview_coverage.json
 
 train: collect-data  ## Train ML classifier (Decision Tree + XGBoost)
 	$(PYTHON) -m model.trainer

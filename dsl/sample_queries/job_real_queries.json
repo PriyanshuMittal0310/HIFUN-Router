@@ -293,7 +293,7 @@
             "value": "movie_keyword:c0:1"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
+          "direction": "OUT",
           "max_hops": 2,
           "return_fields": [
             "id"
@@ -346,7 +346,7 @@
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
-          "max_hops": 3,
+          "max_hops": 2,
           "return_fields": [
             "id"
           ]
@@ -381,6 +381,162 @@
   },
   {
     "query_id": "q_job_graph_0003",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0004",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0005",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0006",
     "description": "JOB graph-projection traversal",
     "operations": [
       {
@@ -432,162 +588,6 @@
     ]
   },
   {
-    "query_id": "q_job_graph_0004",
-    "description": "JOB graph-projection traversal",
-    "operations": [
-      {
-        "op_id": "jg1",
-        "type": "TRAVERSAL",
-        "source": "job_real_queries",
-        "fields": [
-          "id"
-        ],
-        "traversal": {
-          "start_vertex_filter": {
-            "column": "id",
-            "operator": "=",
-            "value": "movie_keyword:c0:10"
-          },
-          "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 2,
-          "return_fields": [
-            "id"
-          ]
-        },
-        "depends_on": []
-      },
-      {
-        "op_id": "jg2",
-        "type": "AGGREGATE",
-        "source": "jg1",
-        "fields": [
-          "id",
-          "reach"
-        ],
-        "aggregate": {
-          "group_by": [
-            "id"
-          ],
-          "functions": [
-            {
-              "func": "COUNT",
-              "column": "id",
-              "alias": "reach"
-            }
-          ]
-        },
-        "depends_on": [
-          "jg1"
-        ]
-      }
-    ]
-  },
-  {
-    "query_id": "q_job_graph_0005",
-    "description": "JOB graph-projection traversal",
-    "operations": [
-      {
-        "op_id": "jg1",
-        "type": "TRAVERSAL",
-        "source": "job_real_queries",
-        "fields": [
-          "id"
-        ],
-        "traversal": {
-          "start_vertex_filter": {
-            "column": "id",
-            "operator": "=",
-            "value": "movie_keyword:c0:10"
-          },
-          "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 3,
-          "return_fields": [
-            "id"
-          ]
-        },
-        "depends_on": []
-      },
-      {
-        "op_id": "jg2",
-        "type": "AGGREGATE",
-        "source": "jg1",
-        "fields": [
-          "id",
-          "reach"
-        ],
-        "aggregate": {
-          "group_by": [
-            "id"
-          ],
-          "functions": [
-            {
-              "func": "COUNT",
-              "column": "id",
-              "alias": "reach"
-            }
-          ]
-        },
-        "depends_on": [
-          "jg1"
-        ]
-      }
-    ]
-  },
-  {
-    "query_id": "q_job_graph_0006",
-    "description": "JOB graph-projection traversal",
-    "operations": [
-      {
-        "op_id": "jg1",
-        "type": "TRAVERSAL",
-        "source": "job_real_queries",
-        "fields": [
-          "id"
-        ],
-        "traversal": {
-          "start_vertex_filter": {
-            "column": "id",
-            "operator": "=",
-            "value": "movie_keyword:c0:10"
-          },
-          "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 4,
-          "return_fields": [
-            "id"
-          ]
-        },
-        "depends_on": []
-      },
-      {
-        "op_id": "jg2",
-        "type": "AGGREGATE",
-        "source": "jg1",
-        "fields": [
-          "id",
-          "reach"
-        ],
-        "aggregate": {
-          "group_by": [
-            "id"
-          ],
-          "functions": [
-            {
-              "func": "COUNT",
-              "column": "id",
-              "alias": "reach"
-            }
-          ]
-        },
-        "depends_on": [
-          "jg1"
-        ]
-      }
-    ]
-  },
-  {
     "query_id": "q_job_graph_0007",
     "description": "JOB graph-projection traversal",
     "operations": [
@@ -602,11 +602,11 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "cast_info:c0:1"
+            "value": "movie_keyword:c0:1"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 2,
+          "direction": "OUT",
+          "max_hops": 5,
           "return_fields": [
             "id"
           ]
@@ -654,11 +654,11 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "cast_info:c0:1"
+            "value": "movie_keyword:c0:1"
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
-          "max_hops": 3,
+          "max_hops": 5,
           "return_fields": [
             "id"
           ]
@@ -706,11 +706,11 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "cast_info:c0:1"
+            "value": "movie_keyword:c0:10"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 4,
+          "direction": "OUT",
+          "max_hops": 2,
           "return_fields": [
             "id"
           ]
@@ -758,7 +758,7 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "movie_companies:c0:1"
+            "value": "movie_keyword:c0:10"
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
@@ -810,10 +810,10 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "movie_companies:c0:1"
+            "value": "movie_keyword:c0:10"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
+          "direction": "OUT",
           "max_hops": 3,
           "return_fields": [
             "id"
@@ -862,11 +862,3131 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
+            "value": "movie_keyword:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0013",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0014",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0015",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0016",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0017",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0018",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0019",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0020",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0021",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0022",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0023",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0024",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_keyword:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0025",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0026",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0027",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0028",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0029",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0030",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0031",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0032",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0033",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0034",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0035",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0036",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0037",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0038",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0039",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0040",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "cast_info:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0041",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0042",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0043",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0044",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0045",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0046",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
             "value": "movie_companies:c0:1"
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
           "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0047",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0048",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0049",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0050",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0051",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0052",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0053",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0054",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0055",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0056",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_companies:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0057",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0058",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0059",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0060",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0061",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0062",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0063",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0064",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0065",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0066",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0067",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0068",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0069",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0070",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0071",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "jg2",
+        "type": "AGGREGATE",
+        "source": "jg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "jg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_job_graph_0072",
+    "description": "JOB graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "jg1",
+        "type": "TRAVERSAL",
+        "source": "job_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "movie_link:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
           "return_fields": [
             "id"
           ]

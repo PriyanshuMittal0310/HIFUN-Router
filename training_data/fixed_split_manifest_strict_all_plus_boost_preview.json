@@ -1,0 +1,55 @@
+{
+  "source": "training_data/real_labeled_runs_strict_all_plus_boost_preview.csv",
+  "seed": 42,
+  "split_mode": "group",
+  "group_col": "query_id",
+  "eval_fraction": 0.2,
+  "min_eval_per_class": 1,
+  "min_graph_train": 100,
+  "min_graph_eval": 25,
+  "allow_degenerate": false,
+  "min_unique_graph_for_upsample": 40,
+  "rows": {
+    "source_deduped": 1054,
+    "train_base": 843,
+    "eval": 211,
+    "eval_graph_only": 40,
+    "train_balanced": 1450
+  },
+  "labels": {
+    "source_deduped": {
+      "SQL": 896,
+      "GRAPH": 158
+    },
+    "train_base": {
+      "SQL": 725,
+      "GRAPH": 118
+    },
+    "eval": {
+      "SQL": 171,
+      "GRAPH": 40
+    },
+    "eval_graph_only": {
+      "GRAPH": 40
+    },
+    "train_balanced": {
+      "SQL": 725,
+      "GRAPH": 725
+    }
+  },
+  "balancing": {
+    "applied": true,
+    "reason": "ok"
+  },
+  "overlap": {
+    "source_row_id": 0,
+    "query_id": 0,
+    "sub_id": 2
+  },
+  "outputs": {
+    "train_base": "training_data/fixed_train_base_strict_all_plus_boost_preview.csv",
+    "eval": "training_data/fixed_eval_set_strict_all_plus_boost_preview.csv",
+    "eval_graph_only": "training_data/fixed_eval_graph_only_strict_all_plus_boost_preview.csv",
+    "train_balanced": "training_data/fixed_train_balanced_strict_all_plus_boost_preview.csv"
+  }
+}

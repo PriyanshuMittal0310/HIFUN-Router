@@ -120,23 +120,23 @@ On screen:
 - Sidebar: select `strict`.
 - Keep `Compact view` enabled.
 - Walk tabs in this order:
-	1. Executive View
-	2. Core Results
-	3. Robustness
-	4. Shift and Transfer
+	1. Dataset and Quality
+	2. Relevance Evaluation
+	3. Robustness Evaluation
+	4. Cross-Dataset Generalization
 
 Say (suggested lines):
 
-1) Executive View (1:40-2:00)
+1) Dataset and Quality (1:40-2:00)
 "This summarizes train/eval size, label distribution, and quality gates. We use strict curated real measurements for reliable claims."
 
-2) Core Results (2:00-2:35)
+2) Relevance Evaluation (2:00-2:35)
 "Here are model-level routing metrics. The key finding is parity between learned routing and the traversal rule under strict evaluation, which supports robustness of the decision boundary."
 
-3) Robustness (2:35-3:05)
+3) Robustness Evaluation (2:35-3:05)
 "Bootstrap confidence intervals and permutation sanity checks indicate the model signal is stable and not due to leakage."
 
-4) Shift and Transfer (3:05-3:35)
+4) Cross-Dataset Generalization (3:05-3:35)
 "Cross-dataset transfer shows where routing generalizes and where domain shift remains challenging."
 
 ## Segment E (3:35-4:00) - Conclusion
@@ -154,7 +154,7 @@ Say:
 	- `strict` for final reporting artifacts.
 - Keep `Compact view` ON during recording to avoid extra detail.
 - In `Artifacts` sidebar section, briefly show loaded file paths to reinforce reproducibility.
-- Prefer stable tab order: Executive -> Core -> Robustness -> Shift.
+- Prefer stable tab order: Dataset and Quality -> Relevance Evaluation -> Robustness Evaluation -> Cross-Dataset Generalization.
 - Avoid scrolling too much; pause 2-3 seconds per key metric card.
 
 ## 6) Camera and pacing tips

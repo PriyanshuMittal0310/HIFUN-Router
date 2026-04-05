@@ -296,7 +296,7 @@
             "value": "store_sales:c0:1"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
+          "direction": "OUT",
           "max_hops": 2,
           "return_fields": [
             "id"
@@ -349,7 +349,7 @@
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
-          "max_hops": 3,
+          "max_hops": 2,
           "return_fields": [
             "id"
           ]
@@ -384,6 +384,162 @@
   },
   {
     "query_id": "q_tpcds_graph_0003",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0004",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0005",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0006",
     "description": "TPCDS graph-projection traversal",
     "operations": [
       {
@@ -435,162 +591,6 @@
     ]
   },
   {
-    "query_id": "q_tpcds_graph_0004",
-    "description": "TPCDS graph-projection traversal",
-    "operations": [
-      {
-        "op_id": "tg1",
-        "type": "TRAVERSAL",
-        "source": "tpcds_real_queries",
-        "fields": [
-          "id"
-        ],
-        "traversal": {
-          "start_vertex_filter": {
-            "column": "id",
-            "operator": "=",
-            "value": "catalog_sales:c0:1"
-          },
-          "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 2,
-          "return_fields": [
-            "id"
-          ]
-        },
-        "depends_on": []
-      },
-      {
-        "op_id": "tg2",
-        "type": "AGGREGATE",
-        "source": "tg1",
-        "fields": [
-          "id",
-          "reach"
-        ],
-        "aggregate": {
-          "group_by": [
-            "id"
-          ],
-          "functions": [
-            {
-              "func": "COUNT",
-              "column": "id",
-              "alias": "reach"
-            }
-          ]
-        },
-        "depends_on": [
-          "tg1"
-        ]
-      }
-    ]
-  },
-  {
-    "query_id": "q_tpcds_graph_0005",
-    "description": "TPCDS graph-projection traversal",
-    "operations": [
-      {
-        "op_id": "tg1",
-        "type": "TRAVERSAL",
-        "source": "tpcds_real_queries",
-        "fields": [
-          "id"
-        ],
-        "traversal": {
-          "start_vertex_filter": {
-            "column": "id",
-            "operator": "=",
-            "value": "catalog_sales:c0:1"
-          },
-          "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 3,
-          "return_fields": [
-            "id"
-          ]
-        },
-        "depends_on": []
-      },
-      {
-        "op_id": "tg2",
-        "type": "AGGREGATE",
-        "source": "tg1",
-        "fields": [
-          "id",
-          "reach"
-        ],
-        "aggregate": {
-          "group_by": [
-            "id"
-          ],
-          "functions": [
-            {
-              "func": "COUNT",
-              "column": "id",
-              "alias": "reach"
-            }
-          ]
-        },
-        "depends_on": [
-          "tg1"
-        ]
-      }
-    ]
-  },
-  {
-    "query_id": "q_tpcds_graph_0006",
-    "description": "TPCDS graph-projection traversal",
-    "operations": [
-      {
-        "op_id": "tg1",
-        "type": "TRAVERSAL",
-        "source": "tpcds_real_queries",
-        "fields": [
-          "id"
-        ],
-        "traversal": {
-          "start_vertex_filter": {
-            "column": "id",
-            "operator": "=",
-            "value": "catalog_sales:c0:1"
-          },
-          "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 4,
-          "return_fields": [
-            "id"
-          ]
-        },
-        "depends_on": []
-      },
-      {
-        "op_id": "tg2",
-        "type": "AGGREGATE",
-        "source": "tg1",
-        "fields": [
-          "id",
-          "reach"
-        ],
-        "aggregate": {
-          "group_by": [
-            "id"
-          ],
-          "functions": [
-            {
-              "func": "COUNT",
-              "column": "id",
-              "alias": "reach"
-            }
-          ]
-        },
-        "depends_on": [
-          "tg1"
-        ]
-      }
-    ]
-  },
-  {
     "query_id": "q_tpcds_graph_0007",
     "description": "TPCDS graph-projection traversal",
     "operations": [
@@ -605,11 +605,11 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "web_sales:c0:1"
+            "value": "store_sales:c0:1"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 2,
+          "direction": "OUT",
+          "max_hops": 5,
           "return_fields": [
             "id"
           ]
@@ -657,11 +657,11 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "web_sales:c0:1"
+            "value": "store_sales:c0:1"
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
-          "max_hops": 3,
+          "max_hops": 5,
           "return_fields": [
             "id"
           ]
@@ -709,11 +709,11 @@
           "start_vertex_filter": {
             "column": "id",
             "operator": "=",
-            "value": "web_sales:c0:1"
+            "value": "store_sales:c0:10"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
-          "max_hops": 4,
+          "direction": "OUT",
+          "max_hops": 2,
           "return_fields": [
             "id"
           ]
@@ -816,7 +816,7 @@
             "value": "store_sales:c0:10"
           },
           "edge_label": "KNOWS",
-          "direction": "BOTH",
+          "direction": "OUT",
           "max_hops": 3,
           "return_fields": [
             "id"
@@ -869,7 +869,3127 @@
           },
           "edge_label": "KNOWS",
           "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0013",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
           "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0014",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0015",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0016",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0017",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0018",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0019",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0020",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0021",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0022",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0023",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0024",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "store_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0025",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0026",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0027",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0028",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0029",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0030",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0031",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0032",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0033",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0034",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0035",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0036",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0037",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0038",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0039",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0040",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0041",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0042",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0043",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0044",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0045",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0046",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0047",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0048",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "catalog_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0049",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0050",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0051",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0052",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0053",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0054",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0055",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0056",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:1"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0057",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0058",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0059",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0060",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0061",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0062",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0063",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0064",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:10"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0065",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0066",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 2,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0067",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0068",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 3,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0069",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0070",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 4,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0071",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "OUT",
+          "max_hops": 5,
+          "return_fields": [
+            "id"
+          ]
+        },
+        "depends_on": []
+      },
+      {
+        "op_id": "tg2",
+        "type": "AGGREGATE",
+        "source": "tg1",
+        "fields": [
+          "id",
+          "reach"
+        ],
+        "aggregate": {
+          "group_by": [
+            "id"
+          ],
+          "functions": [
+            {
+              "func": "COUNT",
+              "column": "id",
+              "alias": "reach"
+            }
+          ]
+        },
+        "depends_on": [
+          "tg1"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "q_tpcds_graph_0072",
+    "description": "TPCDS graph-projection traversal",
+    "operations": [
+      {
+        "op_id": "tg1",
+        "type": "TRAVERSAL",
+        "source": "tpcds_real_queries",
+        "fields": [
+          "id"
+        ],
+        "traversal": {
+          "start_vertex_filter": {
+            "column": "id",
+            "operator": "=",
+            "value": "web_sales:c0:100"
+          },
+          "edge_label": "KNOWS",
+          "direction": "BOTH",
+          "max_hops": 5,
           "return_fields": [
             "id"
           ]

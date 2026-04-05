@@ -1,35 +1,48 @@
 {
-  "source": "training_data/real_labeled_runs_graphfocus.csv",
+  "source": "training_data/real_labeled_runs_strict_curated.csv",
   "seed": 42,
   "eval_fraction": 0.2,
   "min_eval_per_class": 1,
+  "min_graph_train": 100,
+  "min_graph_eval": 25,
+  "allow_degenerate": true,
+  "min_unique_graph_for_upsample": 40,
   "rows": {
-    "source_deduped": 1299,
-    "train_base": 1040,
-    "eval": 259,
-    "train_balanced": 2068
+    "source_deduped": 90,
+    "train_base": 72,
+    "eval": 18,
+    "eval_graph_only": 9,
+    "train_balanced": 72
   },
   "labels": {
     "source_deduped": {
-      "SQL": 1292,
-      "GRAPH": 7
+      "SQL": 46,
+      "GRAPH": 44
     },
     "train_base": {
-      "SQL": 1034,
-      "GRAPH": 6
+      "SQL": 37,
+      "GRAPH": 35
     },
     "eval": {
-      "SQL": 258,
-      "GRAPH": 1
+      "GRAPH": 9,
+      "SQL": 9
+    },
+    "eval_graph_only": {
+      "GRAPH": 9
     },
     "train_balanced": {
-      "GRAPH": 1034,
-      "SQL": 1034
+      "SQL": 37,
+      "GRAPH": 35
     }
+  },
+  "balancing": {
+    "applied": false,
+    "reason": "minority_unique_too_small:35"
   },
   "outputs": {
     "train_base": "/home/mitta/HIFUN-Router-clone/training_data/fixed_train_base.csv",
     "eval": "/home/mitta/HIFUN-Router-clone/training_data/fixed_eval_set.csv",
+    "eval_graph_only": "/home/mitta/HIFUN-Router-clone/training_data/fixed_eval_graph_only.csv",
     "train_balanced": "/home/mitta/HIFUN-Router-clone/training_data/fixed_train_balanced.csv"
   }
 }

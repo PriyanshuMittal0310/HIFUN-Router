@@ -269,41 +269,43 @@ def generate_snb_bi_queries(intensity: str) -> List[dict]:
 
 
 def generate_snb_bi_graph_queries(intensity: str) -> List[dict]:
-    seeds = [1, 10, 100, 1000]
-    hops = [2, 3, 4] if intensity != "balanced" else [2, 3]
+    seeds = [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000]
+    hops = [2, 3, 4, 5] if intensity != "balanced" else [2, 3]
+    directions = ["OUT", "BOTH"] if intensity != "balanced" else ["BOTH"]
     queries: List[dict] = []
     qn = 0
     for sid in seeds:
         for h in hops:
-            qn += 1
-            queries.append({
-                "query_id": f"q_snb_bi_graph_{qn:04d}",
-                "description": "SNB-BI graph-projection traversal",
-                "operations": [
-                    {
-                        "op_id": "bg1",
-                        "type": "TRAVERSAL",
-                        "source": "snb",
-                        "fields": ["id"],
-                        "traversal": {
-                            "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
-                            "edge_label": "KNOWS",
-                            "direction": "BOTH",
-                            "max_hops": h,
-                            "return_fields": ["id"],
+            for d in directions:
+                qn += 1
+                queries.append({
+                    "query_id": f"q_snb_bi_graph_{qn:04d}",
+                    "description": "SNB-BI graph-projection traversal",
+                    "operations": [
+                        {
+                            "op_id": "bg1",
+                            "type": "TRAVERSAL",
+                            "source": "snb",
+                            "fields": ["id"],
+                            "traversal": {
+                                "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                                "edge_label": "KNOWS",
+                                "direction": d,
+                                "max_hops": h,
+                                "return_fields": ["id"],
+                            },
+                            "depends_on": [],
                         },
-                        "depends_on": [],
-                    },
-                    _mk_agg(
-                        "bg2",
-                        "bg1",
-                        ["id"],
-                        [{"func": "COUNT", "column": "id", "alias": "reach"}],
-                        ["id", "reach"],
-                        deps=["bg1"],
-                    ),
-                ],
-            })
+                        _mk_agg(
+                            "bg2",
+                            "bg1",
+                            ["id"],
+                            [{"func": "COUNT", "column": "id", "alias": "reach"}],
+                            ["id", "reach"],
+                            deps=["bg1"],
+                        ),
+                    ],
+                })
     return queries
 
 
@@ -418,45 +420,47 @@ def generate_job_queries(intensity: str, focus_mode: str) -> List[dict]:
 
 def generate_job_graph_queries(intensity: str) -> List[dict]:
     seeds = [
-        "movie_keyword:c0:1",
-        "movie_keyword:c0:10",
-        "cast_info:c0:1",
-        "movie_companies:c0:1",
+        "movie_keyword:c0:1", "movie_keyword:c0:10", "movie_keyword:c0:100",
+        "cast_info:c0:1", "cast_info:c0:10",
+        "movie_companies:c0:1", "movie_companies:c0:10",
+        "movie_link:c0:1", "movie_link:c0:10",
     ]
-    hops = [2, 3, 4] if intensity != "balanced" else [2, 3]
+    hops = [2, 3, 4, 5] if intensity != "balanced" else [2, 3]
+    directions = ["OUT", "BOTH"] if intensity != "balanced" else ["BOTH"]
     queries: List[dict] = []
     qn = 0
     for sid in seeds:
         for h in hops:
-            qn += 1
-            queries.append({
-                "query_id": f"q_job_graph_{qn:04d}",
-                "description": "JOB graph-projection traversal",
-                "operations": [
-                    {
-                        "op_id": "jg1",
-                        "type": "TRAVERSAL",
-                        "source": "job_real_queries",
-                        "fields": ["id"],
-                        "traversal": {
-                            "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
-                            "edge_label": "KNOWS",
-                            "direction": "BOTH",
-                            "max_hops": h,
-                            "return_fields": ["id"],
+            for d in directions:
+                qn += 1
+                queries.append({
+                    "query_id": f"q_job_graph_{qn:04d}",
+                    "description": "JOB graph-projection traversal",
+                    "operations": [
+                        {
+                            "op_id": "jg1",
+                            "type": "TRAVERSAL",
+                            "source": "job_real_queries",
+                            "fields": ["id"],
+                            "traversal": {
+                                "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                                "edge_label": "KNOWS",
+                                "direction": d,
+                                "max_hops": h,
+                                "return_fields": ["id"],
+                            },
+                            "depends_on": [],
                         },
-                        "depends_on": [],
-                    },
-                    _mk_agg(
-                        "jg2",
-                        "jg1",
-                        ["id"],
-                        [{"func": "COUNT", "column": "id", "alias": "reach"}],
-                        ["id", "reach"],
-                        deps=["jg1"],
-                    ),
-                ],
-            })
+                        _mk_agg(
+                            "jg2",
+                            "jg1",
+                            ["id"],
+                            [{"func": "COUNT", "column": "id", "alias": "reach"}],
+                            ["id", "reach"],
+                            deps=["jg1"],
+                        ),
+                    ],
+                })
     return queries
 
 
@@ -494,45 +498,46 @@ def generate_tpcds_queries(intensity: str, focus_mode: str) -> List[dict]:
 
 def generate_tpcds_graph_queries(intensity: str) -> List[dict]:
     seeds = [
-        "store_sales:c0:1",
-        "catalog_sales:c0:1",
-        "web_sales:c0:1",
-        "store_sales:c0:10",
+        "store_sales:c0:1", "store_sales:c0:10", "store_sales:c0:100",
+        "catalog_sales:c0:1", "catalog_sales:c0:10", "catalog_sales:c0:100",
+        "web_sales:c0:1", "web_sales:c0:10", "web_sales:c0:100",
     ]
-    hops = [2, 3, 4] if intensity != "balanced" else [2, 3]
+    hops = [2, 3, 4, 5] if intensity != "balanced" else [2, 3]
+    directions = ["OUT", "BOTH"] if intensity != "balanced" else ["BOTH"]
     queries: List[dict] = []
     qn = 0
     for sid in seeds:
         for h in hops:
-            qn += 1
-            queries.append({
-                "query_id": f"q_tpcds_graph_{qn:04d}",
-                "description": "TPCDS graph-projection traversal",
-                "operations": [
-                    {
-                        "op_id": "tg1",
-                        "type": "TRAVERSAL",
-                        "source": "tpcds_real_queries",
-                        "fields": ["id"],
-                        "traversal": {
-                            "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
-                            "edge_label": "KNOWS",
-                            "direction": "BOTH",
-                            "max_hops": h,
-                            "return_fields": ["id"],
+            for d in directions:
+                qn += 1
+                queries.append({
+                    "query_id": f"q_tpcds_graph_{qn:04d}",
+                    "description": "TPCDS graph-projection traversal",
+                    "operations": [
+                        {
+                            "op_id": "tg1",
+                            "type": "TRAVERSAL",
+                            "source": "tpcds_real_queries",
+                            "fields": ["id"],
+                            "traversal": {
+                                "start_vertex_filter": {"column": "id", "operator": "=", "value": sid},
+                                "edge_label": "KNOWS",
+                                "direction": d,
+                                "max_hops": h,
+                                "return_fields": ["id"],
+                            },
+                            "depends_on": [],
                         },
-                        "depends_on": [],
-                    },
-                    _mk_agg(
-                        "tg2",
-                        "tg1",
-                        ["id"],
-                        [{"func": "COUNT", "column": "id", "alias": "reach"}],
-                        ["id", "reach"],
-                        deps=["tg1"],
-                    ),
-                ],
-            })
+                        _mk_agg(
+                            "tg2",
+                            "tg1",
+                            ["id"],
+                            [{"func": "COUNT", "column": "id", "alias": "reach"}],
+                            ["id", "reach"],
+                            deps=["tg1"],
+                        ),
+                    ],
+                })
     return queries
 
 

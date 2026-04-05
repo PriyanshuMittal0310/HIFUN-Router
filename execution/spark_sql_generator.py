@@ -385,11 +385,18 @@ class SparkSQLGenerator:
 
         # Start with the configured parquet directory, then attempt common graph siblings.
         data_root = os.path.dirname(os.path.dirname(self.parquet_dir))
+        graph_aliases = {graph_name}
+        if graph_name.endswith("_real_queries"):
+            graph_aliases.add(graph_name.replace("_real_queries", ""))
+        if graph_name.endswith("_queries"):
+            graph_aliases.add(graph_name.replace("_queries", ""))
+
         candidate_dirs = [
             self.parquet_dir,
-            os.path.join(data_root, "graphs", graph_name),
             os.path.join(data_root, "graphs"),
         ]
+        for alias in sorted(graph_aliases):
+            candidate_dirs.insert(1, os.path.join(data_root, "graphs", alias))
 
         def _resolve_from_dirs(names: list[str]) -> str:
             for d in candidate_dirs:

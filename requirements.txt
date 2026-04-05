@@ -33,6 +33,7 @@ jupyter==1.0.0            # Jupyter Lab / Classic notebook
 jupyterlab==4.1.2
 ipywidgets==8.1.2         # ipywidgets for interactive plots in notebooks
 nbformat==5.9.2
+streamlit==1.44.1         # Lightweight evaluation dashboard for demo videos
 
 # ─── Streaming / Kafka integration (optional — for online retraining loop) ───
 # kafka-python==2.0.2     # uncomment when implementing Task 3.2

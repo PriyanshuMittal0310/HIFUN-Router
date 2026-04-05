@@ -1,0 +1,30 @@
+{
+  "strict_source": "training_data/real_labeled_runs_strict_curated.csv",
+  "full_source": "training_data/real_labeled_runs.csv",
+  "output": "training_data/real_labeled_runs_strict_all.csv",
+  "include_datasets": [
+    "job_real_queries",
+    "ogb_real_queries",
+    "snb_bi_real_queries",
+    "snb_real_queries",
+    "tpcds_real_queries"
+  ],
+  "require_real_measurement": true,
+  "rows": {
+    "strict": 288,
+    "extra_filtered": 738,
+    "merged_before_dedup": 1026,
+    "merged_after_dedup": 1026
+  },
+  "labels": {
+    "SQL": 885,
+    "GRAPH": 141
+  },
+  "datasets": {
+    "snb_real_queries": 670,
+    "ogb_real_queries": 226,
+    "snb_bi_real_queries": 96,
+    "job_real_queries": 18,
+    "tpcds_real_queries": 16
+  }
+}

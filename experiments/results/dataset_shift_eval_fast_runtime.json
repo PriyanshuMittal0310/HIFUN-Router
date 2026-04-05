@@ -1,0 +1,83 @@
+{
+  "source": "training_data/real_labeled_runs_strict_curated.csv",
+  "results": [
+    {
+      "mode": "one_to_one",
+      "train_dataset": "ogb_real_queries",
+      "eval_dataset": "snb_real_queries",
+      "status": "ok",
+      "rows": 238,
+      "accuracy": 0.9747899159663865,
+      "f1": 0.9741379310344828,
+      "precision": 0.9495798319327731,
+      "recall": 1.0,
+      "eval_graph_rows": 113,
+      "eval_sql_rows": 125
+    },
+    {
+      "mode": "one_to_one",
+      "train_dataset": "snb_real_queries",
+      "eval_dataset": "ogb_real_queries",
+      "status": "ok",
+      "rows": 50,
+      "accuracy": 0.98,
+      "f1": 0.9795918367346939,
+      "precision": 0.96,
+      "recall": 1.0,
+      "eval_graph_rows": 24,
+      "eval_sql_rows": 26
+    },
+    {
+      "mode": "leave_one_out",
+      "train_dataset": "all_except:ogb_real_queries",
+      "eval_dataset": "ogb_real_queries",
+      "status": "ok",
+      "rows": 50,
+      "accuracy": 0.98,
+      "f1": 0.9795918367346939,
+      "precision": 0.96,
+      "recall": 1.0,
+      "eval_graph_rows": 24,
+      "eval_sql_rows": 26
+    },
+    {
+      "mode": "leave_one_out",
+      "train_dataset": "all_except:snb_real_queries",
+      "eval_dataset": "snb_real_queries",
+      "status": "ok",
+      "rows": 238,
+      "accuracy": 0.9747899159663865,
+      "f1": 0.9741379310344828,
+      "precision": 0.9495798319327731,
+      "recall": 1.0,
+      "eval_graph_rows": 113,
+      "eval_sql_rows": 125
+    },
+    {
+      "mode": "grouped_domains",
+      "train_dataset": "domain:graph",
+      "eval_dataset": "domain:mixed",
+      "status": "ok",
+      "rows": 238,
+      "accuracy": 0.9747899159663865,
+      "f1": 0.9741379310344828,
+      "precision": 0.9495798319327731,
+      "recall": 1.0,
+      "eval_graph_rows": 113,
+      "eval_sql_rows": 125
+    },
+    {
+      "mode": "grouped_domains",
+      "train_dataset": "domain:mixed",
+      "eval_dataset": "domain:graph",
+      "status": "ok",
+      "rows": 50,
+      "accuracy": 0.98,
+      "f1": 0.9795918367346939,
+      "precision": 0.96,
+      "recall": 1.0,
+      "eval_graph_rows": 24,
+      "eval_sql_rows": 26
+    }
+  ]
+}

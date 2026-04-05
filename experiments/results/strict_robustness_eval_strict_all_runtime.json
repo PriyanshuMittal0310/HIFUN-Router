@@ -1,0 +1,347 @@
+{
+  "train_path": "training_data/fixed_train_base_strict_all.csv",
+  "eval_path": "training_data/fixed_eval_set_strict_all.csv",
+  "transfer_source": "training_data/real_labeled_runs_strict_all.csv",
+  "train_rows": 821,
+  "eval_rows": 205,
+  "xgb_eval_f1": 0.7659574468085106,
+  "logreg_eval_f1": 0.6386554621848739,
+  "bootstrap_ci": {
+    "n_bootstrap": 1000,
+    "f1": {
+      "p2_5": 0.6574325240743252,
+      "p50": 0.7619047619047619,
+      "p97_5": 0.8495575221238938
+    },
+    "precision": {
+      "p2_5": 0.5166666666666667,
+      "p50": 0.6428571428571429,
+      "p97_5": 0.7619047619047619
+    },
+    "recall": {
+      "p2_5": 0.8666216216216217,
+      "p50": 0.9487179487179487,
+      "p97_5": 1.0
+    }
+  },
+  "label_permutation_sanity": {
+    "n_permutations": 100,
+    "f1_mean": 0.19704197951007987,
+    "f1_std": 0.1823701660155124,
+    "f1_min": 0.0,
+    "f1_max": 0.5773195876288659,
+    "scores": [
+      0.0,
+      0.0425531914893617,
+      0.4444444444444444,
+      0.0,
+      0.36666666666666664,
+      0.0,
+      0.2857142857142857,
+      0.03508771929824561,
+      0.0,
+      0.0,
+      0.34782608695652173,
+      0.2608695652173913,
+      0.2807017543859649,
+      0.031746031746031744,
+      0.0,
+      0.0,
+      0.27692307692307694,
+      0.2903225806451613,
+      0.3508771929824561,
+      0.05555555555555555,
+      0.3384615384615385,
+      0.0,
+      0.0967741935483871,
+      0.03389830508474576,
+      0.27692307692307694,
+      0.0,
+      0.0,
+      0.2692307692307692,
+      0.01694915254237288,
+      0.03389830508474576,
+      0.0,
+      0.4470588235294118,
+      0.04316546762589928,
+      0.04081632653061224,
+      0.23529411764705882,
+      0.1,
+      0.0784313725490196,
+      0.07547169811320754,
+      0.2857142857142857,
+      0.0,
+      0.41025641025641024,
+      0.0,
+      0.5208333333333334,
+      0.027777777777777776,
+      0.47863247863247865,
+      0.0,
+      0.06896551724137931,
+      0.5647058823529412,
+      0.2807017543859649,
+      0.0,
+      0.0,
+      0.3116883116883117,
+      0.23076923076923078,
+      0.4155844155844156,
+      0.27692307692307694,
+      0.0,
+      0.45652173913043476,
+      0.3013698630136986,
+      0.5555555555555556,
+      0.5060240963855421,
+      0.2807017543859649,
+      0.22988505747126436,
+      0.30303030303030304,
+      0.36666666666666664,
+      0.32098765432098764,
+      0.0,
+      0.02564102564102564,
+      0.38202247191011235,
+      0.07272727272727272,
+      0.0,
+      0.08163265306122448,
+      0.18604651162790697,
+      0.03636363636363636,
+      0.2903225806451613,
+      0.0,
+      0.027777777777777776,
+      0.36666666666666664,
+      0.0,
+      0.2894736842105263,
+      0.463768115942029,
+      0.5714285714285714,
+      0.0,
+      0.2903225806451613,
+      0.3333333333333333,
+      0.2962962962962963,
+      0.0425531914893617,
+      0.3597122302158273,
+      0.07142857142857142,
+      0.06349206349206349,
+      0.06060606060606061,
+      0.5773195876288659,
+      0.0,
+      0.4,
+      0.3384615384615385,
+      0.043478260869565216,
+      0.32727272727272727,
+      0.5555555555555556,
+      0.4657534246575342,
+      0.03389830508474576,
+      0.3018867924528302
+    ],
+    "mode": "within_group:query_id",
+    "group_stats": {
+      "group_count": 420,
+      "multi_group_rows": 718,
+      "multi_group_ratio": 0.8745432399512789
+    }
+  },
+  "overlap_audit": {
+    "source_row_id_overlap": 0,
+    "query_id_overlap": 0,
+    "sub_id_overlap": 2
+  },
+  "permutation_importance": [
+    {
+      "feature": "max_hops",
+      "mean_f1_drop": 0.3710534306330932,
+      "std_f1_drop": 0.08191578038593533,
+      "max_f1_drop": 0.5905188503172826
+    },
+    {
+      "feature": "op_count_traversal",
+      "mean_f1_drop": 0.2563421404989362,
+      "std_f1_drop": 0.04862791523950448,
+      "max_f1_drop": 0.3799925345278089
+    },
+    {
+      "feature": "input_cardinality_log",
+      "mean_f1_drop": 0.051030250842881326,
+      "std_f1_drop": 0.03340961769657705,
+      "max_f1_drop": 0.10806270996640532
+    },
+    {
+      "feature": "estimated_traversal_ops",
+      "mean_f1_drop": 0.025999785773720367,
+      "std_f1_drop": 0.015339231488911592,
+      "max_f1_drop": 0.05762411347517726
+    },
+    {
+      "feature": "max_degree",
+      "mean_f1_drop": 0.006025920388820246,
+      "std_f1_drop": 0.006870818951586132,
+      "max_f1_drop": 0.023689405571397204
+    },
+    {
+      "feature": "op_count_filter",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "op_count_join",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "op_count_aggregate",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "op_count_map",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "ast_depth",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "has_traversal",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "output_cardinality_log",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "selectivity",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "avg_degree",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "degree_skew",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "num_projected_columns",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "has_index",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "join_fanout",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "estimated_shuffle_bytes_log",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "hist_avg_runtime_ms",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "hist_runtime_variance",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    },
+    {
+      "feature": "num_tables_joined",
+      "mean_f1_drop": 0.0,
+      "std_f1_drop": 0.0,
+      "max_f1_drop": 0.0
+    }
+  ],
+  "cross_dataset_transfer": [
+    {
+      "train_dataset": "ogb_real_queries",
+      "eval_dataset": "job_real_queries",
+      "rows": 18,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    {
+      "train_dataset": "ogb_real_queries",
+      "eval_dataset": "snb_bi_real_queries",
+      "rows": 96,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    {
+      "train_dataset": "ogb_real_queries",
+      "eval_dataset": "snb_real_queries",
+      "rows": 670,
+      "f1": 0.43448275862068964,
+      "precision": 0.36416184971098264,
+      "recall": 0.5384615384615384
+    },
+    {
+      "train_dataset": "ogb_real_queries",
+      "eval_dataset": "tpcds_real_queries",
+      "rows": 16,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    {
+      "train_dataset": "snb_real_queries",
+      "eval_dataset": "job_real_queries",
+      "rows": 18,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    {
+      "train_dataset": "snb_real_queries",
+      "eval_dataset": "ogb_real_queries",
+      "rows": 226,
+      "f1": 0.4835164835164835,
+      "precision": 0.3283582089552239,
+      "recall": 0.9166666666666666
+    },
+    {
+      "train_dataset": "snb_real_queries",
+      "eval_dataset": "snb_bi_real_queries",
+      "rows": 96,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    {
+      "train_dataset": "snb_real_queries",
+      "eval_dataset": "tpcds_real_queries",
+      "rows": 16,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    }
+  ]
+}

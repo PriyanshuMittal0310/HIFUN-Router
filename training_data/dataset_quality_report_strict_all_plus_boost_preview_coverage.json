@@ -1,0 +1,134 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "name": "both_labels_present",
+      "passed": true,
+      "detail": "SQL=896, GRAPH=158"
+    },
+    {
+      "name": "min_graph_total",
+      "passed": true,
+      "detail": "GRAPH=158, required>=100"
+    },
+    {
+      "name": "min_graph_ratio",
+      "passed": true,
+      "detail": "ratio=0.1499, required>=0.1000"
+    },
+    {
+      "name": "graph_across_datasets",
+      "passed": true,
+      "detail": "GRAPH present in 3 dataset(s), required>=2"
+    },
+    {
+      "name": "graph_duplication_factor",
+      "passed": true,
+      "detail": "dup_factor=1.12, total=158, unique=141, allowed<=3.00"
+    },
+    {
+      "name": "real_measurement_share",
+      "passed": true,
+      "detail": "share=0.9886, required>=0.9000"
+    },
+    {
+      "name": "min_graph_train",
+      "passed": true,
+      "detail": "train GRAPH=118, required>=100"
+    },
+    {
+      "name": "eval_both_labels_present",
+      "passed": true,
+      "detail": "eval SQL=171, GRAPH=40"
+    },
+    {
+      "name": "min_graph_eval",
+      "passed": true,
+      "detail": "eval GRAPH=40, required>=25"
+    },
+    {
+      "name": "source_dataset_graph_min:snb_real_queries",
+      "passed": true,
+      "detail": "dataset=snb_real_queries, GRAPH=117, required>=25, rows=670"
+    },
+    {
+      "name": "source_dataset_graph_min:ogb_real_queries",
+      "passed": true,
+      "detail": "dataset=ogb_real_queries, GRAPH=29, required>=25, rows=236"
+    },
+    {
+      "name": "source_dataset_graph_min:snb_bi_real_queries",
+      "passed": false,
+      "detail": "dataset=snb_bi_real_queries, GRAPH=0, required>=25, rows=96"
+    },
+    {
+      "name": "source_dataset_graph_min:job_real_queries",
+      "passed": false,
+      "detail": "dataset=job_real_queries, GRAPH=12, required>=25, rows=36"
+    },
+    {
+      "name": "source_dataset_graph_min:tpcds_real_queries",
+      "passed": false,
+      "detail": "dataset=tpcds_real_queries, GRAPH=0, required>=25, rows=16"
+    },
+    {
+      "name": "train_dataset_graph_min:snb_real_queries",
+      "passed": true,
+      "detail": "dataset=snb_real_queries, GRAPH=91, required>=25, rows=546"
+    },
+    {
+      "name": "train_dataset_graph_min:ogb_real_queries",
+      "passed": false,
+      "detail": "dataset=ogb_real_queries, GRAPH=18, required>=25, rows=174"
+    },
+    {
+      "name": "train_dataset_graph_min:snb_bi_real_queries",
+      "passed": false,
+      "detail": "dataset=snb_bi_real_queries, GRAPH=0, required>=25, rows=81"
+    },
+    {
+      "name": "train_dataset_graph_min:job_real_queries",
+      "passed": false,
+      "detail": "dataset=job_real_queries, GRAPH=9, required>=25, rows=30"
+    },
+    {
+      "name": "train_dataset_graph_min:tpcds_real_queries",
+      "passed": false,
+      "detail": "dataset=tpcds_real_queries, GRAPH=0, required>=25, rows=12"
+    },
+    {
+      "name": "eval_dataset_graph_min:snb_real_queries",
+      "passed": true,
+      "detail": "dataset=snb_real_queries, GRAPH=26, required>=25, rows=124"
+    },
+    {
+      "name": "eval_dataset_graph_min:ogb_real_queries",
+      "passed": false,
+      "detail": "dataset=ogb_real_queries, GRAPH=11, required>=25, rows=62"
+    },
+    {
+      "name": "eval_dataset_graph_min:snb_bi_real_queries",
+      "passed": false,
+      "detail": "dataset=snb_bi_real_queries, GRAPH=0, required>=25, rows=15"
+    },
+    {
+      "name": "eval_dataset_graph_min:job_real_queries",
+      "passed": false,
+      "detail": "dataset=job_real_queries, GRAPH=3, required>=25, rows=6"
+    },
+    {
+      "name": "eval_dataset_graph_min:tpcds_real_queries",
+      "passed": false,
+      "detail": "dataset=tpcds_real_queries, GRAPH=0, required>=25, rows=4"
+    }
+  ],
+  "summary": {
+    "rows_total": 1054,
+    "rows_sql": 896,
+    "rows_graph": 158,
+    "graph_ratio": 0.14990512333965844,
+    "graph_duplication_factor": 1.1205673758865249,
+    "graph_unique_rows": 141,
+    "graph_total_rows": 158
+  }
+}

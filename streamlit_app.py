@@ -147,15 +147,18 @@ def find_model(df: pd.DataFrame, names: list[str]) -> pd.Series | None:
 
 
 def render_header():
-    st.set_page_config(page_title="HIFUN Router Results Dashboard", layout="wide")
-    st.title("HIFUN Router Results Dashboard")
+    st.set_page_config(
+        page_title="Hybrid SQL/Graph Query Routing System - Results Dashboard",
+        layout="wide",
+    )
+    st.title("Hybrid SQL/Graph Query Routing System")
     st.caption(
-        "Read-only view of generated evaluation artifacts: data quality, relevance, robustness, and dataset-shift metrics."
+        "HiFUN-inspired router: read-only evaluation artifacts aligned with the latest project report."
     )
 
 
 def render_overview_tab(relevance_payload: dict, quality_payload: dict):
-    st.subheader("Dataset and Quality Snapshot")
+    st.subheader("Dataset Engineering and Quality Gates")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Train rows", str(relevance_payload.get("train_rows", "-")))
@@ -192,7 +195,7 @@ def render_overview_tab(relevance_payload: dict, quality_payload: dict):
 
 
 def render_metrics_tab(relevance_payload: dict, compact_view: bool):
-    st.subheader("Core Routing Results")
+    st.subheader("Relevance Evaluation")
     rdf = load_relevance_df(relevance_payload)
     if rdf.empty:
         st.warning("No strict relevance metrics found.")
@@ -240,7 +243,7 @@ def render_metrics_tab(relevance_payload: dict, compact_view: bool):
 
 
 def render_robustness_tab(robust_payload: dict, compact_view: bool):
-    st.subheader("Robustness")
+    st.subheader("Strict Robustness Evaluation")
 
     core_f1 = robust_payload.get("xgboost_eval_f1")
     bootstrap = robust_payload.get("bootstrap_95_ci", {})
@@ -307,7 +310,7 @@ def render_robustness_tab(robust_payload: dict, compact_view: bool):
 
 
 def render_shift_tab(shift_payload: dict, compact_view: bool):
-    st.subheader("Dataset Shift and Transfer")
+    st.subheader("Cross-Dataset Generalization")
     sdf = load_shift_df(shift_payload)
     if sdf.empty:
         st.warning("No dataset shift results found.")
@@ -366,10 +369,10 @@ def main():
 
     tabs = st.tabs(
         [
-            "Executive View",
-            "Core Results",
-            "Robustness",
-            "Shift and Transfer",
+            "Dataset and Quality",
+            "Relevance Evaluation",
+            "Robustness Evaluation",
+            "Cross-Dataset Generalization",
         ]
     )
 
