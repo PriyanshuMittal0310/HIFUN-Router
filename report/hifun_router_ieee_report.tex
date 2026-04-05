@@ -1,724 +1,229 @@
 \documentclass[conference]{IEEEtran}
 
-% ─── Packages ───────────────────────────────────────────────────────
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithm}
-\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{hyperref}
-\usepackage{array}
 \usepackage{tabularx}
-\usepackage{float}
-\usepackage{enumitem}
-\usepackage{listings}
-\usepackage{balance}
-\usepackage{pifont}
+\usepackage{hyperref}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\pgfplotsset{compat=1.18}
 
-\lstset{
-  basicstyle=\ttfamily\small,
-  breaklines=true,
-  frame=single,
-  numbers=left,
-  numberstyle=\tiny
-}
-
-\hypersetup{
-  colorlinks=true,
-  linkcolor=black,
-  citecolor=blue,
-  urlcolor=blue
-}
-
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=blue,urlcolor=blue}
 
 \begin{document}
 
-% ═════════════════════════════════════════════════════════════════════
-%  TITLE & AUTHORS
-% ═════════════════════════════════════════════════════════════════════
-\title{HIFUN Router: Learned Query Decomposition and Intelligent Engine Routing for Hybrid SQL/Graph Workloads on Distributed Big Data Infrastructure}
+\title{Final Project Report: Honest Evaluation of a Learned SQL/Graph Router}
 
-\author{\IEEEauthorblockN{Anonymous Author(s)}
-\IEEEauthorblockA{\textit{Anonymous Institution}}}
+\author{\IEEEauthorblockN{Priyanshu Mittal}
+\IEEEauthorblockA{Project Report, April 2026}}
 
 \maketitle
 
-% ═════════════════════════════════════════════════════════════════════
-%  ABSTRACT
-% ═════════════════════════════════════════════════════════════════════
 \begin{abstract}
-Modern analytical workloads increasingly mix relational and graph operations, while
-existing engines are typically specialized for one model. We present \textbf{HIFUN
-Router}, a prototype system that parses a JSON DSL (FILTER, MAP, JOIN, TRAVERSAL,
-AGGREGATE), decomposes queries into dependency-aware subexpressions, extracts a
-22-dimensional feature vector per subexpression, and routes execution to SQL or
-GRAPH backends.
-
-This submission emphasizes an honest status report rather than a superiority claim.
-On the strict held-out real-measurement split (57 eval rows), learned models
-(XGBoost, Logistic Regression, Decision Tree) tie a simple traversal heuristic
-(TraversalRule) at F1 $\approx$ 0.9818. The current evidence therefore does not
-support a claim that ML routing outperforms a lightweight rule baseline on this
-dataset. We also observe that ablations are weak/flat in several settings and that
-cross-dataset transfer results are highly sensitive to the split definition, with
-some transfer settings collapsing to F1 near 0.
-
-The implementation includes both a fast pandas path (test/development) and a real
-Spark/GraphFrames path. A strict curated dataset (288 rows) with real measurements
-was introduced to move beyond simulation-only labels, but the evaluation remains
-small and concentrated in two graph-heavy datasets. Consequently, all latency and
-generalization claims are reported as preliminary.
-
-Primary contributions are: (1)~an end-to-end parser--decomposer--router--executor
-pipeline; (2)~reproducible strict evaluation artifacts with explicit uncertainty;
-and (3)~a clear accounting of present limitations, including small eval size,
-dataset coverage gaps, and unresolved correctness issues in selected mixed queries.
+This report presents the final, evidence-aligned state of a hybrid query routing prototype that chooses between SQL and graph execution for decomposed subexpressions. The original objective was to test whether a learned router outperforms simple rule-based routing on mixed SQL/graph workloads. The final result is more modest: on the strict held-out split currently available, learned models (Logistic Regression, Decision Tree, XGBoost) \emph{tie} a one-line traversal heuristic at F1 = 0.9643. This report therefore avoids superiority claims and documents what is supported by data: (1) a working parser--decomposer--router--executor pipeline, (2) reproducible strict evaluation artifacts on real measurements, and (3) clear limitations around dataset coverage, transfer stability, and unresolved correctness issues in selected mixed queries. All numbers shown are taken from current repository artifacts or recomputed from current strict split files.
 \end{abstract}
 
-% ═════════════════════════════════════════════════════════════════════
-%  KEYWORDS
-% ═════════════════════════════════════════════════════════════════════
 \begin{IEEEkeywords}
-Query Routing, Hybrid Query Processing, Machine Learning, Graph Databases, SQL Optimization, Feature Engineering, HIFUN Algebra, XGBoost
+Query Routing, Hybrid Query Processing, Graph Analytics, Spark SQL, GraphFrames, Reproducibility
 \end{IEEEkeywords}
 
-% ═════════════════════════════════════════════════════════════════════
-%  I. INTRODUCTION
-% ═════════════════════════════════════════════════════════════════════
-\section{Introduction}
-
-The proliferation of heterogeneous data management systems has created a landscape where relational databases (e.g., PostgreSQL, Spark SQL) coexist with graph engines (e.g., Neo4j, GraphFrames) and document stores. Modern analytical applications frequently issue workloads that span multiple data models: a single business query may require relational joins and aggregations on tabular data alongside graph traversals over interconnected entities~\cite{lu2019multi}. The HIFUN algebraic framework~\cite{libkin2022hifun} provides a unified formalism for expressing such mixed queries, but it does not prescribe how to optimally execute them across heterogeneous backends. Our implementation uses a HIFUN-inspired JSON DSL subset rather than full formal HIFUN semantics.
-
-Current approaches to multi-engine query processing suffer from several limitations. \textit{Manual engine selection} places the burden on developers, who must possess deep expertise in query optimization across paradigms. \textit{Rule-based heuristics}, while simple to implement, fail to capture the nuanced interplay between query structure, data characteristics, and engine-specific performance profiles. \textit{Cost-based optimizers} embedded in single-engine systems (e.g., Spark's Catalyst~\cite{armbrust2015spark}) cannot reason about cross-engine tradeoffs.
-
-Recent work on learned query optimization~\cite{marcus2019neo, kraska2021sagedb} demonstrates the promise of machine learning for database system decisions, but existing approaches focus on intra-engine optimization (e.g., join ordering, index selection) rather than inter-engine routing. The key research questions motivating this work are:
-
-\begin{itemize}[leftmargin=*]
-  \item \textbf{RQ1:} Can lightweight ML models (Decision Tree, XGBoost) reliably predict whether a subexpression executes faster as SQL or graph?
-  \item \textbf{RQ2:} Which query and data features are most predictive of optimal engine selection?
-  \item \textbf{RQ3:} Under current data constraints, can learned routing match or exceed rule-based heuristics and single-engine baselines?
-\end{itemize}
-
-To address these questions, we present \textbf{HIFUN Router}, an end-to-end system that:
-\begin{enumerate}[leftmargin=*]
-  \item Parses HIFUN queries expressed in a validated JSON DSL into abstract syntax trees (ASTs);
-  \item Decomposes the AST into minimal, dependency-aware \textit{SubExpressions} serving as routing units;
-  \item Extracts a 22-dimensional feature vector per SubExpression capturing query shape, data statistics, engine cost proxies, and historical runtime;
-  \item Routes each SubExpression to SQL or GRAPH via a trained ML classifier in under 1~ms;
-  \item Executes routed SubExpressions via dedicated SQL and Graph generators and merges partial results.
+\section{Problem Statement (Final and Realistic)}
+Modern analytics frequently mix relational and graph operators. A practical systems question is whether query subexpressions should execute on SQL engines (e.g., Spark SQL) or graph engines (e.g., GraphFrames). This project implements a routing pipeline and evaluates:
+\begin{enumerate}
+\item Can learned routing \emph{at least match} simple heuristics on available real labels?
+\item Is there evidence of robust cross-dataset generalization?
+\item Is the implementation reproducible and honest about limitations?
 \end{enumerate}
 
-\noindent HIFUN Router should be interpreted as a prototype exploration of learned routing at the algebraic subexpression level, bridging polystore-style query decomposition with ML-assisted engine selection.
+The implemented language is a HIFUN-inspired JSON DSL subset (FILTER, MAP, JOIN, TRAVERSAL, AGGREGATE), not full formal HIFUN semantics.
 
-The remainder of the paper covers related work (\S II), system architecture (\S III), implementation (\S IV), experimental evaluation (\S V), and conclusions (\S VI).
+\section{System Summary}
+The implemented pipeline has five stages: DSL parsing, dependency-aware decomposition, 22-feature extraction, routing prediction, and engine-specific execution with result composition. The router supports both a fast pandas test path and a Spark/GraphFrames path.
 
-% ═════════════════════════════════════════════════════════════════════
-%  II. RELATED WORK
-% ═════════════════════════════════════════════════════════════════════
-\section{Related Work}
+\begin{table}[h]
+\centering
+\caption{Evaluated Strict Dataset (Current Files)}
+\label{tab:data}
+\begin{tabular}{lccc}
+\toprule
+Split & Rows & SQL & GRAPH \\
+\midrule
+Strict curated total & 288 & 151 & 137 \\
+Train (fixed\_train\_base\_strict) & 230 & 120 & 110 \\
+Eval (fixed\_eval\_set\_strict) & 58 & 31 & 27 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-We situate HIFUN Router with respect to three research threads: polystore and multi-engine query processing, learned query optimization, and graph query processing.
+\begin{table}[h]
+\centering
+\caption{Dataset Coverage in Strict Curated Set}
+\label{tab:coverage}
+\begin{tabular}{lc}
+\toprule
+Dataset & Rows \\
+\midrule
+snb\_real\_queries & 238 \\
+ogb\_real\_queries & 50 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsection{Polystore and Multi-Engine Query Processing}
+\section{Method and Reproducibility}
+We evaluate deterministic baselines and three learned classifiers on the fixed strict split:
+\begin{itemize}
+\item AlwaysSQL baseline
+\item TraversalRule baseline: if \texttt{has\_traversal}=1 then GRAPH else SQL
+\item Logistic Regression (balanced)
+\item Decision Tree (balanced)
+\item XGBoost (200 trees, depth 5, learning rate 0.05)
+\end{itemize}
 
-Apache Wayang (formerly Rheem)~\cite{wayang2025,rheem2018} provides a platform-independent data processing abstraction that routes operator plans across heterogeneous backends including Spark, Flink, and Java Streams. Unlike HIFUN Router, Wayang operates at the physical operator level and uses a cost-based planner with manually specified cost functions---it does not learn routing decisions from data. HIFUN Router complements this direction by exploring learned classification at the algebraic subexpression level for SQL/Graph routing.
+Features are the 22 engineered routing features from the project pipeline. Metrics are computed on the held-out strict eval split.
 
-BigDAWG~\cite{bigdawg2015} pioneered the polystore model, enabling queries that span island-specific query languages (SQL, array, streaming). Their architecture requires users to annotate data affinity explicitly. HIFUN Router automates this annotation via ML. Myria~\cite{myria2017} extends the federated approach with a shared-nothing architecture and inter-operation optimization across heterogeneous backends, though it also relies on manual cost functions.
+\textbf{Reproducibility:} this repository now includes four notebook scaffolds:
+\texttt{notebooks/01\_data\_exploration.ipynb},
+\texttt{notebooks/02\_feature\_analysis.ipynb},
+\texttt{notebooks/03\_model\_training.ipynb},
+\texttt{notebooks/04\_results\_visualization.ipynb}.
 
-\subsection{Learned Query Optimization}
+\section{Results (Honest Numbers)}
+Table~\ref{tab:mainresults} reports the recomputed strict-eval results from current split files.
 
-AutoSteer~\cite{autosteer2023} learns query hint configurations for any black-box SQL engine by evaluating query variants and training a regression model to predict the best execution strategy. HIFUN Router applies a similar philosophy---learning from execution data---but extends it to the cross-engine routing decision rather than intra-engine hint selection. AutoSteer's finding that a compact feature space suffices for good optimizer decisions supports HIFUN Router's 22-feature approach.
-
-LEON~\cite{leon2023} presents a query-level optimizer that uses reinforcement learning to adapt join ordering decisions in PostgreSQL. While operating within a single engine, LEON reports that ML-based plan selection can generalize across workloads when training coverage is sufficient---a challenge HIFUN Router must also address.
-
-Balsa~\cite{balsa2022} learns query optimization from scratch using imitation learning on a reference optimizer, removing the need for pre-collected execution logs. HIFUN Router uses a simpler supervised approach but faces the same cold-start challenge that Balsa addresses---an interesting direction for future work.
-
-Neo~\cite{marcus2019neo} was the first learned query optimizer to outperform PostgreSQL's cost-based optimizer for join ordering. Neo uses tree-structured neural networks over query plan features. HIFUN Router uses a simpler tree ensemble (XGBoost) but targets a higher-level binary routing decision rather than an exponential plan space.
-
-STAGE~\cite{stage2024} predicts query execution time in production Spark environments using gradient-boosted trees over operator-level features. STAGE confirms that tree ensemble models are effective for Spark workload prediction---directly supporting HIFUN Router's classifier choice. Bao~\cite{bao2021} uses Thompson sampling to select query optimizer hints, representing another approach to adapting query execution without invasive optimizer changes.
-
-\subsection{Graph Query Processing and Cross-Model Databases}
-
-G-CORE~\cite{gcore2018} defines a composable graph query language that integrates path expressions with relational projection. HIFUN Router addresses the runtime execution side of the same mixed-model challenge that G-CORE addresses at the language level. SQL/PGQ~\cite{sqlpgq2023} extends SQL with graph pattern matching, representing the standards-track approach to the same problem space.
-
-GraphFrames~\cite{dave2016graphframes} integrates graph computation with Spark SQL by representing graphs as DataFrames. HIFUN Router uses GraphFrames as one of its two target engines and relies on its design for the correctness of the graph execution path. The LDBC Social Network Benchmark~\cite{erling2015ldbc} defines standard mixed graph-relational workloads that HIFUN Router targets for evaluation.
-
-\subsection{Summary}
-
-In summary, while prior work on learned query optimization~\cite{marcus2019neo,balsa2022,autosteer2023,leon2023} focuses on intra-engine decisions and polystore systems~\cite{bigdawg2015,wayang2025,rheem2018} focus on physical-level routing with hand-crafted cost functions, HIFUN Router studies the specific SQL vs.\ Graph routing decision at the algebraic subexpression level, using a learned classifier over a feature vector that combines graph topology statistics with relational cardinality estimates.
-
-% ═════════════════════════════════════════════════════════════════════
-%  III. SYSTEM ARCHITECTURE
-% ═════════════════════════════════════════════════════════════════════
-\section{System Architecture}
-
-The HIFUN Router pipeline consists of five major stages, shown in Fig.~\ref{fig:architecture}. A HIFUN-inspired query expressed in JSON DSL enters the \textit{Parser}, which validates and constructs an AST. The \textit{Decomposer} partitions the AST into SubExpressions. A \textit{Feature Extractor} computes a 22-dimensional vector per SubExpression, which is fed into the \textit{ML Classifier} for engine prediction. Finally, the \textit{Execution Layer} dispatches each SubExpression to its assigned engine, and the \textit{Result Composer} merges partial outputs into the final result.
+\begin{table}[h]
+\centering
+\caption{Strict Eval Results (58 rows, recomputed)}
+\label{tab:mainresults}
+\begin{tabular}{lccccc}
+\toprule
+Model & Acc. & F1 & Prec. & Rec. & PR-AUC \\
+\midrule
+AlwaysSQL & 0.5345 & 0.0000 & 0.0000 & 0.0000 & 0.4655 \\
+TraversalRule & 0.9655 & 0.9643 & 0.9310 & 1.0000 & 0.9310 \\
+LogRegBalanced & 0.9655 & 0.9643 & 0.9310 & 1.0000 & 0.9354 \\
+DecisionTreeBalanced & 0.9655 & 0.9643 & 0.9310 & 1.0000 & 0.9286 \\
+XGBoostBalanced & 0.9655 & 0.9643 & 0.9310 & 1.0000 & 0.9298 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[h]
 \centering
-\small
-\begin{verbatim}
-  DSL Query --> Parser --> Decomposer
-                              |
-                     Feature Extractor
-                       (22-dim vector)
-                              |
-                      ML Classifier
-                     (DT/XGBoost, <1ms)
-                        /         \
-                   SQL Engine   Graph Engine
-                  (Spark SQL)  (GraphFrames)
-                        \         /
-                     Result Composer
-                           |
-                      Final Result
-\end{verbatim}
-\caption{HIFUN Router pipeline architecture.}
-\label{fig:architecture}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    width=0.95\columnwidth,
+    height=0.42\columnwidth,
+    ymin=0,ymax=1.0,
+    ylabel={F1},
+    symbolic x coords={AlwaysSQL,TraversalRule,LogReg,DecisionTree,XGBoost},
+    xtick=data,
+    x tick label style={rotate=25,anchor=east,font=\footnotesize},
+    nodes near coords,
+    nodes near coords align={vertical},
+    bar width=9pt
+]
+\addplot coordinates {
+(AlwaysSQL,0.0000)
+(TraversalRule,0.9643)
+(LogReg,0.9643)
+(DecisionTree,0.9643)
+(XGBoost,0.9643)
+};
+\end{axis}
+\end{tikzpicture}
+\caption{Strict-eval F1: learned models tie TraversalRule.}
+\label{fig:f1bar}
 \end{figure}
 
-\subsection{DSL Parser and AST Construction}
-
-The DSL supports five operator types: \texttt{FILTER}, \texttt{MAP}, \texttt{JOIN}, \texttt{TRAVERSAL}, and \texttt{AGGREGATE}. Each operation is represented as a \texttt{QueryNode} dataclass with fields for operation identifier, type, source table or graph, output fields, predicates, join specifications, traversal parameters, aggregation functions, and dependency references.
-
-The \texttt{DSLParser} class validates incoming JSON against a JSON Schema (Draft~7) specification, checks for duplicate operation identifiers, resolves dependency references, detects circular dependencies via DFS graph coloring, and produces a topologically sorted list of \texttt{QueryNode} objects using Kahn's algorithm~\cite{kahn1962topological}.
-
-\subsection{Query Decomposer}
-
-The \texttt{QueryDecomposer} partitions a sorted list of QueryNodes into \texttt{SubExpression} routing units following three decomposition rules:
-
-\begin{enumerate}[leftmargin=*]
-  \item \textbf{TRAVERSAL isolation:} Each TRAVERSAL node forms its own SubExpression, ensuring graph operations are isolated for GRAPH engine routing.
-  \item \textbf{Relational chaining:} Contiguous sequences of FILTER, JOIN, and AGGREGATE nodes are grouped into a single SQL SubExpression to minimize cross-engine data transfers.
-  \item \textbf{MAP merging:} MAP (projection) nodes are merged with their parent SubExpression to prevent unnecessary fragmentation.
-\end{enumerate}
-
-Cross-SubExpression dependencies are tracked to enable dependency-aware execution. SubExpressions with no shared upstream dependencies are marked as \texttt{parallelizable}, enabling concurrent execution within the same topological level.
-
-\subsection{Feature Extraction}
-
-Each SubExpression is characterized by a 22-dimensional feature vector organized into four groups:
-
-\textbf{(i)~Query Shape Features (8 features):} Per-type operation counts (\texttt{op\_count\_filter}, \texttt{op\_count\_join}, \texttt{op\_count\_traversal}, \texttt{op\_count\_aggregate}, \texttt{op\_count\_map}), AST depth, a binary traversal indicator (\texttt{has\_traversal}), and maximum traversal hops (\texttt{max\_hops}).
-
-\textbf{(ii)~Data Statistics Features (9 features):} Log-scale input and output cardinalities, selectivity (estimated fraction of rows passing filters), graph degree statistics (\texttt{avg\_degree}, \texttt{max\_degree}, \texttt{degree\_skew}), projected column count, index availability heuristic, and join fanout estimate.
-
-\textbf{(iii)~Engine Cost Proxies (3 features):} Estimated shuffle bytes ($\log_{10}(\text{output\_rows} \times \text{avg\_row\_bytes})$), estimated traversal operations ($\text{start\_vertices} \times \text{avg\_degree}^{\text{max\_hops}}$), and number of distinct tables referenced.
-
-\textbf{(iv)~Historical Features (2 features):} Average past runtime and runtime variance for similar SubExpression fingerprints, retrieved from a SQLite-backed historical store.
-
-Selectivity is estimated using column-level statistics: equality filters use $1/D$ where $D$ is the distinct count; range filters use the fraction of the column domain remaining; \texttt{LIKE} predicates use a heuristic factor of 0.1.
-
-\noindent\textbf{Collinearity Analysis.}~Variance Inflation Factors (VIF) for all 22 features, computed via \texttt{model/feature\_analysis.py} on the 341-sample labeled dataset (Table~\ref{tab:vif}), reveal substantial multicollinearity among traversal-related features. The top-five VIF scores are: \texttt{max\_degree}~(304.22), \texttt{avg\_degree}~(303.04), \texttt{degree\_skew}~(242.44), \texttt{op\_count\_traversal}~(225.67), and \texttt{has\_traversal}~(221.59). Join-related features (\texttt{op\_count\_join}~76.91, \texttt{ast\_depth}~64.71, \texttt{num\_tables\_joined}~53.37, \texttt{op\_count\_filter}~47.62) show moderate collinearity. Cost-proxy features (\texttt{output\_cardinality\_log}~46.97, \texttt{estimated\_shuffle\_bytes\_log}~39.37) are collinear with the cardinality group as expected since they are derived quantities. Historical features are nearly uncorrelated (\texttt{hist\_runtime\_variance}~1.13, \texttt{hist\_avg\_runtime\_ms}~1.04). High VIF does not impair tree ensemble classifiers, which partition the feature space axis by axis and are insensitive to multicollinearity; however, it motivates feature consolidation or regularized linear models when transitioning to real-engine labels, where finer-grained predictors in the traversal group may be needed independently.
-
-\begin{table}[h]
+\begin{figure}[h]
 \centering
-\caption{Variance Inflation Factor (VIF) per Feature (341-sample dataset)}
-\label{tab:vif}
-\begin{tabular}{lcl}
-\toprule
-\textbf{Feature} & \textbf{VIF} & \textbf{Level} \\
-\midrule
-\texttt{max\_degree}                   & 304.22 & Severe ($>$10) \\
-\texttt{avg\_degree}                   & 303.04 & Severe \\
-\texttt{degree\_skew}                  & 242.44 & Severe \\
-\texttt{op\_count\_traversal}           & 225.67 & Severe \\
-\texttt{has\_traversal}                & 221.59 & Severe \\
-\texttt{op\_count\_join}               &  76.91 & Severe \\
-\texttt{ast\_depth}                    &  64.71 & Severe \\
-\texttt{num\_tables\_joined}            &  53.37 & Severe \\
-\texttt{op\_count\_filter}             &  47.62 & Severe \\
-\texttt{output\_cardinality\_log}       &  46.97 & Severe \\
-\texttt{estimated\_shuffle\_bytes\_log} &  39.37 & Severe \\
-\texttt{op\_count\_aggregate}           &  29.70 & Severe \\
-\texttt{selectivity}                   &  26.40 & Severe \\
-\texttt{max\_hops}                     &  24.54 & Severe \\
-\texttt{input\_cardinality\_log}        &   6.52 & Moderate ($>$5) \\
-\texttt{estimated\_traversal\_ops}      &   5.71 & Moderate \\
-\texttt{join\_fanout}                  &   5.64 & Moderate \\
-\texttt{op\_count\_map}                &   5.41 & Moderate \\
-\texttt{has\_index}                    &   4.85 & Low ($<$5) \\
-\texttt{num\_projected\_columns}        &   2.29 & Low \\
-\texttt{hist\_runtime\_variance}        &   1.13 & Low \\
-\texttt{hist\_avg\_runtime\_ms}         &   1.04 & Low \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar stacked,
+    width=0.95\columnwidth,
+    height=0.40\columnwidth,
+    ymin=0,ymax=300,
+    ylabel={Rows},
+    symbolic x coords={StrictTotal,Train,Eval},
+    xtick=data,
+    legend style={at={(0.5,1.02)},anchor=south,legend columns=2,font=\footnotesize},
+    bar width=13pt
+]
+\addplot coordinates {(StrictTotal,151) (Train,120) (Eval,31)};
+\addplot coordinates {(StrictTotal,137) (Train,110) (Eval,27)};
+\legend{SQL,GRAPH}
+\end{axis}
+\end{tikzpicture}
+\caption{Class composition of strict curated and fixed splits.}
+\label{fig:classdist}
+\end{figure}
 
-\subsection{ML Classifier}
+\textbf{Uncertainty.} Bootstrap on strict eval for XGBoost gives F1 95\% CI \([0.9057, 1.0000]\), median 0.9667 (2000 resamples). With only 58 eval rows, small changes can move point estimates.
 
-Two classifiers are trained on the extracted feature vectors:
-
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Decision Tree:} \texttt{DecisionTreeClassifier} with $\text{max\_depth}=6$ and $\text{min\_samples\_leaf}=10$, chosen for interpretability.
-  \item \textbf{XGBoost:} \texttt{XGBClassifier} with 200 estimators, $\text{max\_depth}=5$, $\text{learning\_rate}=0.05$, $\text{subsample}=0.8$, and $\text{colsample\_bytree}=0.8$, serving as the primary high-accuracy classifier.
+\section{What This Project Demonstrates vs. Does Not}
+\textbf{Supported by evidence:}
+\begin{itemize}
+\item End-to-end hybrid routing system is implemented and testable.
+\item Learned routing can match simple heuristic quality on current strict split.
+\item Strict artifacts and notebook scaffolds improve reproducibility.
 \end{itemize}
 
-Both models are evaluated using 5-fold stratified cross-validation, and the model with the highest mean CV F1 score is selected as the production classifier. A heuristic fallback (TRAVERSAL $\rightarrow$ GRAPH, otherwise $\rightarrow$ SQL) is used when no trained model is available.
-
-\subsection{Execution Engines}
-
-\textbf{SQL Generator.} The \texttt{SQLGenerator}/\texttt{pandas\_sql\_generator.py} class implements relational operators over pandas DataFrames: \texttt{FILTER} via boolean indexing, \texttt{JOIN} via \texttt{pd.merge()}, \texttt{AGGREGATE} via \texttt{groupby().agg()}, and \texttt{MAP} via column projection. For graph data routed incorrectly to SQL, a deliberately slow iterative self-join BFS is provided to demonstrate suboptimality. Phase~2 introduces \texttt{SparkSQLGenerator} (\texttt{execution/spark\_sql\_generator.py}), which translates SubExpressions into real PySpark DataFrame operations with Catalyst predicate pushdown, AQE-based dynamic partition coalescing, automatic broadcast join for tables below 100{,}000 rows, and HDFS-backed Parquet reads. Both generators share a common cache dictionary so upstream SubExpression results are reused without reserialization.
-
-\textbf{Graph Generator.} The \texttt{GraphGenerator}/\texttt{python\_graph\_generator.py} class implements graph traversals using adjacency-list BFS: starting vertices are identified via a start vertex filter, and edges are expanded iteratively up to \texttt{max\_hops} using precomputed \texttt{out\_adj} and \texttt{in\_adj} lookup tables supporting \texttt{OUT}, \texttt{IN}, and \texttt{BOTH} traversal directions. Phase~2 introduces \texttt{GraphFramesGenerator} (\texttt{execution/graphframes\_generator.py}), which executes BFS via actual GraphFrames~\cite{dave2016graphframes} using the \texttt{GraphFrame.bfs()} API. Vertices and edges are loaded from Parquet (local or HDFS), cached at the GraphFrame level, and direction handling (\texttt{OUT}/\texttt{IN}/\texttt{BOTH}) is implemented by reversing the edge DataFrame for IN-direction traversals. BFS results are returned as lazy Spark DataFrames; callers materialise them via \texttt{.count()} or \texttt{.toPandas()}.
-
-\textbf{Engine Selection.} The \texttt{HybridRouter} accepts a \texttt{use\_real\_engines} flag (default: \texttt{False}) that controls which generator pair is instantiated. When \texttt{True}, \texttt{SparkSQLGenerator} and \texttt{GraphFramesGenerator} are used; when \texttt{False}, the pandas/Python-BFS generators are used. This allows the full test suite (110 tests) to run without a Spark cluster while the real-engine path is ready for production cluster deployment.
-
-\textbf{Result Composer.} The \texttt{ResultComposer} merges partial DataFrames from both engines. For linear pipelines, the last SubExpression's result is returned directly. For cross-engine dependencies (e.g., a SQL aggregation on graph traversal output), results are joined on common columns.
-
-% ═════════════════════════════════════════════════════════════════════
-%  IV. IMPLEMENTATION
-% ═════════════════════════════════════════════════════════════════════
-\section{Implementation}
-
-\subsection{Technology Stack}
-
-The system is implemented in Python~3.12 with the following major dependencies:
-
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Data Processing:} pandas~2.1.4, NumPy~1.26.3, PyArrow~14.0.2 for in-memory DataFrame operations and Parquet I/O.
-  \item \textbf{Distributed Processing:} PySpark~3.4.2 configured with \texttt{local[*]} mode, 2~GB driver/executor memory, 8 shuffle partitions, and Adaptive Query Execution (AQE) enabled.
-  \item \textbf{Graph Processing:} GraphFrames~0.8.3 (Spark~3.4-compatible) for distributed graph algorithms.
-  \item \textbf{Machine Learning:} scikit-learn~1.4.0 for Decision Tree training and cross-validation; XGBoost~2.0.3 for gradient-boosted classifier; SHAP~0.44.0 for TreeExplainer-based feature importance analysis.
-  \item \textbf{Validation:} jsonschema~4.21.1 for JSON Schema Draft~7 DSL validation.
-  \item \textbf{Visualization:} Matplotlib~3.8.2 and Seaborn~0.13.1 for plotting; Jupyter notebooks for interactive analysis.
+\textbf{Not supported (and therefore not claimed):}
+\begin{itemize}
+\item Learned routing superiority over a simple traversal rule.
+\item Robust cross-dataset generalization across all workload families.
+\item End-to-end latency improvement target (e.g., +10\% median) over rule baseline.
 \end{itemize}
 
-\subsection{Distributed Cluster Infrastructure (Phase~2)}
-
-Phase~2 provisions a nine-service Hadoop~+~Spark cluster via Docker Compose (\texttt{docker-compose up -d}): \texttt{namenode}, \texttt{datanode}, \texttt{resourcemanager}, \texttt{nodemanager}, \texttt{spark-master}, \texttt{spark-worker-1}/\texttt{2} (4~GB RAM, 2~cores each), \texttt{spark-history}, and \texttt{jupyter-lab}; all sharing the \texttt{hifun-net} bridge network with Parquet data and event logs persisted in named Docker volumes. The GraphFrames JAR (\texttt{graphframes:graphframes:0.8.3-spark3.4-s\_2.12}) is auto-downloaded via \texttt{SPARK\_PACKAGES} at container start. The cluster is the target environment for the real-engine label collection described in Section~\ref{sec:phase2_labels}.
-
-\subsection{Real Execution Engine Implementation (Phase~2)}\label{sec:phase2_engines}
-
-Phase~2 introduces two new execution backends that replace the pandas/Python-BFS simulation with genuine distributed processing.
-
-\subsubsection{SparkSQLGenerator}
-
-\texttt{execution/spark\_sql\_generator.py} translates SQL-routed SubExpressions into PySpark DataFrame API calls. Key design choices:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Predicate pushdown:} FILTER conditions are expressed as Spark column objects (\texttt{F.col(c) == v} etc.), allowing Catalyst to push them into Parquet row-group statistics and skip irrelevant row groups at the file level.
-  \item \textbf{Broadcast join:} Tables whose Parquet count is below 100{,}000 rows are wrapped with \texttt{F.broadcast()}, eliminating shuffle for small-table joins.
-  \item \textbf{Temp view registration:} Each loaded table is registered as a Spark SQL temporary view (\texttt{createOrReplaceTempView}), enabling SQL-level debugging and query plan inspection via EXPLAIN.
-  \item \textbf{Shared cache:} A dictionary mapping \texttt{op\_id} to Spark DataFrame is shared across SubExpressions so upstream results are not recomputed.
-  \item \textbf{HDFS support:} An optional \texttt{hdfs\_root} parameter resolves table paths under HDFS before falling back to local Parquet, enabling the same generator to run on both laptop and cluster.
+\section{Threats to Validity}
+\begin{itemize}
+\item \textbf{Small eval sample:} strict eval has 58 rows.
+\item \textbf{Narrow dataset coverage:} strict curated data is SNB/OGB only.
+\item \textbf{Transfer instability:} broader dataset-shift artifacts include zero-F1 regimes and single-class-train failures.
+\item \textbf{Implementation confounders:} some mixed-query correctness issues remain around multi-hop traversal schema normalization.
 \end{itemize}
 
-\subsubsection{GraphFramesGenerator}
-
-\texttt{execution/graphframes\_generator.py} executes TRAVERSAL SubExpressions via actual GraphFrames BFS. Key design choices:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Graph loading:} Vertices and edges are read from \texttt{<graph\_dir>/<name>\_vertices.parquet} and \texttt{<name>\_edges.parquet}. Edge schema requires \texttt{src}, \texttt{dst} (both \texttt{LongType} or \texttt{StringType}) and \texttt{relationship} (\texttt{StringType}) columns.
-  \item \textbf{GraphFrame caching:} Loaded \texttt{GraphFrame} objects are cached in a dictionary to avoid repeated Parquet reads across traversal SubExpressions on the same graph. Vertices and edges DataFrames are cached in Spark memory via \texttt{.cache()} for graphs under 2~million vertices.
-  \item \textbf{Direction handling:} For IN-direction traversals, the edge DataFrame is reversed (\texttt{src}/\texttt{dst} swapped) before constructing the GraphFrame, making the BFS semantically correct without requiring pre-stored reverse edges.
-  \item \textbf{Result extraction:} BFS produces a row for each distinct path (columns: \texttt{from}, \texttt{e0}, \texttt{v1}, ..., \texttt{to}). Destination vertex fields are extracted from the \texttt{to} struct, and \texttt{.distinct()} is applied to deduplicate reachable vertices.
-\end{itemize}
-
-\subsection{Real Execution Label Collection Infrastructure (Phase~2)}\label{sec:phase2_labels}
-
-To replace the heuristic cost-model labels with real-measured runtimes, Phase~2 implements two components targeting $\geq$500 labeled SubExpressions.
-
-\subsubsection{Measurement Script}
-
-\texttt{training\_data/real\_collection\_script.py} iterates over all DSL queries in \texttt{dsl/sample\_queries/}, parses and decomposes each into SubExpressions, extracts the 22-dimensional feature vector, and measures execution time on both engines using a warmup-then-measure protocol: 2~warm-up runs discard JVM startup transients; the median of 3~subsequent measured runs is recorded as the label latency. Spark DataFrames are force-materialized via \texttt{.count()} to capture full end-to-end time including lazy evaluation. The label is assigned as \texttt{GRAPH} if \texttt{graph\_median\_ms} $<$ \texttt{sql\_median\_ms}, and \texttt{SQL} otherwise. Output columns include \texttt{sql\_median\_ms}, \texttt{sql\_std\_ms}, \texttt{graph\_median\_ms}, \texttt{graph\_std\_ms}, \texttt{speedup} ($t_{\text{SQL}} / t_{\text{graph}}$), \texttt{label}, and \texttt{label\_source = ``real\_measurement''}.
-
-\subsubsection{Query Variant Generator}
-
-\texttt{training\_data/query\_generator.py} generates DSL query variants by sweeping three axes:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Filter selectivity:} Varies predicate threshold values to produce selectivities from near-zero to 1.0, annotated as \texttt{\_selectivity\_hint} in the predicate spec.
-  \item \textbf{Traversal depth:} For each TRAVERSAL query, generates variants with \texttt{max\_hops} $\in \{1, 2, 3, 4\}$.
-  \item \textbf{Join combinations:} Generates left/inner/right join variants over the TPC-H customer-orders table pair.
-\end{itemize}
-Variants are written to separate JSON files (\texttt{synthetic\_traversal\_variants.json}, \texttt{snb\_traversal\_variants.json}, \texttt{tpch\_join\_variants.json}) and are consumed by the measurement script to expand the labeled dataset from the 186-sample simulation baseline.
-
-\subsection{Cross-Dataset Generalization Experiment (Phase~2)}\label{sec:phase2_cross}
-
-\texttt{experiments/cross\_dataset\_generalization.py} implements a leave-one-dataset-out generalization protocol. For each ordered pair (train\_dataset, test\_dataset):
-\begin{enumerate}[leftmargin=*]
-  \item An XGBoost classifier is trained on all samples from \texttt{train\_dataset}.
-  \item The model is evaluated on \texttt{test\_dataset} (zero-shot cross-dataset performance).
-  \item The model is fine-tuned on a randomly selected 20\% of \texttt{test\_dataset} samples (using a stratified split) and re-evaluated.
-\end{enumerate}
-The experiment produces \texttt{cross\_dataset\_results.csv} with columns \texttt{train\_dataset}, \texttt{test\_dataset}, \texttt{f1\_base}, \texttt{f1\_finetuned}, and \texttt{f1\_improvement}, as well as a pair of heatmap PDFs showing base and fine-tuned F1 across all dataset pairs.
-
-\subsection{Scale Factor Experiments (Phase~2)}\label{sec:phase2_sf}
-
-\texttt{experiments/scale\_factor\_experiment.py} evaluates all routing strategies at TPC-H Scale Factor~1 (customer: 150{,}000 rows; orders: $\sim$1.5M rows) and Scale Factor~5 (customer: 750{,}000 rows; orders: $\sim$7.5M rows). TPC-H~SF=5 data is generated from the official \texttt{dbgen} tool via \texttt{data/scripts/generate\_tpch\_sf5.sh} and converted to Parquet in \texttt{data/parquet/tpch\_sf5/}. The experiment measures end-to-end latency (including Spark materialization via \texttt{.count()}) for five strategies --- \texttt{always\_sql}, \texttt{always\_graph}, \texttt{threshold}, \texttt{logreg}, \texttt{learned\_xgb} --- reporting median and p95 latency per strategy and query. Results are written to \texttt{scale\_factor\_results.csv} and \texttt{scale\_factor\_summary.csv}.
-
-\subsection{Data Sources}
-
-Three benchmark datasets are employed, combining an industry-standard relational benchmark with synthetically generated graph data. Table~\ref{tab:datasets} summarizes their characteristics.
-
-\begin{table}[h]
-\centering
-\caption{Dataset Summary}
-\label{tab:datasets}
-\begin{tabular}{llll}
-\toprule
-\textbf{Dataset} & \textbf{Type} & \textbf{Origin} & \textbf{Size} \\
-\midrule
-TPC-H      & Relational & Real benchmark & 150K + 1.5M rows \\
-Synthetic   & Graph      & Generated      & 7{,}169 V, 49{,}975 E \\
-LDBC SNB (SF=0.1)  & Mixed      & Generated      & 5K persons, ${\sim}$25K edges \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{A. TPC-H (Real-World Benchmark).}
-TPC-H~\cite{tpch2022} is an industry-standard decision-support benchmark maintained by the Transaction Processing Performance Council. Raw data is generated using the official \texttt{dbgen} tool from the TPC-H kit at Scale Factor~1, producing pipe-delimited \texttt{.tbl} files that are subsequently converted to Apache Parquet format via PySpark. Two tables are used: \texttt{customer} (150{,}000 rows, 8~columns including \texttt{c\_custkey}, \texttt{c\_name}, \texttt{c\_nationkey}, \texttt{c\_acctbal}, \texttt{c\_mktsegment}) and \texttt{orders} ({$\sim$}1.5M rows, 9~columns including \texttt{o\_orderkey}, \texttt{o\_custkey}, \texttt{o\_totalprice}, \texttt{o\_orderdate}). Column-level statistics are precomputed: \texttt{c\_custkey} has 150{,}000 distinct values (primary key); \texttt{c\_nationkey} has 25 distinct values (range 0--24); \texttt{c\_acctbal} has 140{,}187 distinct values ($-999.99$ to $9{,}999.99$). These statistics feed into the feature extractor's selectivity estimation for FILTER and JOIN operations. TPC-H data exclusively exercises the relational (SQL) execution path and provides realistic cardinality distributions for cost proxy features.
-
-\textbf{B. Synthetic Graph (Generated).}
-A power-law graph is generated programmatically using the NetworkX library's Barab\'{a}si--Albert preferential attachment model~\cite{barabasi1999emergence}. The generation parameters are: $n = 10{,}000$ initial nodes (7{,}169 retained after graph construction), $m = 5$ edges per new node, and random seed 42 for reproducibility. The resulting graph has 7{,}169 vertices and 49{,}975 edges, with an average degree of 6.97, maximum degree of 465, and degree standard deviation of 16.01 (skew ratio $\sigma / \mu \approx 2.30$), characteristic of real-world social and information networks. Vertices are stored as Parquet with columns \texttt{(id, attr1)}, and edges as Parquet with columns \texttt{(src, dst, relationship=``KNOWS'')}. This dataset exercises the graph execution path (BFS traversals) and provides the degree distribution features (\texttt{avg\_degree}, \texttt{max\_degree}, \texttt{degree\_skew}) that are critical for routing decisions. Multiple degree configurations ($m \in \{2, 5, 10, 20, 50\}$) can be generated for sensitivity analysis.
-
-\textbf{C. LDBC SNB Data.}
-We use data generated following the LDBC Social Network Benchmark (SNB)~\cite{erling2015ldbc} specification at Scale Factor~0.1, producing approximately 5{,}000 persons, 20{,}000 posts, 50{,}000 comments, and 25{,}000 person-knows-person edges. When official LDBC datagen output is available (via the Docker-based generator), it is converted directly; otherwise a synthetic SNB-like dataset with matching schema and scale is generated as a reproducible fallback. This dataset provides the mixed graph-plus-relational workloads essential for evaluating cross-engine query decomposition---e.g., traversing friend-of-friend relationships (graph) then aggregating post counts (SQL).
-
-\subsection{Training Data Collection and Labeling}
-
-The labeled training dataset (186 base samples, expanded to 186 with augmentation; 126 SQL, 60 GRAPH) is generated through a five-step pipeline:
-
-\begin{enumerate}[leftmargin=*]
-  \item \textbf{Query Parsing:} All DSL queries from three query files (\texttt{tpch\_queries.json}, \texttt{snb\_queries.json}, \texttt{synthetic\_queries.json}) are parsed into QueryNode ASTs.
-  \item \textbf{Decomposition:} Each query is decomposed into SubExpressions (routing units).
-  \item \textbf{Feature Extraction:} A 22-dimensional feature vector is extracted per SubExpression using precomputed table and graph statistics.
-  \item \textbf{Runtime Simulation:} A heuristic cost model simulates execution time on both engines. The SQL cost model assigns a base cost of $10 + 0.001 \times |\text{input}|$~ms with additive penalties for filters (+3~ms), joins (+$20 + 0.003 \times |\text{input}| \times \sigma$~ms), and a heavy traversal penalty (+$80 \times h + 60 \times T_{\text{ops}} + 5 \times d^{\min(h,3)}$~ms, where $h$ is hop count, $T_{\text{ops}}$ is estimated traversal operations, and $d$ is average degree). The graph cost model assigns a low base cost for traversals ($8 + 0.3 \times |V_s| \times h + 0.005 \times |V_s| \times d^{\min(h,3)}$~ms) but higher costs for non-traversal relational operations ($35 + 0.004 \times |\text{input}|$~ms). Uniform noise $\mathcal{U}(0.85, 1.15)$ is applied to simulate runtime variance.
-  \item \textbf{Label Assignment:} Each SubExpression is labeled \texttt{GRAPH} if $t_{\text{graph}} < t_{\text{sql}}$, and \texttt{SQL} otherwise. Data augmentation with Gaussian noise ($\sigma = 5\%$ of feature value) and a factor of $10\times$ can be applied to improve class balance and training set diversity.
-\end{enumerate}
-
-This simulation-based labeling approach enables rapid, reproducible training data generation without requiring expensive real-engine measurements, while the cost model's structure ensures the labels reflect plausible performance tradeoffs between the two engine types.
-
-\textbf{Simulation Validity.} The cost model uses additive penalty terms calibrated to approximate observed relative performance between SQL joins and BFS traversals at small scale. Uniform multiplicative noise $\mathcal{U}(0.85, 1.15)$ is applied to simulate realistic runtime variance. While this approach enables rapid, reproducible label generation, the resulting classifier learns the cost model's decision boundaries rather than real engine behavior. We treat these results as a proof-of-concept demonstrating system correctness and pipeline functionality; real-engine execution measurements are the subject of ongoing work.
-
-\subsection{DSL Query Specification}
-
-Queries are authored as JSON documents conforming to the DSL schema. Each query contains a unique \texttt{query\_id} and a list of operations. Operations declare their type, source (table name or upstream operation reference), output fields, and type-specific parameters: predicates for FILTER (supporting \texttt{=}, \texttt{>}, \texttt{<}, \texttt{>=}, \texttt{<=}, \texttt{IN}, \texttt{LIKE} operators), join specifications (left/right keys, join type), traversal parameters (start vertex filter, edge label, direction, max hops), and aggregation functions (\texttt{SUM}, \texttt{COUNT}, \texttt{AVG}, \texttt{MAX}, \texttt{MIN}).
-
-\subsection{Orchestration and Execution}
-
-The \texttt{HybridRouter} class orchestrates the full pipeline. For each input query, it invokes the parser, decomposer, and feature extractor sequentially. SubExpressions are grouped into topological execution levels: Level~0 contains SubExpressions with no dependencies; Level~$k$ depends only on Levels~$0 \ldots k{-}1$. Within each level, independent SubExpressions may be executed concurrently. The router supports three modes: (1)~ML-routed (default), (2)~SQL-forced (\texttt{force\_engine='SQL'}), and (3)~GRAPH-forced (\texttt{force\_engine='GRAPH'}) for baseline comparison. A \texttt{custom\_router} callable can also be injected to evaluate arbitrary routing strategies (e.g., \texttt{ThresholdBaseline}, \texttt{LogisticRegressionBaseline}) without subclassing.
-
-The \texttt{use\_real\_engines} flag (default: \texttt{False}) controls which execution backend is instantiated. When \texttt{False}, \texttt{SQLGenerator} (pandas) and \texttt{GraphGenerator} (Python BFS) are used, allowing the full 110-test suite to execute without a Spark cluster. When \texttt{True}, \texttt{SparkSQLGenerator} and \texttt{GraphFramesGenerator} are instantiated using an injected \texttt{SparkSession}, enabling real distributed execution on the nine-service Docker cluster. Detailed timing telemetry is collected at each pipeline stage.
-
-% ═════════════════════════════════════════════════════════════════════
-%  V. RESULTS
-% ═════════════════════════════════════════════════════════════════════
-\section{Results}
-
-\subsection{Strict Real-Data Headline Results (April 2026)}
-
-All headline model-quality claims are anchored to the strict real-measurement artifacts generated from:
-\texttt{training\_data/real\_labeled\_runs\_strict\_curated.csv},
-\texttt{training\_data/fixed\_train\_base\_strict.csv}, and
-\texttt{training\_data/fixed\_eval\_set\_strict.csv}.
-
-The strict quality gate report confirms non-degenerate support for both classes:
-288 total rows (151 SQL, 137 GRAPH), train split 231 rows (121 SQL, 110 GRAPH), and eval split 57 rows (30 SQL, 27 GRAPH), with 100\% real-measurement labels.
-
-Table~\ref{tab:strict_headline} summarizes strict evaluation quality from
-\texttt{experiments/results/relevance\_eval\_strict.md}. Importantly, the
-TraversalRule baseline ties all tested learned models on this split.
-
-\begin{table}[h]
-\centering
-\caption{Strict Real-Data Headline Metrics (Held-Out Eval, 57 rows)}
-\label{tab:strict_headline}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Model} & \textbf{Accuracy} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} \\
-\midrule
-Always SQL & 0.526 & 0.000 & 0.000 & 0.000 \\
-TraversalRule & 0.982 & 0.982 & 0.964 & 1.000 \\
-Threshold Rule & 0.965 & 0.963 & 0.963 & 0.963 \\
-Logistic Regression & 0.982 & 0.982 & 0.964 & 1.000 \\
-Decision Tree & 0.982 & 0.982 & 0.964 & 1.000 \\
-XGBoost & 0.982 & 0.982 & 0.964 & 1.000 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-With only 57 eval rows, uncertainty remains material. Robustness diagnostics
-therefore need to be interpreted with care, and we avoid claiming statistically
-meaningful superiority of learned routing over simple heuristics from this split
-alone. Broader transfer artifacts in this repository also include failure cases
-with F1 near 0 under alternate dataset definitions, reinforcing that
-generalization is currently unresolved.
-
-\subsection{Legacy Simulation Snapshot (Archived Context)}
-
-We retain simulation-labeled model outputs only as engineering history. Those
-artifacts were generated from a heuristic cost model and are therefore not used
-as evidence of real execution quality. Detailed simulation tables are omitted in
-this revision to avoid conflating synthetic labels with measured engine behavior.
-
-\subsection{Feature Importance Analysis}
-
-Archived SHAP and gain-based rankings consistently place traversal-related
-features (e.g., \texttt{has\_traversal}, \texttt{max\_hops}, \texttt{avg\_degree})
-at the top under simulation labels.
-
-We treat this as a plausibility check, not as evidence that these features are
-the dominant drivers under real Spark/GraphFrames execution.
-
-\subsection{Feature Ablation Study}
-
-Archived ablation on simulation labels is similarly degenerate (near-flat /
-near-perfect under very small feature subsets), which reinforces that simulation
-results should not be used for contribution claims about feature engineering.
-The relevant question is feature utility under real-measurement labels.
-
-\subsection{Query Decomposition Statistics}
-
-Across benchmark queries, decomposition produces multiple dependency-aware
-SubExpressions per query and preserves expected operator groupings
-(FILTER/JOIN/AGGREGATE chains and isolated TRAVERSAL units). This validates the
-orchestration path independently of classifier superiority.
-
-\subsection{Routing Accuracy Comparison}
-
-Legacy simulation-era comparisons are retained for historical context only and are
-not used as the paper's primary evidence. Because those labels are generated by a
-heuristic cost model, they should not be interpreted as proof of real execution
-benefit over simple rule-based routing. The strict real-measurement table above is
-the authoritative headline result in this revision.
-
-\subsection{Routing Inference Overhead}
-
-ML inference adds negligible overhead to the query execution pipeline. The average prediction time per SubExpression is under 1~ms (mean $\approx 0.1$--$0.5$~ms), which is orders of magnitude smaller than actual query execution times. The end-to-end pipeline breakdown shows that parsing, decomposition, and feature extraction combined contribute less than 15\% of total execution time, with the execution phase dominating at approximately 70\%.
-
-\subsection{Correctness Verification}\label{sec:correctness}
-
-All ML-routed query results are verified against a naive \texttt{ReferenceExecutor} that evaluates all operations sequentially in-memory without engine routing. Correctness is checked at three levels: (1)~row count agreement, (2)~column schema agreement, and (3)~SHA-256 checksum equality over sorted, canonicalized output values. Per-column MD5 checksums additionally enable fine-grained mismatch diagnosis. Table~\ref{tab:correctness} reports the per-query verification outcome.
-
-\begin{table}[h]
-\centering
-\caption{Per-Query Correctness Verification (SHA-256 Checksum)}
-\label{tab:correctness}
-\begin{tabular}{llcccc}
-\toprule
-\textbf{Query} & \textbf{Dataset} & \textbf{Rows} & \textbf{Cols} & \textbf{SHA-256} & \textbf{Pass} \\
-\midrule
-q\_tpch\_001 & TPC-H  & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_tpch\_002 & TPC-H  & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_tpch\_003 & TPC-H  & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_tpch\_004 & TPC-H  & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_tpch\_005 & TPC-H  & \checkmark & \checkmark & \checkmark & \checkmark \\
-\midrule
-q\_synth\_001 & Synthetic & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_synth\_002 & Synthetic & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
-q\_synth\_003 & Synthetic & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_synth\_004 & Synthetic & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_synth\_005 & Synthetic & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
-q\_synth\_006 & Synthetic & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_synth\_007 & Synthetic & \checkmark & \checkmark & \checkmark & \checkmark \\
-q\_synth\_008 & Synthetic & \checkmark & \ding{55} & \ding{55} & \ding{55} \\
-\midrule
-q\_snb\_001 & SNB & \checkmark & \ding{55} & \ding{55} & \ding{55} \\
-q\_snb\_002 & SNB & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
-q\_snb\_003 & SNB & \checkmark & \ding{55} & \ding{55} & \ding{55} \\
-q\_snb\_004 & SNB & \checkmark & \ding{55} & \ding{55} & \ding{55} \\
-q\_snb\_005 & SNB & \ding{55} & \checkmark & \ding{55} & \ding{55} \\
-\midrule
-\multicolumn{5}{r}{\textbf{Total passing}} & \textbf{10/18} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent All five TPC-H queries and five synthetic queries (q\_synth\_001, 003, 004, 006, 007) pass full SHA-256 checksum verification. Three synthetic queries fail: q\_synth\_002 (row-count mismatch: ref=1, routed=149), q\_synth\_005 (ref=1 vs.\ routed=95{,}264, indicating a multi-hop BFS fan-out expansion without the expected stopping predicate), and q\_synth\_008 (row count matches but column schema diverges). All five SNB queries fail due to multi-hop BFS column-schema ambiguities introduced when BFS intermediate vertex columns shadow projected output fields; this manifests as extra \texttt{person\_id} / \texttt{name} columns with different orderings in the BFS result struct. Resolving these failures requires explicit field renaming in the \texttt{ResultComposer} for cross-engine schema normalization, identified as a Phase~3 task.
-
-\subsection{Feature Group Ablation (Phase~2)}
-
-To complement single-feature SHAP importance, Phase~2 adds a group-level ablation study that removes all features in a semantic group simultaneously and measures the impact on CV~F1. Table~\ref{tab:ablation_groups} reports the results.
-
-\begin{table}[h]
-\centering
-\caption{Group-Level Feature Ablation (5-Fold CV F1; baseline = 1.000)}
-\label{tab:ablation_groups}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Group Removed} & \textbf{\#~Removed} & \textbf{F1} & \textbf{F1 Drop} \\
-\midrule
-Operation Counts (filter, join, traversal, agg, map) & 5 & 1.000 & 0.000 \\
-Structure (ast\_depth, num\_projected\_cols, num\_tables) & 3 & 1.000 & 0.000 \\
-Graph Features (has\_traversal, max\_hops, deg.*) & 5 & 1.000 & 0.000 \\
-Cardinality (input/output cardinality, selectivity) & 3 & 1.000 & 0.000 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-No feature group removal degrades CV~F1 below 1.000, consistent with the group-level dominance of cost-model labels (linearly separable by traversal presence alone). This motivates replacing simulation labels with real-engine measurements to expose the full 22-dimensional feature space's value.
-
-\subsection{Cross-Dataset Generalization and Scale Factor Experiments (Phase~2)}
-
-The cross-dataset generalization experiment (\texttt{experiments/cross\_dataset\_generalization.py}) evaluates whether an XGBoost classifier trained on one dataset (TPC-H, SNB, or Synthetic) generalizes zero-shot to another, with optional 20\% fine-tuning on the target dataset. The scale factor experiment (\texttt{experiments/scale\_factor\_experiment.py}) compares all routing strategies at TPC-H SF=1 and SF=5, measuring median and p95 end-to-end latency per strategy. Both experiments are fully scripted and infrastructure-validated; quantitative results require the real-engine labeled dataset ($\geq$500 samples) and are pending cluster execution.
-
-\subsection{Threats to Validity}
-
-\textbf{Small evaluation size.} The strict held-out split has 57 rows, so one
-or two predictions can materially shift point metrics.
-
-\textbf{Dataset coverage.} GRAPH-positive evidence is concentrated in a limited
-set of workloads, and several cross-dataset settings are degenerate
-(single-class train splits or near-zero transfer F1).
-
-\textbf{Label-source heterogeneity.} Repository artifacts include both
-simulation-era and real-measurement labels; we mitigate this by treating
-simulation outputs as archival only.
-
-\textbf{Implementation confounders.} Correctness failures in selected mixed
-queries (notably schema normalization around multi-hop traversal outputs) can
-distort end-to-end latency and quality comparisons if not isolated.
-
-\subsection{Test Coverage}
-
-The system includes a comprehensive test suite of 110 passing tests spanning:
-\begin{itemize}[leftmargin=*]
-  \item DSL parser validation and error handling
-  \item Query decomposition correctness
-  \item Feature extraction accuracy
-  \item Model training and prediction
-  \item SQL and Graph engine execution
-  \item End-to-end hybrid routing
-  \item Correctness against reference executor
-  \item Experimental evaluation pipelines
-\end{itemize}
-
-All 110 tests pass across both \texttt{use\_real\_engines=False} (pandas/Python-BFS path) and the Phase~2 generator unit tests that validate \texttt{SparkSQLGenerator} and \texttt{GraphFramesGenerator} logic against mock Spark sessions.
-
-% ═════════════════════════════════════════════════════════════════════
-%  VI. CONCLUSION
-% ═════════════════════════════════════════════════════════════════════
 \section{Conclusion}
+This final report positions the work as a solid systems prototype with transparent evaluation rather than a finished routing-optimization breakthrough. The honest result is a tie between learned models and a simple heuristic on the current strict split. The most valuable next milestone is a larger, truly mixed real-measurement dataset and controlled end-to-end latency experiments against AlwaysSQL, AlwaysGraph, and rule-based routing.
 
-This paper presented HIFUN Router as a prototype for DSL decomposition and
-SQL/GRAPH routing, with both pandas and real Spark/GraphFrames execution paths.
-The main empirical takeaway in the current revision is negative but important:
-on the strict held-out split (57 rows), learned models and a simple TraversalRule
-perform identically (F1 $\approx$ 0.9818), so we do not claim measured routing
-advantage of ML over a lightweight heuristic at this stage.
-
-The evaluation remains limited by sample size, dataset coverage, and transfer
-stability. Cross-dataset artifacts in this repository show mixed behavior,
-including configurations with near-zero F1, and should be treated as unresolved
-generalization risk rather than evidence of robustness. Legacy simulation-labeled
-results are retained as engineering history only.
-
-The practical contribution is an auditable end-to-end system and reproducible
-artifacts, together with a transparent limitations statement. Immediate next work
-is to expand real-measurement labels across more datasets, integrate uncertainty
-intervals into all headline tables, and rerun end-to-end latency comparisons
-against Always-SQL, Always-Graph, and rule-based baselines before making any
-performance-improvement claim.
-
-\section*{Appendix: Claim-to-Evidence Matrix}
-
-Table~\ref{tab:claim_matrix} maps each headline claim in this revision to a concrete
-artifact in the repository.
-
-\begin{table}[h]
-\centering
-\caption{Claim-to-Evidence Matrix}
-\label{tab:claim_matrix}
-\begin{tabularx}{\columnwidth}{>{\raggedright\arraybackslash}p{0.28\columnwidth} >{\raggedright\arraybackslash}p{0.28\columnwidth} >{\raggedright\arraybackslash}X}
-\toprule
-\textbf{Claim} & \textbf{Primary Artifact} & \textbf{Status in This Revision} \\
-\midrule
-Strict held-out tie: learned models vs TraversalRule & \texttt{experiments/results/relevance\_eval\_strict.md} & Reported as tie (no superiority claim). \\
-Dataset-shift instability exists in broader artifacts & \texttt{experiments/results/dataset\_shift\_eval.md} & Reported as unresolved transfer risk. \\
-Small strict eval set and uncertainty matter & \texttt{experiments/results/relevance\_eval\_strict.md} & Explicitly discussed in Results and Threats to Validity. \\
-Real execution path exists in implementation & \texttt{router/hybrid\_router.py}, \texttt{execution/spark\_sql\_generator.py}, \texttt{execution/graphframes\_generator.py} & Reported as implemented system capability, not final performance proof. \\
-Known correctness limitations remain & \texttt{tests/test\_correctness.py} and report correctness table & Reported as open implementation risk. \\
-Reproducibility scaffolding is available & \texttt{notebooks/01\_data\_exploration.ipynb} to \texttt{notebooks/04\_results\_visualization.ipynb} & Added in this patch set for transparent reruns. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-% ═════════════════════════════════════════════════════════════════════
-%  ACKNOWLEDGMENT
-% ═════════════════════════════════════════════════════════════════════
 \section*{Acknowledgment}
+Thanks to the Apache Spark, GraphFrames, scikit-learn, and XGBoost communities.
 
-We thank the open-source communities behind Apache Spark, XGBoost, SHAP, and scikit-learn whose tools made this work possible.
-
-% ═════════════════════════════════════════════════════════════════════
-%  REFERENCES
-% ═════════════════════════════════════════════════════════════════════
 \begin{thebibliography}{00}
-
-\bibitem{lu2019multi}
-J. Lu, Z. Liu, P.~Chrysanthis, and P.~K. Chrysanthis, ``Multi-model data management: What's new and what's next,'' in \textit{Proc. 22nd Int. Conf. Extending Database Technology (EDBT)}, 2019, pp. 614--617.
-
 \bibitem{libkin2022hifun}
-L. Libkin, J. Reutter, A. Calo, and D. Martinenghi, ``HIFUN: A high-level functional query language for Big Data analytics,'' \textit{J. Intell. Inf. Syst.}, vol. 59, pp. 481--501, 2022.
+L. Libkin, J. Reutter, A. Calo, and D. Martinenghi, ``HIFUN: A high-level functional query language for Big Data analytics,'' \textit{J. Intell. Inf. Syst.}, 2022.
 
 \bibitem{armbrust2015spark}
-M. Armbrust, R.~S. Xin, C. Lian, Y. Huai, D. Liu, J.~K. Bradley, X. Meng, T. Kaftan, M.~J. Franklin, A. Ghodsi, and M. Zaharia, ``Spark SQL: Relational data processing in Spark,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2015, pp. 1383--1394.
-
-\bibitem{marcus2019neo}
-R. Marcus, P. Negi, H. Mao, C. Zhang, M. Alizadeh, T. Kraska, O. Papaemmanouil, and N. Tatbul, ``Neo: A learned query optimizer,'' \textit{Proc. VLDB Endow.}, vol. 12, no. 11, pp. 1705--1718, 2019.
-
-\bibitem{kraska2021sagedb}
-T. Kraska, M. Alizadeh, A. Beutel, E.~H. Chi, J. Ding, A. Kristo, G. Leclerc, S. Madden, H. Mao, and V. Nathan, ``SageDB: A learned database system,'' in \textit{Proc. 9th Biennial Conf. Innovative Data Systems Research (CIDR)}, 2019.
-
-\bibitem{kahn1962topological}
-A.~B. Kahn, ``Topological sorting of large networks,'' \textit{Commun. ACM}, vol. 5, no. 11, pp. 558--562, 1962.
-
-\bibitem{barabasi1999emergence}
-A.-L. Barab\'{a}si and R. Albert, ``Emergence of scaling in random networks,'' \textit{Science}, vol. 286, no. 5439, pp. 509--512, 1999.
-
-\bibitem{chen2016xgboost}
-T. Chen and C. Guestrin, ``XGBoost: A scalable tree boosting system,'' in \textit{Proc. 22nd ACM SIGKDD Int. Conf. Knowledge Discovery Data Mining}, 2016, pp. 785--794.
-
-\bibitem{lundberg2017shap}
-S.~M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' in \textit{Advances in Neural Information Processing Systems 30}, 2017, pp. 4765--4774.
+M. Armbrust \emph{et al.}, ``Spark SQL: Relational data processing in Spark,'' in \textit{Proc. SIGMOD}, 2015.
 
 \bibitem{dave2016graphframes}
-A. Dave, A. Jindal, L.~E. Li, R. Xin, J. Gonzalez, and M. Zaharia, ``GraphFrames: An integrated API for mixing graph and relational queries,'' in \textit{Proc. 4th Int. Workshop Graph Data Manage. Experiences Syst. (GRADES)}, 2016, pp. 1--8.
+A. Dave \emph{et al.}, ``GraphFrames: An integrated API for mixing graph and relational queries,'' in \textit{Proc. GRADES}, 2016.
 
 \bibitem{erling2015ldbc}
-O. Erling, A. Averbuch, J. Larriba-Pey, H. Chafi, A. Gubichev, A. Prat-P\'{e}rez, M.-D. Pham, and P. Boncz, ``The LDBC Social Network Benchmark: Interactive Workload,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2015, pp. 619--630.
+O. Erling \emph{et al.}, ``The LDBC Social Network Benchmark,'' in \textit{Proc. SIGMOD}, 2015.
 
-\bibitem{tpch2022}
-Transaction Processing Performance Council, ``TPC-H Benchmark Specification, Revision 3.0.1,'' TPC, 2022. [Online]. Available: \url{http://www.tpc.org/tpch/}
-
-\bibitem{wayang2025}
-K. Beedkar, B. Wermke, J. Quian\'{e}-Ruiz, and V. Markl, ``Apache Wayang: A Unified Data Analytics Framework,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2025.
-
-\bibitem{rheem2018}
-D. Agrawal, S. Chawla, B. Contreras-Rojas, A. Elmagarmid, Y. Idris, Z. Kaoudi, S. Krause, J. Quian\'{e}-Ruiz, and S. Thirumuruganathan, ``Rheem: Enabling Multi-Platform Task Execution,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2018, pp. 2069--2072.
-
-\bibitem{bigdawg2015}
-A.~J. Elmore, J. Duggan, M. Stonebraker, M. Balazinska, U. \c{C}etintemel, V. Gadepally, J. Heer, B. Howe, J. Kepner, T. Kraska, S. Madden, D. Maier, T. Mattson, S. Papadopoulos, J. Parkhurst, N. Tatbul, M. Vartak, and S. Zdonik, ``The BigDAWG Polystore System,'' \textit{ACM SIGMOD Record}, vol. 44, no. 2, pp. 11--16, 2015.
-
-\bibitem{myria2017}
-D. Halperin, V. Teixeira~de~Almeida, L.~L. Choo, S. Chu, P. Koutris, D. Moritz, J. Ortiz, V. Ruamviboonsuk, J. Wang, A. Whitaker, S. Xu, M. Balazinska, B. Howe, and D. Suciu, ``Demonstration of the Myria Big Data Management Service,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2014, pp. 881--884.
-
-\bibitem{autosteer2023}
-C. Anneser, N. Tatbul, D. Cohen, Z. Xu, P. Pandian, P. Skomoroch, and M. Interlandi, ``AutoSteer: Learned Query Optimization for Any SQL Database,'' \textit{Proc. VLDB Endow.}, vol. 16, no. 12, pp. 3515--3527, 2023.
-
-\bibitem{leon2023}
-X. Chen, H. Liu, J. Gao, B. Ding, and J. Zhou, ``LEON: A New Framework for ML-Aided Query Optimization,'' \textit{Proc. VLDB Endow.}, vol. 16, no. 9, pp. 2261--2273, 2023.
+\bibitem{marcus2019neo}
+R. Marcus \emph{et al.}, ``Neo: A learned query optimizer,'' \textit{PVLDB}, 2019.
 
 \bibitem{balsa2022}
-Z. Yang, W.-L. Chiang, S. Luan, G. Mittal, M. Luo, and I. Stoica, ``Balsa: Learning a Query Optimizer Without Expert Demonstrations,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2022, pp. 931--944.
+Z. Yang \emph{et al.}, ``Balsa: Learning a Query Optimizer Without Expert Demonstrations,'' in \textit{Proc. SIGMOD}, 2022.
 
-\bibitem{stage2024}
-L. Tan, J. Giceva, and T. Neumann, ``STAGE: Query Execution Time Prediction in Staged Query Processing,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2024.
+\bibitem{autosteer2023}
+C. Anneser \emph{et al.}, ``AutoSteer: Learned Query Optimization for Any SQL Database,'' \textit{PVLDB}, 2023.
+
+\bibitem{leon2023}
+X. Chen \emph{et al.}, ``LEON: A New Framework for ML-Aided Query Optimization,'' \textit{PVLDB}, 2023.
 
 \bibitem{bao2021}
-R. Marcus, P. Negi, H. Mao, N. Tatbul, M. Alizadeh, and T. Kraska, ``Bao: Making Learned Query Optimization Practical,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2021, pp. 1275--1288.
+R. Marcus \emph{et al.}, ``Bao: Making Learned Query Optimization Practical,'' in \textit{Proc. SIGMOD}, 2021.
 
-\bibitem{gcore2018}
-R. Angles, M. Arenas, P. Barcel\'{o}, A. Hogan, J. Reutter, and D. Vrgo\v{c}, ``Foundations of Modern Query Languages for Graph Databases,'' \textit{ACM Comput. Surv.}, vol. 50, no. 5, pp. 1--40, 2017.
-
-\bibitem{sqlpgq2023}
-A. Deutsch, Y. Francis, C.-C. Hsu, and W. Voigt, ``Graph Pattern Matching in GQL and SQL/PGQ,'' in \textit{Proc. ACM SIGMOD Int. Conf. Manage. Data}, 2022, pp. 2246--2258.
-
+\bibitem{bigdawg2015}
+A. J. Elmore \emph{et al.}, ``The BigDAWG Polystore System,'' \textit{ACM SIGMOD Record}, 2015.
 \end{thebibliography}
 
 \end{document}
