@@ -3,8 +3,7 @@
 > A dynamic query routing framework that parses structured DSL queries, decomposes them into dependency-aware DAGs, extracts a 22-dimensional feature vector, and routes execution to either SQL (Spark SQL / pandas) or Graph (GraphFrames) backends.
 
 📂 **Repository:** [https://github.com/DataScience-ArtificialIntelligence/HybridSQLGraphQueryRoutingSystem](https://github.com/DataScience-ArtificialIntelligence/HybridSQLGraphQueryRoutingSystem)  
-🎥 **2-Minute Demo Video:** [https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing](https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing)  
-🎬 **Demo Runbook (4-min script):** RUN_STREAMLIT_DEMO.md
+🎥 **2-Minute Demo Video:** [https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing](https://drive.google.com/file/d/1PmTvewqPUMJ_vOrPGdnUg_BhPUDZGSv3/view?usp=sharing) 
 ---
 
 ## Current Status (April 2026)
